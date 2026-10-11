@@ -50,17 +50,28 @@ class AuthController
         // 2. Opportunistic cleanup of stale attempts older than 24h
         UserModel::purgeOldAttempts(24);
 
-        // 3. Compute client IP hash
-        $ip = clientIp();
-        $salt = (string) config('security.salt', '');
-        $ipHash = hash('sha256', $ip . $salt);
+        // 3. Read inputs and determine hashes
+        $email       = trim((string) ($_POST['email'] ?? ''));
+        $password    = (string) ($_POST['password'] ?? '');
+        $next        = Auth::isValidAdminRedirect($_POST['next'] ?? null) ? (string) $_POST['next'] : '/admin/dashboard';
+        $ip          = clientIp();
+        $salt        = (string) config('security.salt', '');
+        $ipHash      = hash('sha256', $ip . $salt);
+        $accountHash = $email !== '' ? hash('sha256', strtolower($email) . $salt) : null;
 
-        // 4. Rate limiting: Check failed attempts in the last 15 minutes
-        $attemptsData = UserModel::getFailedAttempts($ipHash, 15);
-        $maxAttempts = (int) config('auth.max_attempts', 5);
+        // 4. Rate limiting: Check failed attempts in the last 15 minutes (IP and Account)
+        $maxIpAttempts      = (int) config('auth.max_attempts', 5);
+        $maxAccountAttempts = (int) config('auth.max_account_attempts', 10);
 
-        if ($attemptsData['count'] >= $maxAttempts) {
-            $oldestTime = strtotime($attemptsData['oldest_attempt'] ?? 'now');
+        $ipAttemptsData      = UserModel::getFailedAttemptsByIp($ipHash, 15);
+        $accountAttemptsData = $accountHash !== null ? UserModel::getFailedAttemptsByAccount($accountHash, 15) : ['count' => 0, 'oldest_attempt' => null];
+
+        $isIpLockedOut      = ($ipAttemptsData['count'] >= $maxIpAttempts);
+        $isAccountLockedOut = ($accountAttemptsData['count'] >= $maxAccountAttempts);
+
+        if ($isIpLockedOut || $isAccountLockedOut) {
+            $lockoutSource = $isIpLockedOut ? $ipAttemptsData : $accountAttemptsData;
+            $oldestTime = strtotime($lockoutSource['oldest_attempt'] ?? 'now');
             $secondsRemaining = max(60, ($oldestTime + (15 * 60)) - time());
             $minutesRemaining = max(1, (int) ceil($secondsRemaining / 60));
 
@@ -74,21 +85,16 @@ class AuthController
                 'pageTitle' => 'Admin Sign In — NatConnect Foundation',
                 'next'      => Auth::isValidAdminRedirect($_POST['next'] ?? null) ? (string) $_POST['next'] : '',
                 'errors'    => [$errorMsg],
-                'email'     => (string) ($_POST['email'] ?? ''),
+                'email'     => $email,
             ], null);
             return;
         }
 
-        // 5. Read inputs
-        $email    = trim((string) ($_POST['email'] ?? ''));
-        $password = (string) ($_POST['password'] ?? '');
-        $next     = Auth::isValidAdminRedirect($_POST['next'] ?? null) ? (string) $_POST['next'] : '/admin/dashboard';
-
-        // 6. Generic failure response
+        // 5. Generic failure response message
         $genericError = 'Invalid email or password.';
 
         if ($email === '' || $password === '') {
-            UserModel::recordFailedLogin($ipHash);
+            UserModel::recordFailedLogin($ipHash, $accountHash);
             View::render('admin/login', [
                 'pageTitle' => 'Admin Sign In — NatConnect Foundation',
                 'next'      => $next,
@@ -98,11 +104,16 @@ class AuthController
             return;
         }
 
-        // 7. Verify credentials
+        // 6. Timing-safe credential verification
         $user = UserModel::findByEmail($email);
 
-        if (!$user || !password_verify($password, $user['password_hash'])) {
-            UserModel::recordFailedLogin($ipHash);
+        // Fixed dummy bcrypt hash to ensure constant-time response regardless of email existence
+        $dummyHash = '$2y$10$EUZwOi9N.YUfqZIbYTJ1sOIh2VuiaaBOAUS4GSzdPXsr/0B56tgZK';
+        $hashToVerify = $user ? (string) $user['password_hash'] : $dummyHash;
+        $passwordValid = password_verify($password, $hashToVerify);
+
+        if (!$user || !$passwordValid) {
+            UserModel::recordFailedLogin($ipHash, $accountHash);
             View::render('admin/login', [
                 'pageTitle' => 'Admin Sign In — NatConnect Foundation',
                 'next'      => $next,
@@ -112,19 +123,19 @@ class AuthController
             return;
         }
 
-        // 8. Rehash password if algorithm/cost parameters updated
-        if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
+        // 7. Rehash password if algorithm/cost parameters updated
+        if (password_needs_rehash((string) $user['password_hash'], PASSWORD_DEFAULT)) {
             $newHash = password_hash($password, PASSWORD_DEFAULT);
             UserModel::updatePassword((int) $user['id'], $newHash);
         }
 
-        // 9. Clear recorded failed attempts for this IP on success
-        UserModel::clearFailedAttempts($ipHash);
+        // 8. Clear recorded failed attempts for both IP and account on success
+        UserModel::clearFailedAttempts($ipHash, $accountHash);
 
-        // 10. Authenticate session with regeneration
+        // 9. Authenticate session with regeneration
         Auth::login($user);
 
-        // 11. Redirect to requested admin route or dashboard
+        // 10. Redirect to requested admin route or dashboard
         redirect($next);
     }
 

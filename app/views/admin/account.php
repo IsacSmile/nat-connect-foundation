@@ -64,6 +64,20 @@
           </div>
         </div>
 
+        <div>
+          <label for="profile_current_password" class="block text-xs font-semibold text-ink-soft mb-1.5">
+            Current Password <span class="font-normal text-ink-muted">(Required only if changing email)</span>
+          </label>
+          <input 
+            type="password" 
+            id="profile_current_password" 
+            name="current_password" 
+            autocomplete="current-password"
+            class="w-full px-3.5 py-2.5 bg-surface border border-border rounded-xl text-sm text-ink focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all min-h-[44px]"
+            placeholder="••••••••••••••••"
+          />
+        </div>
+
         <button 
           type="submit" 
           class="w-full py-2.5 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-xl shadow-soft transition-colors min-h-[44px] flex items-center justify-center gap-2"

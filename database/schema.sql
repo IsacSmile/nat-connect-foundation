@@ -150,8 +150,10 @@ CREATE TABLE IF NOT EXISTS `settings` (
 CREATE TABLE IF NOT EXISTS `login_attempts` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `ip_hash` VARCHAR(64) NOT NULL,
+  `account_hash` VARCHAR(64) NULL,
   `attempted_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  INDEX `idx_login_attempts_ip_time` (`ip_hash`, `attempted_at`)
+  INDEX `idx_login_attempts_ip_time` (`ip_hash`, `attempted_at`),
+  INDEX `idx_login_attempts_account_time` (`account_hash`, `attempted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

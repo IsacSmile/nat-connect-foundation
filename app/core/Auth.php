@@ -30,19 +30,13 @@ class Auth
         ini_set('session.use_cookies', '1');
         ini_set('session.use_only_cookies', '1');
 
-        $isHttps = (
-            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
-            || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
-        );
-
         $lifetime = (int) config('session.lifetime', 86400 * 7);
 
         session_set_cookie_params([
             'lifetime' => $lifetime,
             'path'     => '/',
             'domain'   => '',
-            'secure'   => $isHttps,
+            'secure'   => self::isHttps(),
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
@@ -208,5 +202,34 @@ class Auth
         header('X-Robots-Tag: noindex, nofollow');
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Pragma: no-cache');
+    }
+
+    /**
+     * Check if the current request is over HTTPS.
+     * Checks $_SERVER['HTTPS'] or port 443, and X-Forwarded-Proto ONLY from trusted proxies.
+     */
+    public static function isHttps(): bool
+    {
+        // 1. Direct HTTPS flag
+        if (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
+            return true;
+        }
+
+        // 2. Direct port 443
+        if (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443) {
+            return true;
+        }
+
+        // 3. X-Forwarded-Proto ONLY from trusted proxies
+        $remoteAddr = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        $trustedProxies = (array) config('security.trusted_proxies', []);
+
+        if (!empty($trustedProxies) && isTrustedProxy($remoteAddr, $trustedProxies)) {
+            if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

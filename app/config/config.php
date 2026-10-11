@@ -29,13 +29,15 @@ $defaults = [
         'lifetime' => 86400 * 7, // 7 days
     ],
     'auth' => [
-        'idle_timeout'     => 7200,   // 2 hours idle timeout
-        'absolute_timeout' => 43200,  // 12 hours absolute session lifetime
-        'max_attempts'     => 5,      // Max failed login attempts
-        'lockout_minutes'  => 15,     // Lockout duration in minutes
+        'idle_timeout'         => 7200,   // 2 hours idle timeout
+        'absolute_timeout'     => 43200,  // 12 hours absolute session lifetime
+        'max_attempts'         => 5,      // Max failed login attempts per IP
+        'max_account_attempts' => 10,     // Max failed login attempts per account email hash
+        'lockout_minutes'      => 15,     // Lockout duration in minutes
     ],
     'security' => [
-        'salt' => 'replace-with-a-random-64-char-string-in-config.local.php',
+        'salt'            => 'replace-with-a-random-64-char-string-in-config.local.php',
+        'trusted_proxies' => [], // Array of trusted proxy IPs/CIDRs (e.g. ['10.0.0.1', '172.16.0.0/12']). Default empty.
     ],
 ];
 

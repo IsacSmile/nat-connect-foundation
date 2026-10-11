@@ -172,23 +172,95 @@ if (!function_exists('formatNumberIN')) {
     }
 }
 
+if (!function_exists('isTrustedProxy')) {
+    /**
+     * Check if an IP matches a list of trusted proxy IPs or CIDR blocks.
+     *
+     * @param string $ip
+     * @param array<string> $trustedProxies
+     * @return bool
+     */
+    function isTrustedProxy(string $ip, array $trustedProxies): bool
+    {
+        if (empty($trustedProxies) || empty($ip)) {
+            return false;
+        }
+
+        foreach ($trustedProxies as $proxy) {
+            $proxy = trim((string) $proxy);
+            if ($proxy === '') {
+                continue;
+            }
+
+            // Exact IP match
+            if ($ip === $proxy) {
+                return true;
+            }
+
+            // CIDR notation check (e.g. 192.168.1.0/24 or 10.0.0.0/8)
+            if (str_contains($proxy, '/')) {
+                [$subnet, $maskBits] = explode('/', $proxy, 2);
+                $maskBits = (int) $maskBits;
+
+                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                    $ipLong = ip2long($ip);
+                    $subnetLong = ip2long($subnet);
+                    if ($maskBits >= 0 && $maskBits <= 32) {
+                        $mask = -1 << (32 - $maskBits);
+                        $subnetLong &= $mask;
+                        if (($ipLong & $mask) === $subnetLong) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('clientIp')) {
     /**
      * Determine client IP address safely.
+     * Uses REMOTE_ADDR ONLY by default.
+     * Ignores X-Forwarded-For, CF-Connecting-IP, X-Real-IP unless
+     * 'security.trusted_proxies' is configured and REMOTE_ADDR matches.
      */
     function clientIp(): string
     {
-        if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
-            return (string) $_SERVER['HTTP_CF_CONNECTING_IP'];
+        $remoteAddr = (string) ($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
+        $trustedProxies = (array) config('security.trusted_proxies', []);
+
+        // Default behavior: REMOTE_ADDR ONLY
+        if (empty($trustedProxies) || !isTrustedProxy($remoteAddr, $trustedProxies)) {
+            return $remoteAddr;
         }
+
+        // Only evaluate headers if REMOTE_ADDR is an explicitly trusted reverse proxy
+        if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+            $cfIp = trim((string) $_SERVER['HTTP_CF_CONNECTING_IP']);
+            if (filter_var($cfIp, FILTER_VALIDATE_IP)) {
+                return $cfIp;
+            }
+        }
+
+        if (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+            $realIp = trim((string) $_SERVER['HTTP_X_REAL_IP']);
+            if (filter_var($realIp, FILTER_VALIDATE_IP)) {
+                return $realIp;
+            }
+        }
+
         if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $ips = explode(',', (string) $_SERVER['HTTP_X_FORWARDED_FOR']);
             $first = trim($ips[0]);
-            if ($first !== '') {
+            if (filter_var($first, FILTER_VALIDATE_IP)) {
                 return $first;
             }
         }
-        return (string) ($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
+
+        return $remoteAddr;
     }
 }
 

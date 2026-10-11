@@ -104,12 +104,13 @@ nat-connect-foundation/
 - Temporary preview route verifying fonts, palette, responsive header, and drawer without invented facts.
 
 ### Phase 2: Admin Authentication & Dashboard *(Completed)*
-- **Rate-Limited Authentication**:
+- **Rate-Limited & Timing-Safe Authentication**:
   - `GET /admin/login` & `POST /admin/login` with email, password, CSRF token, and generic error message ("Invalid email or password").
-  - Rate limiting via `login_attempts` table: max 5 failed attempts per SHA-256 IP hash per 15-minute window with dynamic lockout countdown.
+  - Dual rate limiting via `login_attempts` table: max 5 failed attempts per SHA-256 IP hash AND max 10 failed attempts per SHA-256 account email hash (`hash(email+salt)`) per 15-minute window with dynamic lockout countdown.
+  - Timing-safe login: if email is not found, `password_verify()` still executes against a fixed dummy bcrypt hash to ensure constant response times and prevent account enumeration.
   - Opportunistic deletion of attempt logs older than 24 hours on each login submission.
   - Automatic `password_needs_rehash()` check and upgrade on successful authentication.
-  - Clears recorded failed attempts on successful login.
+  - Clears recorded failed attempts for both IP and account upon successful login.
 - **Hardened Session Management**:
   - `session_regenerate_id(true)` and CSRF token rotation on login.
   - Idle timeout: 2 hours (`auth.idle_timeout = 7200`).
@@ -209,3 +210,4 @@ nat-connect-foundation/
        `php -r "echo password_hash('NEWPASS', PASSWORD_DEFAULT);"`
     2. Open Hostinger phpMyAdmin (or MySQL CLI) and run:
        `UPDATE users SET password_hash = '<GENERATED_HASH>' WHERE email = '<ADMIN_EMAIL>';`
+15. **Reverse Proxy & Client IP Verification on Hostinger**: `clientIp()` relies on `REMOTE_ADDR` exclusively by default to prevent IP spoofing attacks. On Hostinger, check what `$_SERVER['REMOTE_ADDR']` outputs; if Hostinger / Cloudflare CDN routes web traffic through a reverse proxy, configure `security.trusted_proxies` in `config.local.php` with the upstream proxy IPs/subnets. Otherwise, if left unconfigured on a reverse proxy, all visitors share one rate-limit bucket.

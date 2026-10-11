@@ -47,9 +47,10 @@ class AccountController
             redirect('/admin/account');
         }
 
-        $userId = (int) Auth::id();
-        $name   = trim((string) ($_POST['name'] ?? ''));
-        $email  = trim((string) ($_POST['email'] ?? ''));
+        $userId          = (int) Auth::id();
+        $name            = trim((string) ($_POST['name'] ?? ''));
+        $email           = trim((string) ($_POST['email'] ?? ''));
+        $currentPassword = (string) ($_POST['current_password'] ?? '');
 
         if ($name === '' || strlen($name) > 150) {
             setFlash('error', 'Please provide a valid full name (maximum 150 characters).');
@@ -61,12 +62,32 @@ class AccountController
             redirect('/admin/account');
         }
 
-        if (UserModel::isEmailTakenByOther($email, $userId)) {
-            setFlash('error', 'This email address is already in use by another account.');
-            redirect('/admin/account');
+        $user = UserModel::findById($userId);
+        if (!$user) {
+            Auth::logout();
+            redirect('/admin/login');
+        }
+
+        $isEmailChanging = (strtolower($email) !== strtolower((string) $user['email']));
+
+        if ($isEmailChanging) {
+            if ($currentPassword === '' || !password_verify($currentPassword, (string) $user['password_hash'])) {
+                setFlash('error', 'Your current password is required to change your email address.');
+                redirect('/admin/account');
+            }
+
+            if (UserModel::isEmailTakenByOther($email, $userId)) {
+                setFlash('error', 'This email address is already in use by another account.');
+                redirect('/admin/account');
+            }
         }
 
         UserModel::updateProfile($userId, $name, $email);
+
+        if ($isEmailChanging) {
+            // Regenerate session after email change
+            session_regenerate_id(true);
+        }
 
         // Synchronize authenticated session data
         if (!empty($_SESSION['auth_user_data'])) {

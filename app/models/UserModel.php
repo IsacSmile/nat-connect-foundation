@@ -85,12 +85,11 @@ class UserModel
     }
 
     /**
-     * Retrieve failed login attempt count and oldest attempt timestamp in the given window.
-     * Uses PHP timestamp calculation to guarantee portable datetime comparison across environments.
+     * Retrieve failed login attempt count and oldest attempt timestamp for an IP hash in the given window.
      *
      * @return array{count: int, oldest_attempt: string|null}
      */
-    public static function getFailedAttempts(string $ipHash, int $windowMinutes = 15): array
+    public static function getFailedAttemptsByIp(string $ipHash, int $windowMinutes = 15): array
     {
         $db = Database::getConnection();
         $cutoff = date('Y-m-d H:i:s', time() - ($windowMinutes * 60));
@@ -113,26 +112,72 @@ class UserModel
     }
 
     /**
-     * Record a failed login attempt for the specified IP hash.
+     * Retrieve failed login attempt count and oldest attempt timestamp for an account email hash in the given window.
+     *
+     * @return array{count: int, oldest_attempt: string|null}
      */
-    public static function recordFailedLogin(string $ipHash): void
+    public static function getFailedAttemptsByAccount(string $accountHash, int $windowMinutes = 15): array
     {
         $db = Database::getConnection();
-        $stmt = $db->prepare("INSERT INTO login_attempts (ip_hash, attempted_at) VALUES (:ip_hash, :attempted_at)");
+        $cutoff = date('Y-m-d H:i:s', time() - ($windowMinutes * 60));
+
+        $stmt = $db->prepare("
+            SELECT COUNT(*) AS attempt_count, MIN(attempted_at) AS oldest_attempt
+            FROM login_attempts
+            WHERE account_hash = :account_hash AND attempted_at >= :cutoff
+        ");
+        $stmt->execute([
+            ':account_hash' => $accountHash,
+            ':cutoff'       => $cutoff,
+        ]);
+        $row = $stmt->fetch();
+
+        return [
+            'count'          => (int) ($row['attempt_count'] ?? 0),
+            'oldest_attempt' => $row['oldest_attempt'] ?? null,
+        ];
+    }
+
+    /**
+     * Alias for getFailedAttemptsByIp for backward compatibility.
+     *
+     * @return array{count: int, oldest_attempt: string|null}
+     */
+    public static function getFailedAttempts(string $ipHash, int $windowMinutes = 15): array
+    {
+        return self::getFailedAttemptsByIp($ipHash, $windowMinutes);
+    }
+
+    /**
+     * Record a failed login attempt for the specified IP hash and optional account hash.
+     */
+    public static function recordFailedLogin(string $ipHash, ?string $accountHash = null): void
+    {
+        $db = Database::getConnection();
+        $stmt = $db->prepare("INSERT INTO login_attempts (ip_hash, account_hash, attempted_at) VALUES (:ip_hash, :account_hash, :attempted_at)");
         $stmt->execute([
             ':ip_hash'      => $ipHash,
+            ':account_hash' => $accountHash,
             ':attempted_at' => date('Y-m-d H:i:s'),
         ]);
     }
 
     /**
-     * Clear all recorded failed attempts for an IP hash upon successful login.
+     * Clear all recorded failed attempts for an IP hash and account hash upon successful login.
      */
-    public static function clearFailedAttempts(string $ipHash): void
+    public static function clearFailedAttempts(string $ipHash, ?string $accountHash = null): void
     {
         $db = Database::getConnection();
-        $stmt = $db->prepare("DELETE FROM login_attempts WHERE ip_hash = :ip_hash");
-        $stmt->execute([':ip_hash' => $ipHash]);
+        if ($accountHash !== null) {
+            $stmt = $db->prepare("DELETE FROM login_attempts WHERE ip_hash = :ip_hash OR account_hash = :account_hash");
+            $stmt->execute([
+                ':ip_hash'      => $ipHash,
+                ':account_hash' => $accountHash,
+            ]);
+        } else {
+            $stmt = $db->prepare("DELETE FROM login_attempts WHERE ip_hash = :ip_hash");
+            $stmt->execute([':ip_hash' => $ipHash]);
+        }
     }
 
     /**
