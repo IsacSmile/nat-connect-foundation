@@ -1,0 +1,31 @@
+# Environment and local configs
+/app/config/config.local.php
+.env
+.env.*
+
+# Logs and cache
+/app/storage/logs/*.log
+!/app/storage/logs/.gitkeep
+/app/storage/installed.lock
+
+# Uploads directory (preserve .htaccess and .gitkeep)
+/public_html/uploads/*
+!/public_html/uploads/.htaccess
+!/public_html/uploads/.gitkeep
+
+# Local standalone binaries
+/tailwind/tailwindcss
+
+# Local Composer packages
+/vendor/
+composer.lock
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+.idea/
+.vscode/
+*.swp
+*~

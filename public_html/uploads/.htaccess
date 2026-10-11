@@ -1,0 +1,13 @@
+# ==============================================================================
+# NatConnect Foundation — Uploads Security Lockdown (LiteSpeed & Apache Safe)
+# ==============================================================================
+
+Options -Indexes -ExecCGI
+
+<FilesMatch "\.(php|php\d|phtml|phar|pl|py|cgi|sh)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>

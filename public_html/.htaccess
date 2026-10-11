@@ -1,0 +1,105 @@
+# ==============================================================================
+# NatConnect Foundation — Production .htaccess for Hostinger Shared Hosting
+# ==============================================================================
+
+# Disable directory browsing
+Options -Indexes -MultiViews
+
+# Set default charset
+AddDefaultCharset UTF-8
+
+# ------------------------------------------------------------------------------
+# 1. Security Headers
+# ------------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    # Prevent MIME type sniffing
+    Header set X-Content-Type-Options "nosniff"
+
+    # Clickjacking protection
+    Header set X-Frame-Options "SAMEORIGIN"
+
+    # Cross-site scripting filter
+    Header set X-XSS-Protection "1; mode=block"
+
+    # Referrer policy for privacy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Modern Permissions-Policy
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 2. Block Access to Hidden / Sensitive Files (.git, .env, .sql, etc.)
+# ------------------------------------------------------------------------------
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|psd|sh|sql|sw[op]|env))$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ------------------------------------------------------------------------------
+# 3. Static Asset CachingDirectives (Fonts, CSS, JS, Images)
+# ------------------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Fonts (woff, woff2, ttf) - Cache 1 Year
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+
+    # Images - Cache 1 Month
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 year"
+
+    # CSS & JavaScript - Cache 1 Month (Cache-busted via asset() ?v= timestamp)
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # 1 year cache for static fonts
+    <FilesMatch "\.(woff|woff2|ttf|eot)$">
+        Header set Cache-Control "max-age=31536000, public"
+    </FilesMatch>
+
+    # Cache control for versioned assets
+    <FilesMatch "\.(css|js|png|jpg|jpeg|gif|webp|svg|ico)$">
+        Header set Cache-Control "max-age=2592000, public"
+    </FilesMatch>
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 4. URL Rewriting — Route all non-file/dir requests to index.php
+# ------------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Ensure HTTPS in production on Hostinger (uncomment if not auto-forced by host)
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # 1. Strictly deny execution of any scripts inside /uploads/ (MUST run before front-controller)
+    RewriteRule ^uploads/.*\.(php|php\d|phtml|phar|pl|py|cgi|sh)$ - [F,L,NC]
+
+    # 2. Block direct access to internal application directories
+    RewriteRule ^app/ - [F,L]
+    RewriteRule ^database/ - [F,L]
+    RewriteRule ^tailwind/ - [F,L]
+
+    # 3. Front Controller: If requested path is NOT an existing file or directory, forward to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
