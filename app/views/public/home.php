@@ -1,8 +1,8 @@
 <!-- NatConnect Foundation — Phase 0/1 Coming Soon Preview -->
 <section class="relative overflow-hidden py-16 sm:py-24">
   <!-- Subtle Nature Accent Blob in Background -->
-  <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-accent-50/60 blur-3xl pointer-events-none"></div>
-  <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 rounded-full bg-primary-50/50 blur-3xl pointer-events-none"></div>
+  <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-accent/10 blur-3xl pointer-events-none"></div>
+  <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
 
   <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     
@@ -10,7 +10,7 @@
     <div class="text-center max-w-3xl mx-auto space-y-6">
       
       <!-- Status Badge with Lucide Sparkles SVG -->
-      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent-50 border border-accent-200 text-accent font-semibold text-xs tracking-wider uppercase">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent font-semibold text-xs tracking-wider uppercase">
         <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/>
         </svg>
@@ -44,7 +44,7 @@
       
       <!-- 1. Causes (Lucide Sprout / Leaf) -->
       <div class="bg-white p-6 rounded-xl border border-border hover:border-primary/40 shadow-soft-sm hover:shadow-soft transition-all group">
-        <div class="w-12 h-12 rounded-xl bg-accent-50 text-accent flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-colors">
+        <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-colors">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
             <path stroke-linecap="round" stroke-linejoin="round" d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
@@ -58,7 +58,7 @@
 
       <!-- 2. News (Lucide Newspaper) -->
       <div class="bg-white p-6 rounded-xl border border-border hover:border-primary/40 shadow-soft-sm hover:shadow-soft transition-all group">
-        <div class="w-12 h-12 rounded-xl bg-primary-50 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
+        <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
             <path stroke-linecap="round" stroke-linejoin="round" d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"/>
@@ -72,7 +72,7 @@
 
       <!-- 3. Campaigns (Lucide Megaphone) -->
       <div class="bg-white p-6 rounded-xl border border-border hover:border-primary/40 shadow-soft-sm hover:shadow-soft transition-all group">
-        <div class="w-12 h-12 rounded-xl bg-accent-50 text-accent flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-colors">
+        <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-colors">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="m3 11 18-5v12L3 14v-3ZM11.6 16.8a3 3 0 1 1-5.8-1.6"/>
           </svg>
@@ -85,7 +85,7 @@
 
       <!-- 4. RTI Applications (Lucide Scale) -->
       <div class="bg-white p-6 rounded-xl border border-border hover:border-primary/40 shadow-soft-sm hover:shadow-soft transition-all group">
-        <div class="w-12 h-12 rounded-xl bg-primary-50 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
+        <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
           </svg>

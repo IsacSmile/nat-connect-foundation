@@ -13,30 +13,13 @@ module.exports = {
       },
       colors: {
         primary: {
-          50: '#eef1fc',
-          100: '#dbe2f8',
-          200: '#b9c7f1',
-          300: '#94a7e9',
-          400: '#5c76db',
-          500: '#2F3A8F', // Brand Navy
+          DEFAULT: '#2F3A8F', // Brand Navy
           600: '#28317c',
-          700: '#202664',
-          800: '#191d4d',
-          900: '#14173e',
-          DEFAULT: '#2F3A8F',
         },
         accent: {
-          50: '#f2f8f2',
-          100: '#e1efe1',
-          200: '#c5dec5',
-          300: '#9ec49f',
-          400: '#69a76b',
-          500: '#3B8E3F', // Brand Green
+          DEFAULT: '#3B8E3F', // Brand Green
           600: '#317935',
           700: '#28622c',
-          800: '#214e24',
-          900: '#1a3e1d',
-          DEFAULT: '#3B8E3F',
         },
         surface: {
           DEFAULT: '#FAFAF7', // Warm Eco-White background
