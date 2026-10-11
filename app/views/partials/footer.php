@@ -43,7 +43,7 @@
           <li><a href="/contact" class="hover:text-primary transition-colors">Contact</a></li>
           <li><a href="/privacy" class="hover:text-primary transition-colors">Privacy Policy</a></li>
           <li>
-            <a href="/donate" class="inline-flex items-center gap-1.5 text-accent font-semibold hover:text-accent-700 transition-colors">
+            <a href="/donate" class="inline-flex items-center gap-1.5 text-accent font-semibold hover:text-accent/80 transition-colors">
               <!-- Lucide Heart, stroke-width 1.75 -->
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>

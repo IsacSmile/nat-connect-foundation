@@ -12,15 +12,8 @@ module.exports = {
         'nav': '1100px',
       },
       colors: {
-        primary: {
-          DEFAULT: '#2F3A8F', // Brand Navy
-          600: '#28317c',
-        },
-        accent: {
-          DEFAULT: '#3B8E3F', // Brand Green
-          600: '#317935',
-          700: '#28622c',
-        },
+        primary: '#2F3A8F', // Brand Navy
+        accent: '#3B8E3F',  // Brand Green
         surface: {
           DEFAULT: '#FAFAF7', // Warm Eco-White background
           alt: '#F4F4EE',

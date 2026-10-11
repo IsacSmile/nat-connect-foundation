@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </p>
         </div>
 
-        <a href="/" class="block w-full text-center py-2.5 px-4 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-600 transition-colors shadow-soft-sm">
+        <a href="/" class="block w-full text-center py-2.5 px-4 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-soft-sm">
           Go to Homepage
         </a>
       </div>
@@ -266,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <button 
           type="submit" 
-          class="w-full py-2.5 px-4 bg-accent hover:bg-accent-600 text-white text-sm font-semibold rounded-xl shadow-soft transition-colors mt-2"
+          class="w-full py-2.5 px-4 bg-accent hover:bg-accent/90 text-white text-sm font-semibold rounded-xl shadow-soft transition-colors mt-2"
         >
           Create Admin Account
         </button>
