@@ -128,21 +128,44 @@ $router->get('/category/{slug}', function (array $params) {
     ], 'layouts/public');
 });
 
-// Admin Login / Dashboard Stubs (Phase 2 anchors)
-$router->get('/admin/login', function () {
-    echo '<div style="font-family:sans-serif;padding:40px;text-align:center;"><h2>NatConnect Admin Portal</h2><p>Admin authentication module will be enabled in Phase 2.</p><a href="/">&larr; Return to Home</a></div>';
-});
-
-$router->get('/admin/dashboard', function () {
-    View::render('admin/dashboard', [
-        'pageTitle' => 'Admin Dashboard — NatConnect Foundation',
-    ], 'layouts/admin');
-});
+// -------------------------------------------------------------
+// Phase 2: Admin Authentication Routes
+// -------------------------------------------------------------
+$router->get('/admin/login', [App\Controllers\Admin\AuthController::class, 'showLogin']);
+$router->post('/admin/login', [App\Controllers\Admin\AuthController::class, 'login']);
+$router->post('/admin/logout', [App\Controllers\Admin\AuthController::class, 'logout']);
 
 // -------------------------------------------------------------
-// 6. Dispatch Request
+// Phase 2: Admin Dashboard & Account Management Routes
+// -------------------------------------------------------------
+$router->get('/admin', [App\Controllers\Admin\DashboardController::class, 'index']);
+$router->get('/admin/dashboard', [App\Controllers\Admin\DashboardController::class, 'index']);
+$router->get('/admin/account', [App\Controllers\Admin\AccountController::class, 'show']);
+$router->post('/admin/account/profile', [App\Controllers\Admin\AccountController::class, 'updateProfile']);
+$router->post('/admin/account/password', [App\Controllers\Admin\AccountController::class, 'updatePassword']);
+
+// Phase 3 Route Placeholders
+$router->get('/admin/posts', [App\Controllers\Admin\DashboardController::class, 'posts']);
+$router->get('/admin/posts/new', [App\Controllers\Admin\DashboardController::class, 'newPost']);
+$router->get('/admin/posts/{id}/edit', [App\Controllers\Admin\DashboardController::class, 'editPost']);
+$router->get('/admin/categories', [App\Controllers\Admin\DashboardController::class, 'categories']);
+$router->get('/admin/comments', [App\Controllers\Admin\DashboardController::class, 'comments']);
+$router->get('/admin/settings', [App\Controllers\Admin\DashboardController::class, 'settings']);
+
+// -------------------------------------------------------------
+// 6. Admin Auth Middleware & Request Dispatch
 // -------------------------------------------------------------
 $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $requestUri    = $_SERVER['REQUEST_URI'] ?? '/';
+$requestPath   = '/' . trim((string) parse_url($requestUri, PHP_URL_PATH), '/');
+
+// Enforce Auth Middleware on all /admin/* routes except /admin/login
+if (str_starts_with($requestPath, '/admin')) {
+    Auth::sendAdminHeaders();
+
+    if ($requestPath !== '/admin/login') {
+        Auth::requireAuth($requestUri);
+    }
+}
 
 $router->dispatch($requestMethod, $requestUri);

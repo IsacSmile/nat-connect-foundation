@@ -189,11 +189,11 @@ class Router
         echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
         echo '<link rel="stylesheet" href="/assets/css/app.css">';
         echo '</head><body class="bg-surface text-ink min-h-screen flex items-center justify-center p-6">';
-        echo '<div class="text-center max-w-md bg-white p-8 rounded-xl border border-gray-200 shadow-sm">';
-        echo '<span class="inline-block px-3 py-1 bg-green-100 text-accent font-semibold text-xs rounded-full uppercase tracking-wider mb-3">Error 404</span>';
+        echo '<div class="text-center max-w-md bg-white p-8 rounded-xl border border-border shadow-soft-sm">';
+        echo '<span class="inline-block px-3 py-1 bg-accent/10 text-accent-strong border border-accent/20 font-semibold text-xs rounded-full uppercase tracking-wider mb-3">Error 404</span>';
         echo '<h1 class="font-serif text-3xl font-bold text-primary mb-3">Page Not Found</h1>';
-        echo '<p class="text-muted text-sm mb-6">The page you requested (' . htmlspecialchars($path, ENT_QUOTES, 'UTF-8') . ') does not exist or has been moved.</p>';
-        echo '<a href="/" class="inline-flex items-center px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:opacity-95 transition-all">Return to Homepage</a>';
+        echo '<p class="text-ink-muted text-sm mb-6">The page you requested (' . htmlspecialchars($path, ENT_QUOTES, 'UTF-8') . ') does not exist or has been moved.</p>';
+        echo '<a href="/" class="inline-flex items-center px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-xl shadow-soft transition-colors">Return to Homepage</a>';
         echo '</div></body></html>';
     }
 }

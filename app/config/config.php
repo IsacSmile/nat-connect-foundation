@@ -28,6 +28,12 @@ $defaults = [
         'name'     => 'natconnect_sess',
         'lifetime' => 86400 * 7, // 7 days
     ],
+    'auth' => [
+        'idle_timeout'     => 7200,   // 2 hours idle timeout
+        'absolute_timeout' => 43200,  // 12 hours absolute session lifetime
+        'max_attempts'     => 5,      // Max failed login attempts
+        'lockout_minutes'  => 15,     // Lockout duration in minutes
+    ],
     'security' => [
         'salt' => 'replace-with-a-random-64-char-string-in-config.local.php',
     ],

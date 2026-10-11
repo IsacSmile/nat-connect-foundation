@@ -142,3 +142,106 @@ if (!function_exists('redirect')) {
         exit;
     }
 }
+
+if (!function_exists('formatNumberIN')) {
+    /**
+     * Format a number using standard Indian numbering system grouping (e.g. 1,00,000).
+     */
+    function formatNumberIN(int|float $number): string
+    {
+        $isNegative = $number < 0;
+        $numStr = (string) abs((int) $number);
+        if (strlen($numStr) <= 3) {
+            return ($isNegative ? '-' : '') . $numStr;
+        }
+
+        $lastThree = substr($numStr, -3);
+        $remaining = substr($numStr, 0, -3);
+
+        $chunks = [];
+        while (strlen($remaining) > 2) {
+            $chunks[] = substr($remaining, -2);
+            $remaining = substr($remaining, 0, -2);
+        }
+        if ($remaining !== '') {
+            $chunks[] = $remaining;
+        }
+
+        $chunks = array_reverse($chunks);
+        return ($isNegative ? '-' : '') . implode(',', $chunks) . ',' . $lastThree;
+    }
+}
+
+if (!function_exists('clientIp')) {
+    /**
+     * Determine client IP address safely.
+     */
+    function clientIp(): string
+    {
+        if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+            return (string) $_SERVER['HTTP_CF_CONNECTING_IP'];
+        }
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ips = explode(',', (string) $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $first = trim($ips[0]);
+            if ($first !== '') {
+                return $first;
+            }
+        }
+        return (string) ($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
+    }
+}
+
+if (!function_exists('setFlash')) {
+    /**
+     * Set a one-time flash message in session.
+     */
+    function setFlash(string $type, string $message): void
+    {
+        \App\Core\Auth::startSession();
+        $_SESSION['flash'][$type] = $message;
+    }
+}
+
+if (!function_exists('getFlash')) {
+    /**
+     * Retrieve and clear a specific flash message.
+     */
+    function getFlash(string $type): ?string
+    {
+        \App\Core\Auth::startSession();
+        if (!empty($_SESSION['flash'][$type])) {
+            $msg = (string) $_SESSION['flash'][$type];
+            unset($_SESSION['flash'][$type]);
+            return $msg;
+        }
+        return null;
+    }
+}
+
+if (!function_exists('getFlashes')) {
+    /**
+     * Retrieve all flash messages and clear them from session.
+     *
+     * @return array<string, string>
+     */
+    function getFlashes(): array
+    {
+        \App\Core\Auth::startSession();
+        $flashes = $_SESSION['flash'] ?? [];
+        unset($_SESSION['flash']);
+        return is_array($flashes) ? $flashes : [];
+    }
+}
+
+if (!function_exists('hasFlash')) {
+    /**
+     * Check if a flash message exists.
+     */
+    function hasFlash(string $type): bool
+    {
+        \App\Core\Auth::startSession();
+        return !empty($_SESSION['flash'][$type]);
+    }
+}
+

@@ -103,11 +103,40 @@ nat-connect-foundation/
 - Error handling pipeline: verbose in `debug=true`, logged to `app/storage/logs/` in production.
 - Temporary preview route verifying fonts, palette, responsive header, and drawer without invented facts.
 
-### Phase 2: Admin Authentication & Dashboard
-- Admin login with rate limiting (`login_attempts` table, IP hash throttling).
-- Password verification using `password_hash()` / `password_verify()`.
-- Session expiration and secure logout.
-- Admin dashboard layout and statistics (total posts, draft count, pending comments, view metrics).
+### Phase 2: Admin Authentication & Dashboard *(Completed)*
+- **Rate-Limited Authentication**:
+  - `GET /admin/login` & `POST /admin/login` with email, password, CSRF token, and generic error message ("Invalid email or password").
+  - Rate limiting via `login_attempts` table: max 5 failed attempts per SHA-256 IP hash per 15-minute window with dynamic lockout countdown.
+  - Opportunistic deletion of attempt logs older than 24 hours on each login submission.
+  - Automatic `password_needs_rehash()` check and upgrade on successful authentication.
+  - Clears recorded failed attempts on successful login.
+- **Hardened Session Management**:
+  - `session_regenerate_id(true)` and CSRF token rotation on login.
+  - Idle timeout: 2 hours (`auth.idle_timeout = 7200`).
+  - Absolute session lifetime: 12 hours (`auth.absolute_timeout = 43200`).
+  - Session expiration redirects to login with flash notice.
+  - `POST /admin/logout` with CSRF validation (no GET logout).
+- **Auth Middleware & Open Redirect Protection**:
+  - All `/admin/*` routes (except `/admin/login`) enforce active authentication.
+  - Open redirect prevention: validates `?next=` parameter (must start with `/admin`, forbidden `//`, backslashes, or URI schemes).
+  - Admin privacy headers: `X-Robots-Tag: noindex, nofollow`, `Cache-Control: no-store, no-cache, must-revalidate, max-age=0`.
+  - Crawler exclusion: `public_html/robots.txt` disallows `/admin` and `/setup.php`.
+- **Account Credentials Management**:
+  - `/admin/account` allowing updates to administrator name and email (with uniqueness check).
+  - Password change requiring current password, 12-character minimum, confirmation match, and session ID regeneration.
+- **Live Admin Dashboard**:
+  - 6 stat cards (`grid-cols-2 md:grid-cols-3 xl:grid-cols-6`): Total posts, Published, Drafts, Scheduled, Pending comments, Total views.
+  - Post status metrics retrieved via **ONE query** with conditional `SUM/CASE`.
+  - Numbers formatted using standard Indian numbering system (`1,00,000`) via helper `formatNumberIN()`.
+  - Top 5 articles by views & 5 recently updated articles tables.
+  - Prominent "New Article" CTA and clean empty states (zero sample data).
+  - Phase 3 route placeholders (`/admin/posts`, `/admin/posts/new`, `/admin/posts/{id}/edit`, `/admin/categories`, `/admin/comments`, `/admin/settings`).
+  - All DB access through `DashboardModel.php` and `UserModel.php`.
+- **Mobile-First Admin Shell Layout**:
+  - Desktop (`lg+`): fixed sidebar with all management modules, target="_blank" public site link, and POST logout button.
+  - Mobile: top bar with 44px menu button and slide-over Alpine.js drawer with touch targets min 44px, backdrop dismiss, link click dismiss, and Escape key listener.
+  - Active navigation item highlight (`bg-slate-800 text-white font-semibold`).
+  - Dismissible flash messages banner (success, error, info).
 
 ### Phase 3: Post CRUD & Media Management
 - Post management: Create, Edit, Delete, Draft, Schedule, Publish.
@@ -175,3 +204,8 @@ nat-connect-foundation/
       - Solid navy buttons: `bg-primary hover:bg-primary-hover text-white`.
       - Green text & links: `text-accent-strong hover:text-accent-hover`.
 13. **Local Testing vs Server Directives**: PHP built-in server ignores `.htaccess`; all `.htaccess` behavior (URL rewrites, security headers, upload execution denials) must be verified on Hostinger (Apache/LiteSpeed).
+14. **Manual Admin Password Reset**: There is intentionally no automated "forgot password" feature or email recovery mechanism (single administrator, avoids unreliable mail/SMTP delivery issues on shared hosting). In the event of lost credentials:
+    1. Generate a new password hash using PHP CLI:
+       `php -r "echo password_hash('NEWPASS', PASSWORD_DEFAULT);"`
+    2. Open Hostinger phpMyAdmin (or MySQL CLI) and run:
+       `UPDATE users SET password_hash = '<GENERATED_HASH>' WHERE email = '<ADMIN_EMAIL>';`
