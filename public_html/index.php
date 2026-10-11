@@ -95,7 +95,7 @@ if ($isDebug) {
         echo '<span class="inline-block px-3 py-1 bg-rose-100 text-rose-800 font-semibold text-xs rounded-full uppercase tracking-wider mb-3">System Notice</span>';
         echo '<h1 class="font-serif text-2xl font-bold text-primary mb-3">Something Went Wrong</h1>';
         echo '<p class="text-muted text-sm mb-6">Our technical team has logged this incident and is addressing it. Please try again shortly.</p>';
-        echo '<a href="/" class="inline-flex items-center px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-lg">Return to Homepage</a>';
+        echo '<a href="/" class="inline-flex items-center px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors">Return to Homepage</a>';
         echo '</div></body></html>';
         exit;
     });

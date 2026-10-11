@@ -24,7 +24,7 @@
   <!-- Accessibility Skip Link -->
   <a 
     href="#main-content" 
-    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg shadow-soft"
+    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg shadow-soft transition-colors"
   >
     Skip to main content
   </a>

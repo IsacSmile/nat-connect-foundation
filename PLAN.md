@@ -162,5 +162,16 @@ nat-connect-foundation/
 9. **Lazy Publishing Rule (No Cron)**: Scheduled posts are published "lazily". Public queries treat `(status = 'published' OR (status = 'scheduled' AND published_at <= NOW()))` as published. This eliminates external cron dependencies on Hostinger shared hosting.
 10. **Setup File Protocol**: `public_html/setup.php` is an ephemeral initial onboarding script. It strictly locks with HTTP 404 as soon as any user exists or `installed.lock` is present. **The deployer must delete `setup.php` immediately after creating the admin account.**
 11. **Responsive Breakpoint Isolation**: The custom `'nav': '1100px'` breakpoint resides strictly under `theme.extend.screens`. Never combine `nav:` and `xl:` prefixes on the same property (keep responsive styling unambiguous and decoupled).
-12. **Strict Color Palette & Tints**: Brand colors are single values; use opacity modifiers (bg-primary/10) for tints, never -50/-100 shade suffixes unless defined in config. Use only the designated brand palette tokens: **primary** (`#2F3A8F`), **accent** (`#3B8E3F`), **ink** (`#1A1D29`), **surface / background** (`#FAFAF7`), and **neutral grays / borders**. Do not introduce ad-hoc utility colors (such as amber, slate, etc.).
+12. **Strict Color Palette, Roles & Contrast (WCAG AA Compliance)**:
+    - **Single-value Brand Tokens**: Brand colors are defined as single values in `tailwind.config.js`; use opacity modifiers (e.g. `bg-primary/10`, `border-accent/20`) for tints, never `-50`/`-100` shade scale suffixes unless explicitly defined in config. Do not introduce ad-hoc colors outside the curated palette (**primary**, **accent**, **ink**, **surface**, **neutral grays/borders**).
+    - **Contrast Rationale & Roles**:
+      - Base **`accent`** (`#3B8E3F`) contrast against white is only ~4.1:1, failing WCAG AA (which requires 4.5:1 minimum for normal text). Therefore, `#3B8E3F` (`accent`) is **strictly decorative only**: icons, borders, `bg-accent/10` tints, and decorative indicator dots. **Never place white text on `#3B8E3F` and never render small text in it.**
+      - **`accent-strong`** (`#2E7D32`) achieves ~5.1:1 contrast against white (passing WCAG AA). Used for all green text (links, eyebrow labels, "FOUNDATION" branding, footer action links) and solid green button backgrounds.
+      - **`accent-hover`** (`#1B5E20`) is the darker hover state for green buttons and green links.
+      - **`primary`** (`#2F3A8F`) and **`primary-hover`** (`#232C70`): Used for brand navy elements, headlines, and solid navy buttons. Header brand link hover uses `hover:text-primary-hover`.
+    - **Solid Button Hover Rule**:
+      - **Do NOT use opacity modifiers (e.g. `/90`) for hover states on solid buttons** — opacity lightens the button against light surroundings, degrading contrast and visual weight.
+      - Solid green buttons (Donate CTA, setup submit): `bg-accent-strong hover:bg-accent-hover text-white`.
+      - Solid navy buttons: `bg-primary hover:bg-primary-hover text-white`.
+      - Green text & links: `text-accent-strong hover:text-accent-hover`.
 13. **Local Testing vs Server Directives**: PHP built-in server ignores `.htaccess`; all `.htaccess` behavior (URL rewrites, security headers, upload execution denials) must be verified on Hostinger (Apache/LiteSpeed).

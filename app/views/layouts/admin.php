@@ -38,7 +38,7 @@
             <img src="<?= asset('assets/img/logo.png') ?>" alt="Logo" class="h-8 w-auto">
             <div class="flex flex-col">
               <span class="font-serif font-bold text-white leading-none">NatConnect</span>
-              <span class="text-[10px] text-accent tracking-wider uppercase font-semibold">Admin CMS</span>
+              <span class="text-[10px] text-accent-strong tracking-wider uppercase font-semibold">Admin CMS</span>
             </div>
           </a>
           <button @click="sidebarOpen = false" class="lg:hidden text-slate-400 hover:text-white">
@@ -96,7 +96,7 @@
           NatConnect Foundation Management System
         </div>
         <div class="flex items-center gap-3">
-          <span class="text-xs px-2.5 py-1 bg-green-50 text-accent font-semibold rounded-full border border-green-200">
+          <span class="text-xs px-2.5 py-1 bg-accent/10 text-accent-strong font-semibold rounded-full border border-accent/20">
             Phase 1 Ready
           </span>
         </div>

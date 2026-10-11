@@ -6,7 +6,7 @@
         <h1 class="font-serif text-2xl font-bold text-ink">Welcome to NatConnect CMS</h1>
         <p class="text-sm text-ink-muted mt-1">Foundation core and database infrastructure initialized successfully.</p>
       </div>
-      <span class="px-3 py-1 bg-accent/10 text-accent font-semibold text-xs rounded-full border border-accent/20">
+      <span class="px-3 py-1 bg-accent/10 text-accent-strong font-semibold text-xs rounded-full border border-accent/20">
         Phase 1 Active
       </span>
     </div>
@@ -20,7 +20,7 @@
     </div>
     <div class="bg-white p-6 rounded-xl border border-border">
       <span class="text-xs font-semibold text-ink-subtle uppercase">Styling Engine</span>
-      <h3 class="text-xl font-bold text-accent mt-1">Standalone Tailwind</h3>
+      <h3 class="text-xl font-bold text-accent-strong mt-1">Standalone Tailwind</h3>
       <p class="text-xs text-ink-muted mt-2">Compiled locally. Zero server Node.js dependency.</p>
     </div>
     <div class="bg-white p-6 rounded-xl border border-border">

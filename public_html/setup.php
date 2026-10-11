@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if ($success): ?>
       <div class="space-y-4">
         <div class="p-4 rounded-xl bg-accent/10 border border-accent/20 text-ink">
-          <div class="flex items-center gap-2 text-accent font-semibold text-sm mb-1">
+          <div class="flex items-center gap-2 text-accent-strong font-semibold text-sm mb-1">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </p>
         </div>
 
-        <a href="/" class="block w-full text-center py-2.5 px-4 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-soft-sm">
+        <a href="/" class="block w-full text-center py-2.5 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-xl transition-colors shadow-soft-sm">
           Go to Homepage
         </a>
       </div>
@@ -266,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <button 
           type="submit" 
-          class="w-full py-2.5 px-4 bg-accent hover:bg-accent/90 text-white text-sm font-semibold rounded-xl shadow-soft transition-colors mt-2"
+          class="w-full py-2.5 px-4 bg-accent-strong hover:bg-accent-hover text-white text-sm font-semibold rounded-xl shadow-soft transition-colors mt-2"
         >
           Create Admin Account
         </button>

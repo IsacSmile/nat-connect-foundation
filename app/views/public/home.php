@@ -10,7 +10,7 @@
     <div class="text-center max-w-3xl mx-auto space-y-6">
       
       <!-- Status Badge with Lucide Sparkles SVG -->
-      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent font-semibold text-xs tracking-wider uppercase">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent-strong font-semibold text-xs tracking-wider uppercase">
         <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/>
         </svg>
@@ -44,7 +44,7 @@
       
       <!-- 1. Causes (Lucide Sprout / Leaf) -->
       <div class="bg-white p-6 rounded-xl border border-border hover:border-primary/40 shadow-soft-sm hover:shadow-soft transition-all group">
-        <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-colors">
+        <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-4 group-hover:bg-accent-strong group-hover:text-white transition-colors">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
             <path stroke-linecap="round" stroke-linejoin="round" d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
@@ -72,7 +72,7 @@
 
       <!-- 3. Campaigns (Lucide Megaphone) -->
       <div class="bg-white p-6 rounded-xl border border-border hover:border-primary/40 shadow-soft-sm hover:shadow-soft transition-all group">
-        <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-colors">
+        <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-4 group-hover:bg-accent-strong group-hover:text-white transition-colors">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="m3 11 18-5v12L3 14v-3ZM11.6 16.8a3 3 0 1 1-5.8-1.6"/>
           </svg>
@@ -102,7 +102,7 @@
     <div class="mt-20 bg-white border border-border rounded-2xl p-8 sm:p-12 shadow-soft">
       <div class="border-b border-border-subtle pb-6 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <span class="text-xs font-semibold uppercase tracking-wider text-accent">Design Token & Typography Test</span>
+          <span class="text-xs font-semibold uppercase tracking-wider text-accent-strong">Design Token & Typography Test</span>
           <h2 class="font-serif text-2xl sm:text-3xl font-bold text-primary mt-1">Sample Editorial Article (~68ch Prose)</h2>
         </div>
         <div class="flex items-center gap-2">

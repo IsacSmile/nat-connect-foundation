@@ -10,7 +10,7 @@
           alt="NatConnect Foundation Mark" 
           class="h-10 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
         />
-        <span class="font-serif font-bold text-base sm:text-xl md:text-2xl text-primary tracking-tight leading-none group-hover:text-primary/90 transition-colors whitespace-nowrap">
+        <span class="font-serif font-bold text-base sm:text-xl md:text-2xl text-primary tracking-tight leading-none group-hover:text-primary-hover transition-colors whitespace-nowrap">
           NatConnect Foundation
         </span>
       </a>
@@ -44,7 +44,7 @@
         <!-- Donate Button -->
         <a 
           href="/donate" 
-          class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-accent hover:bg-accent/90 rounded-xl shadow-soft-sm hover:shadow-soft transition-all duration-150 focus-visible:ring-2 focus-visible:ring-accent"
+          class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-accent-strong hover:bg-accent-hover rounded-xl shadow-soft-sm hover:shadow-soft transition-all duration-150 focus-visible:ring-2 focus-visible:ring-accent"
         >
           Donate
         </a>
@@ -182,7 +182,7 @@
         <a 
           href="/donate" 
           @click="mobileOpen = false"
-          class="w-full flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-accent hover:bg-accent/90 rounded-xl shadow-soft transition-colors"
+          class="w-full flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-accent-strong hover:bg-accent-hover rounded-xl shadow-soft transition-colors"
         >
           Donate
         </a>

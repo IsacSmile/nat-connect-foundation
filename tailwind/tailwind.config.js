@@ -13,7 +13,10 @@ module.exports = {
       },
       colors: {
         primary: '#2F3A8F', // Brand Navy
-        accent: '#3B8E3F',  // Brand Green
+        'primary-hover': '#232C70',
+        accent: '#3B8E3F',  // Decorative Accent Green (decorative only)
+        'accent-strong': '#2E7D32', // Passes WCAG AA (~5.1:1 against white) for text and solid button bg
+        'accent-hover': '#1B5E20',
         surface: {
           DEFAULT: '#FAFAF7', // Warm Eco-White background
           alt: '#F4F4EE',
