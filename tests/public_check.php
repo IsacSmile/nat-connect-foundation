@@ -39,9 +39,11 @@ require_once APP_PATH . '/models/PageModel.php';
 require_once APP_PATH . '/models/GalleryModel.php';
 require_once APP_PATH . '/models/SubscriberModel.php';
 require_once APP_PATH . '/controllers/PublicController.php';
+require_once APP_PATH . '/core/LaunchCheck.php';
 
 use App\Core\Database;
 use App\Core\ImageUploader;
+use App\Core\LaunchCheck;
 use App\Models\CategoryModel;
 use App\Models\GalleryModel;
 use App\Models\PostModel;
@@ -525,8 +527,39 @@ try {
     assert(!str_contains($emptyRenderHtml, 'id="donate-band-heading"'), "Donate band must not render when donate is inactive");
     echo "  [PASS] Sections with no data or disabled toggles are strictly excluded from rendering.\n\n";
 
+    // --- Test 10: Launch Check 'Site address is set correctly' ---
+    echo "--- Test 10: Launch Check 'Site address is set correctly' ---\n";
+    assert(!LaunchCheck::isSiteAddressValid('http://127.0.0.1:8000'), "Site address must fail for 127.0.0.1 or http");
+    assert(!LaunchCheck::isSiteAddressValid('http://natconnectfoundation.org'), "Site address must fail for non-https");
+    assert(!LaunchCheck::isSiteAddressValid('https://localhost'), "Site address must fail for localhost");
+    assert(!LaunchCheck::isSiteAddressValid('https://natconnectfoundation.org:8443'), "Site address must fail if port is present");
+    assert(LaunchCheck::isSiteAddressValid('https://natconnectfoundation.org'), "Site address must pass for clean live https URL");
+
+    $oldServerHost = $_SERVER['HTTP_HOST'] ?? null;
+    $_SERVER['HTTP_HOST'] = 'natconnectfoundation.org';
+    assert(LaunchCheck::isSiteAddressValid('https://natconnectfoundation.org'), "Host match check must pass when request host matches");
+    $_SERVER['HTTP_HOST'] = 'otherdomain.org';
+    assert(!LaunchCheck::isSiteAddressValid('https://natconnectfoundation.org'), "Host match check must fail when request host does not match");
+    if ($oldServerHost !== null) {
+        $_SERVER['HTTP_HOST'] = $oldServerHost;
+    } else {
+        unset($_SERVER['HTTP_HOST']);
+    }
+
+    $allChecks = LaunchCheck::runAll();
+    $siteAddrCheck = null;
+    foreach ($allChecks['checks'] as $chk) {
+        if ($chk['key'] === 'site_address') {
+            $siteAddrCheck = $chk;
+            break;
+        }
+    }
+    assert($siteAddrCheck !== null, "Site address check must be included in LaunchCheck::runAll()");
+    assert(in_array("Set 'url' in config.local.php to the live domain", $siteAddrCheck['details'], true) || $siteAddrCheck['passed'], "Failed site address check must suggest fixing 'url' in config.local.php");
+    echo "  [PASS] Site address launch check rules and fix recommendation verified.\n\n";
+
     echo "========================================================\n";
-    echo "ALL PUBLIC, JSON-LD & D2 HOME ASSERTIONS PASSED!\n";
+    echo "ALL PUBLIC, JSON-LD, D2 HOME & LAUNCH CHECK ASSERTIONS PASSED!\n";
     echo "========================================================\n";
 
 } catch (Throwable $e) {

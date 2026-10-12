@@ -8,6 +8,8 @@ use Throwable;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 
+require_once __DIR__ . '/Turnstile.php';
+
 /**
  * NatConnect Foundation — Launch Checklist & Pre-Launch Readiness Service
  *
@@ -460,14 +462,11 @@ class LaunchCheck
             return false;
         }
         // Must not contain a port
-        if (!empty($parsed['port'])) {
-            return false;
-        }
-        if (preg_match('/:\d+/', $parsed['host'])) {
+        if (!empty($parsed['port']) || preg_match('/:\d+/', $url)) {
             return false;
         }
         // If a request host is present, host must match
-        $reqHost = $_SERVER['HTTP_HOST'] ?? '';
+        $reqHost = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '';
         if (!empty($reqHost)) {
             $reqHostClean = explode(':', $reqHost)[0];
             if (strcasecmp($parsed['host'], $reqHostClean) !== 0) {

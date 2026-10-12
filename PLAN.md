@@ -381,6 +381,12 @@ nat-connect-foundation/
 21. **Local Demo Content Protocol**:
     - Demo content (`bin/seed-demo.php`) is strictly local-only for UI and design review; `bin/` is never deployed.
     - Always run `php bin/seed-demo.php --clean` before any export of the database or deployment to staging/production.
+22. **Task Completion and Git Protocol**:
+    - At the end of every task, run the test suites (`for t in tests/*_check.php; do php "$t"; done`).
+    - Run `git add -A`.
+    - Confirm that `config.local.php`, uploads images, `demo-manifest.json`, and logs are NOT staged.
+    - Commit with a clear, descriptive message, and push to `origin dev`.
+    - Show the real `git log --oneline -1` output in the report. Never claim a commit without showing it.
 
 ---
 
@@ -390,6 +396,7 @@ nat-connect-foundation/
   - Cloudflare Turnstile keys are configured with real production keys (not empty and not Cloudflare test keys).
   - `app.debug` is set to `false`.
   - `public_html/setup.php` is deleted from disk.
+  - Site address is set correctly (config `url` starts with `https://`, has no port, no `127.0.0.1`/`localhost`, and host matches request host).
 - [ ] **Demo Content Purged**: Demo content is local-only; confirm `php bin/seed-demo.php --clean` has been executed before any export or deployment of the database.
 - [ ] **Client Copy**: `grep -rn "CLIENT COPY" app/views` and database check must return nothing before launch. (Replace all `[CLIENT COPY: ...]` placeholders in pages, categories, and settings with verified client text).
 - [ ] **Delete Setup**: Confirm `public_html/setup.php` has been deleted from the production server.
