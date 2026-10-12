@@ -173,4 +173,29 @@ class CategoryController
         header('Location: /admin/categories');
         exit;
     }
+
+    /**
+     * Move category up or down.
+     */
+    public function reorder(array $params): void
+    {
+        $id = (int) ($params['id'] ?? 0);
+        Auth::requireAuth('/admin/categories');
+
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+            $_SESSION['flash_error'] = 'Invalid session token.';
+            header('Location: /admin/categories');
+            exit;
+        }
+
+        $direction = (string) ($_POST['direction'] ?? '');
+        if ($direction === 'up' || $direction === 'down') {
+            CategoryModel::reorder($id, $direction);
+            $_SESSION['flash_success'] = 'Category order updated.';
+        }
+
+        header('Location: /admin/categories');
+        exit;
+    }
 }
+

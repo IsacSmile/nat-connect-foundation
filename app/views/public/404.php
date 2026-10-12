@@ -1,5 +1,5 @@
 <!-- NatConnect Foundation — Styled 404 Page -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 space-y-16">
+<div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 sm:py-20 space-y-16">
 
   <!-- 404 Notice & Search Box -->
   <div class="text-center max-w-xl mx-auto space-y-6">

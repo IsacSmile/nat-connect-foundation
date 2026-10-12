@@ -72,7 +72,7 @@ try {
         'category_id' => $cat1Id,
         'content'     => $dirtyContent,
         'status'      => 'published',
-        'tags'        => 'Wetlands, Navi Mumbai, Test Tag'
+        'tags'        => 'TestPosts_Alpha, TestPosts_Beta, TestPosts_Gamma'
     ]);
     $createdPostIds[] = $post1Id;
 
@@ -350,7 +350,7 @@ try {
     $pdo->prepare("INSERT INTO comments (post_id, name, email, body, status, ip_hash) VALUES (?, 'Visitor', 'v@ex.org', 'Great article', 'approved', 'hash123')")->execute([$post3Id]);
     $pdo->prepare("INSERT INTO post_likes (post_id, visitor_hash) VALUES (?, 'visitor123')")->execute([$post3Id]);
     $pdo->prepare("INSERT INTO post_views (post_id, visitor_hash, viewed_on) VALUES (?, 'visitor123', CURDATE())")->execute([$post3Id]);
-    TagModel::syncTagsForPost($post3Id, ['Wetland', 'Mangrove']);
+    TagModel::syncTagsForPost($post3Id, ['TestPosts_Delta', 'TestPosts_Epsilon']);
 
     // Delete post 3
     PostModel::delete($post3Id);
@@ -389,7 +389,7 @@ try {
         echo "[CLEANUP] Deleted test redirects.\n";
     }
     // Delete orphan test tags
-    $pdo->exec("DELETE FROM tags WHERE name IN ('Wetlands', 'Navi Mumbai', 'Test Tag', 'Wetland', 'Mangrove')");
+    $pdo->exec("DELETE FROM tags WHERE name LIKE 'TestPosts_%'");
     echo "[CLEANUP] Deleted test tags.\n";
 }
 

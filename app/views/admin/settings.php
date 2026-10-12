@@ -111,6 +111,21 @@
             class="w-full px-3.5 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
           ><?= e($settings['footer_about'] ?? '') ?></textarea>
         </div>
+
+        <!-- Gallery Page Intro -->
+        <div>
+          <label for="gallery_intro" class="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+            Gallery Page Intro Text
+          </label>
+          <textarea 
+            id="gallery_intro" 
+            name="gallery_intro" 
+            rows="2" 
+            class="w-full px-3.5 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+            placeholder="Optional introductory sentence shown at the top of the photo gallery page"
+          ><?= e($settings['gallery_intro'] ?? '') ?></textarea>
+          <p class="text-xs text-ink-muted mt-1">Intro text for the public gallery page. Leave empty to hide.</p>
+        </div>
       </div>
 
       <!-- 2. Contact Card -->
@@ -493,15 +508,28 @@
                 <span class="ml-2 text-xs font-medium text-ink">Show section</span>
               </label>
             </div>
-            <div>
-              <label for="section_title_latest" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
-              <input 
-                type="text" 
-                id="section_title_latest" 
-                name="section_title_latest" 
-                value="<?= e($settings['section_title_latest'] ?? 'Latest stories') ?>" 
-                class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
-              >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="section_title_latest" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
+                <input 
+                  type="text" 
+                  id="section_title_latest" 
+                  name="section_title_latest" 
+                  value="<?= e($settings['section_title_latest'] ?? 'Latest stories') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                >
+              </div>
+              <div>
+                <label for="section_subtitle_latest" class="block text-[11px] text-ink-muted mb-1">Section Subtitle (Optional)</label>
+                <input 
+                  type="text" 
+                  id="section_subtitle_latest" 
+                  name="section_subtitle_latest" 
+                  value="<?= e($settings['section_subtitle_latest'] ?? '') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                  placeholder="Leave empty to hide"
+                >
+              </div>
             </div>
           </div>
 
@@ -520,15 +548,28 @@
                 <span class="ml-2 text-xs font-medium text-ink">Show section</span>
               </label>
             </div>
-            <div>
-              <label for="section_title_topics" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
-              <input 
-                type="text" 
-                id="section_title_topics" 
-                name="section_title_topics" 
-                value="<?= e($settings['section_title_topics'] ?? 'Explore by topic') ?>" 
-                class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
-              >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="section_title_topics" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
+                <input 
+                  type="text" 
+                  id="section_title_topics" 
+                  name="section_title_topics" 
+                  value="<?= e($settings['section_title_topics'] ?? 'Explore by topic') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                >
+              </div>
+              <div>
+                <label for="section_subtitle_topics" class="block text-[11px] text-ink-muted mb-1">Section Subtitle (Optional)</label>
+                <input 
+                  type="text" 
+                  id="section_subtitle_topics" 
+                  name="section_subtitle_topics" 
+                  value="<?= e($settings['section_subtitle_topics'] ?? '') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                  placeholder="Leave empty to hide"
+                >
+              </div>
             </div>
           </div>
 
@@ -547,15 +588,28 @@
                 <span class="ml-2 text-xs font-medium text-ink">Show section</span>
               </label>
             </div>
-            <div>
-              <label for="section_title_causes" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
-              <input 
-                type="text" 
-                id="section_title_causes" 
-                name="section_title_causes" 
-                value="<?= e($settings['section_title_causes'] ?? 'Causes we care about') ?>" 
-                class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
-              >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="section_title_causes" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
+                <input 
+                  type="text" 
+                  id="section_title_causes" 
+                  name="section_title_causes" 
+                  value="<?= e($settings['section_title_causes'] ?? 'Causes we care about') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                >
+              </div>
+              <div>
+                <label for="section_subtitle_causes" class="block text-[11px] text-ink-muted mb-1">Section Subtitle (Optional)</label>
+                <input 
+                  type="text" 
+                  id="section_subtitle_causes" 
+                  name="section_subtitle_causes" 
+                  value="<?= e($settings['section_subtitle_causes'] ?? '') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                  placeholder="Leave empty to hide"
+                >
+              </div>
             </div>
           </div>
 
@@ -574,15 +628,28 @@
                 <span class="ml-2 text-xs font-medium text-ink">Show section</span>
               </label>
             </div>
-            <div>
-              <label for="section_title_campaigns" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
-              <input 
-                type="text" 
-                id="section_title_campaigns" 
-                name="section_title_campaigns" 
-                value="<?= e($settings['section_title_campaigns'] ?? 'Campaigns') ?>" 
-                class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
-              >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="section_title_campaigns" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
+                <input 
+                  type="text" 
+                  id="section_title_campaigns" 
+                  name="section_title_campaigns" 
+                  value="<?= e($settings['section_title_campaigns'] ?? 'Campaigns') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                >
+              </div>
+              <div>
+                <label for="section_subtitle_campaigns" class="block text-[11px] text-ink-muted mb-1">Section Subtitle (Optional)</label>
+                <input 
+                  type="text" 
+                  id="section_subtitle_campaigns" 
+                  name="section_subtitle_campaigns" 
+                  value="<?= e($settings['section_subtitle_campaigns'] ?? '') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                  placeholder="Leave empty to hide"
+                >
+              </div>
             </div>
           </div>
 
@@ -601,7 +668,7 @@
                 <span class="ml-2 text-xs font-medium text-ink">Show section</span>
               </label>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label for="section_title_rti" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
                 <input 
@@ -610,6 +677,17 @@
                   name="section_title_rti" 
                   value="<?= e($settings['section_title_rti'] ?? 'Right to Information') ?>" 
                   class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                >
+              </div>
+              <div>
+                <label for="section_subtitle_rti" class="block text-[11px] text-ink-muted mb-1">Section Subtitle (Optional)</label>
+                <input 
+                  type="text" 
+                  id="section_subtitle_rti" 
+                  name="section_subtitle_rti" 
+                  value="<?= e($settings['section_subtitle_rti'] ?? '') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                  placeholder="Leave empty to hide"
                 >
               </div>
               <div>
@@ -646,15 +724,28 @@
                 <span class="ml-2 text-xs font-medium text-ink">Show section</span>
               </label>
             </div>
-            <div>
-              <label for="section_title_gallery" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
-              <input 
-                type="text" 
-                id="section_title_gallery" 
-                name="section_title_gallery" 
-                value="<?= e($settings['section_title_gallery'] ?? 'From the gallery') ?>" 
-                class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
-              >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="section_title_gallery" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
+                <input 
+                  type="text" 
+                  id="section_title_gallery" 
+                  name="section_title_gallery" 
+                  value="<?= e($settings['section_title_gallery'] ?? 'From the gallery') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                >
+              </div>
+              <div>
+                <label for="section_subtitle_gallery" class="block text-[11px] text-ink-muted mb-1">Section Subtitle (Optional)</label>
+                <input 
+                  type="text" 
+                  id="section_subtitle_gallery" 
+                  name="section_subtitle_gallery" 
+                  value="<?= e($settings['section_subtitle_gallery'] ?? '') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                  placeholder="Leave empty to hide"
+                >
+              </div>
             </div>
           </div>
 
@@ -673,7 +764,7 @@
                 <span class="ml-2 text-xs font-medium text-ink">Show section</span>
               </label>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label for="section_title_newsletter" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
                 <input 
@@ -682,6 +773,17 @@
                   name="section_title_newsletter" 
                   value="<?= e($settings['section_title_newsletter'] ?? 'Stay informed') ?>" 
                   class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                >
+              </div>
+              <div>
+                <label for="section_subtitle_newsletter" class="block text-[11px] text-ink-muted mb-1">Section Subtitle (Optional)</label>
+                <input 
+                  type="text" 
+                  id="section_subtitle_newsletter" 
+                  name="section_subtitle_newsletter" 
+                  value="<?= e($settings['section_subtitle_newsletter'] ?? '') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                  placeholder="Leave empty to hide"
                 >
               </div>
               <div>
@@ -695,7 +797,7 @@
                   rows="2" 
                   maxlength="160"
                   class="w-full px-3.5 py-2 rounded-xl border <?= isset($errors['section_intro_newsletter']) ? 'border-rose-400 bg-rose-50/20' : 'border-border' ?> focus:outline-none focus:ring-2 focus:ring-primary text-xs text-ink"
-                ><?= e($settings['section_intro_newsletter'] ?? 'Get our latest research, campaign dispatches, and RTI findings delivered straight to your inbox.') ?></textarea>
+                ><?= e($settings['section_intro_newsletter'] ?? 'Grassroots investigations, campaign updates, and environmental governance research from NatConnect Foundation.') ?></textarea>
                 <?php if (isset($errors['section_intro_newsletter'])): ?>
                   <p class="text-xs text-rose-600 mt-1"><?= e($errors['section_intro_newsletter']) ?></p>
                 <?php endif; ?>

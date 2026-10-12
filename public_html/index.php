@@ -210,6 +210,7 @@ $router->get('/admin/categories', [App\Controllers\Admin\CategoryController::cla
 $router->post('/admin/categories', [App\Controllers\Admin\CategoryController::class, 'store']);
 $router->post('/admin/categories/{id}/edit', [App\Controllers\Admin\CategoryController::class, 'update']);
 $router->post('/admin/categories/{id}/delete', [App\Controllers\Admin\CategoryController::class, 'delete']);
+$router->post('/admin/categories/{id}/move', [App\Controllers\Admin\CategoryController::class, 'reorder']);
 
 // Design Phase D1: Tags Management Routes
 $router->get('/admin/tags', [App\Controllers\Admin\TagController::class, 'index']);

@@ -24,11 +24,11 @@ class CategoryModel
     public static function getAll(): array
     {
         $pdo = Database::getConnection();
-        $sql = "SELECT c.id, c.name, c.slug, c.description, c.created_at, COUNT(p.id) AS post_count
+        $sql = "SELECT c.id, c.name, c.slug, c.description, c.sort_order, c.created_at, COUNT(p.id) AS post_count
                 FROM categories c
                 LEFT JOIN posts p ON c.id = p.category_id
-                GROUP BY c.id, c.name, c.slug, c.description, c.created_at
-                ORDER BY c.name ASC";
+                GROUP BY c.id, c.name, c.slug, c.description, c.sort_order, c.created_at
+                ORDER BY c.sort_order ASC, c.name ASC";
 
         $stmt = $pdo->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -206,4 +206,63 @@ class CategoryModel
         $stmt = $pdo->prepare("DELETE FROM categories WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
+
+    /**
+     * Reorder a category with adjacent category swap ('up' or 'down').
+     * Normalizes sort_order sequentially (1, 2, 3, ...) to ensure deterministic positioning.
+     */
+    public static function reorder(int $id, string $direction): bool
+    {
+        if ($direction !== 'up' && $direction !== 'down') {
+            return false;
+        }
+
+        $items = self::getAll();
+        $count = count($items);
+        if ($count < 2) {
+            return false;
+        }
+
+        $currentIndex = null;
+        foreach ($items as $idx => $item) {
+            if ((int) $item['id'] === $id) {
+                $currentIndex = $idx;
+                break;
+            }
+        }
+
+        if ($currentIndex === null) {
+            return false;
+        }
+
+        $swapIndex = ($direction === 'up') ? $currentIndex - 1 : $currentIndex + 1;
+        if ($swapIndex < 0 || $swapIndex >= $count) {
+            return false; // Already at topmost or bottommost position
+        }
+
+        // Swap positions in list
+        $temp = $items[$currentIndex];
+        $items[$currentIndex] = $items[$swapIndex];
+        $items[$swapIndex] = $temp;
+
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare("UPDATE categories SET sort_order = :sort WHERE id = :id");
+            foreach ($items as $idx => $item) {
+                $stmt->execute([
+                    'sort' => $idx + 1,
+                    'id'   => (int) $item['id'],
+                ]);
+            }
+            $pdo->commit();
+            return true;
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
 }
+

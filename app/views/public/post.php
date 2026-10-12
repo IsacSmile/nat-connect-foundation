@@ -58,7 +58,7 @@ if (!empty($post['excerpt'])) {
 ?>
 
 <div class="py-8 md:py-12">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
     <div class="<?= $hasSidebar ? 'lg:grid lg:grid-cols-12 lg:gap-12 items-start' : 'max-w-3xl mx-auto' ?>">
 
       <!-- ========================================================= -->
@@ -446,7 +446,7 @@ if (!empty($post['excerpt'])) {
                 <span class="text-[11px] font-bold uppercase tracking-wider text-ink-subtle mb-1 group-hover:text-primary flex items-center gap-1">
                   &larr; Previous Story
                 </span>
-                <span class="font-serif text-sm font-bold text-ink group-hover:text-primary line-clamp-2">
+                <span class="font-serif text-sm font-bold text-ink group-hover:text-primary leading-snug">
                   <?= e($prevPost['title']) ?>
                 </span>
               </a>
@@ -462,7 +462,7 @@ if (!empty($post['excerpt'])) {
                 <span class="text-[11px] font-bold uppercase tracking-wider text-ink-subtle mb-1 group-hover:text-primary flex items-center justify-end gap-1">
                   Next Story &rarr;
                 </span>
-                <span class="font-serif text-sm font-bold text-ink group-hover:text-primary line-clamp-2">
+                <span class="font-serif text-sm font-bold text-ink group-hover:text-primary leading-snug">
                   <?= e($nextPost['title']) ?>
                 </span>
               </a>
@@ -694,7 +694,7 @@ if (!empty($post['excerpt'])) {
                         <?php if (!empty($rel['category_name'])): ?>
                           <span class="text-[10px] font-bold text-primary uppercase tracking-wider block mb-0.5"><?= e($rel['category_name']) ?></span>
                         <?php endif; ?>
-                        <h3 class="font-serif text-xs font-bold text-ink group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                        <h3 class="font-serif text-xs font-bold text-ink group-hover:text-primary transition-colors leading-snug">
                           <?= e($rel['title']) ?>
                         </h3>
                         <div class="text-[11px] text-ink-subtle mt-1 flex items-center gap-1.5">
@@ -740,7 +740,7 @@ if (!empty($post['excerpt'])) {
                         <?php if (!empty($pop['category_name'])): ?>
                           <span class="text-[10px] font-bold text-primary uppercase tracking-wider block mb-0.5"><?= e($pop['category_name']) ?></span>
                         <?php endif; ?>
-                        <h3 class="font-serif text-xs font-bold text-ink group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                        <h3 class="font-serif text-xs font-bold text-ink group-hover:text-primary transition-colors leading-snug">
                           <?= e($pop['title']) ?>
                         </h3>
                         <div class="text-[11px] text-ink-subtle mt-1 flex items-center gap-1.5">

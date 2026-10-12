@@ -30,21 +30,23 @@ $lightboxData = array_map(function ($item) {
   @keydown.left.window="prevPhoto()"
   @keydown.right.window="nextPhoto()"
 >
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
 
-    <!-- Header Section (Exactly one H1 per page) -->
-    <div class="max-w-2xl mx-auto text-center mb-10 md:mb-14">
-      <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink tracking-tight mb-3">
+    <!-- Header Section (Left-aligned, Fraunces weight 500, setting intro or empty) -->
+    <div class="border-b border-ink/10 pb-6 mb-8 sm:mb-12">
+      <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium text-ink tracking-tight mb-3">
         Photo Gallery
       </h1>
-      <p class="text-base sm:text-lg text-ink-muted leading-relaxed">
-        Biodiversity, wetland habitats, and community environmental actions captured on the ground by NatConnect Foundation.
-      </p>
+      <?php if (!empty($galleryIntro)): ?>
+        <p class="text-base sm:text-lg text-ink-muted leading-relaxed max-w-3xl">
+          <?= e($galleryIntro) ?>
+        </p>
+      <?php endif; ?>
     </div>
 
     <!-- Empty State -->
     <?php if (empty($photos)): ?>
-      <div class="p-16 text-center rounded-2xl border border-dashed border-border bg-white shadow-soft-sm max-w-lg mx-auto">
+      <div class="p-16 text-center rounded-lg border border-dashed border-border bg-white shadow-soft-sm max-w-lg mx-auto">
         <svg class="w-12 h-12 text-ink-subtle mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
           <circle cx="9" cy="9" r="2"/>
@@ -64,7 +66,7 @@ $lightboxData = array_map(function ($item) {
           <button 
             type="button" 
             @click="openLightbox(<?= $index ?>)" 
-            class="group relative aspect-square rounded-2xl overflow-hidden bg-surface-alt border border-border shadow-soft-sm hover:shadow-soft-lg transition-all focus-visible:ring-2 focus-visible:ring-primary text-left cursor-pointer"
+            class="group relative aspect-square rounded-lg overflow-hidden bg-surface-alt border border-border shadow-soft-sm hover:shadow-soft-lg transition-all focus-visible:ring-2 focus-visible:ring-primary text-left cursor-pointer"
             aria-label="View photo: <?= e($photo['alt_text']) ?>"
           >
             <img 
@@ -90,7 +92,7 @@ $lightboxData = array_map(function ($item) {
           <?php if ($pagination['current'] > 1): ?>
             <a 
               href="/gallery?page=<?= $pagination['current'] - 1 ?>" 
-              class="inline-flex items-center px-4 py-2.5 bg-white hover:bg-surface-alt text-ink font-semibold text-sm rounded-xl border border-border shadow-soft-sm transition-colors min-h-[44px]"
+              class="inline-flex items-center px-4 py-2.5 bg-white hover:bg-surface-alt text-ink font-semibold text-sm rounded-lg border border-border shadow-soft-sm transition-colors min-h-[44px]"
             >
               &larr; Previous
             </a>
@@ -99,7 +101,7 @@ $lightboxData = array_map(function ($item) {
           <?php if ($pagination['current'] < $pagination['total']): ?>
             <a 
               href="/gallery?page=<?= $pagination['current'] + 1 ?>" 
-              class="inline-flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-semibold text-sm rounded-xl shadow-soft transition-colors min-h-[44px]"
+              class="inline-flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-semibold text-sm rounded-lg shadow-soft transition-colors min-h-[44px]"
             >
               <span>Load more photos</span>
               <span class="text-xs opacity-80">(Page <?= $pagination['current'] + 1 ?> of <?= $pagination['total'] ?>)</span>
@@ -147,7 +149,7 @@ $lightboxData = array_map(function ($item) {
         <button 
           type="button" 
           @click="closeLightbox()" 
-          class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors focus-visible:ring-2 focus-visible:ring-white min-h-[44px] min-w-[44px] flex items-center justify-center"
+          class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors focus-visible:ring-2 focus-visible:ring-white min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label="Close lightbox"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -157,7 +159,7 @@ $lightboxData = array_map(function ($item) {
       </div>
 
       <!-- Main Image Container with Next / Prev Overlay Controls -->
-      <div class="relative w-full flex items-center justify-center overflow-hidden rounded-2xl bg-black/60 shadow-2xl">
+      <div class="relative w-full flex items-center justify-center overflow-hidden rounded-lg bg-black/60 shadow-2xl">
         <template x-if="currentPhoto">
           <img 
             :src="currentPhoto.src" 

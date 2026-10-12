@@ -1,10 +1,9 @@
-<!-- NatConnect Foundation — Public Page Template -->
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-10">
+<div class="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-8">
 
-  <!-- Header -->
-  <header class="space-y-4">
+  <!-- Header: Left-aligned Fraunces weight 500 title -->
+  <header class="space-y-3 max-w-[68ch]">
     <!-- Exactly ONE H1 -->
-    <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink tracking-tight leading-[1.15]">
+    <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium text-ink tracking-tight leading-[1.15]">
       <?= e($page['title']) ?>
     </h1>
 
@@ -15,11 +14,10 @@
     <?php endif; ?>
   </header>
 
-  <!-- Editorial Prose Body (Same typography as posts, NO like button, beacon, share row, or comments) -->
-  <article class="bg-white rounded-3xl border border-border p-6 sm:p-10 lg:p-12 shadow-soft-sm">
-    <div class="prose max-w-none text-ink-soft text-[17px] sm:text-[18px] leading-[1.75]">
-      <?= $page['content'] ?>
-    </div>
-  </article>
+  <!-- Editorial Prose Body (Same layout and typography as post article, ~68ch, text-ink, no bordered box) -->
+  <main class="prose max-w-[68ch] text-ink leading-relaxed">
+    <?= $page['content'] ?>
+  </main>
 
 </div>
+

@@ -1,5 +1,5 @@
 <!-- NatConnect Foundation — All Stories Archive (Design Phase D1) -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-10">
+<div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-10">
 
   <!-- Header -->
   <header class="border-b border-border pb-8 max-w-4xl space-y-4">

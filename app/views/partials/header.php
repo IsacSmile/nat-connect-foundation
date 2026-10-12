@@ -40,23 +40,23 @@
 ?>
 
 <header x-data="{ mobileOpen: false, searchOpen: false }" class="sticky top-0 z-40 bg-surface/95 backdrop-blur border-b border-border">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-20">
       
       <!-- Logo & Brand Identity -->
-      <a href="/" class="flex items-center gap-3 group focus-visible:ring-2 focus-visible:ring-primary rounded-lg p-1 shrink-0">
+      <a href="/" class="flex items-center gap-2.5 sm:gap-3 group focus-visible:ring-2 focus-visible:ring-primary rounded-lg p-1 min-w-0">
         <img 
           src="<?= asset('assets/img/logo-mark.png') ?>" 
           alt="NatConnect Foundation Mark" 
-          class="h-10 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+          class="h-10 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-105 shrink-0"
         />
-        <div class="flex flex-col">
-          <span class="font-serif font-bold text-base sm:text-xl md:text-2xl text-primary tracking-tight leading-none group-hover:text-primary-hover transition-colors whitespace-nowrap">
+        <div class="flex flex-col min-w-0">
+          <span class="font-serif font-bold text-base sm:text-xl md:text-2xl text-primary tracking-tight leading-none group-hover:text-primary-hover transition-colors truncate">
             <?= e(setting('site_name', 'NatConnect Foundation')) ?>
           </span>
           <?php $tagline = setting('site_tagline'); ?>
           <?php if (!empty($tagline)): ?>
-            <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-accent-strong mt-0.5">
+            <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-accent-strong mt-0.5 truncate">
               <?= e($tagline) ?>
             </span>
           <?php endif; ?>

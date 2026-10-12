@@ -105,8 +105,8 @@ $hasImageCover = ($coverType === 'image' && !empty($coverImage));
       </span>
     </div>
 
-    <!-- Post Title -->
-    <h3 class="font-serif font-medium text-lg sm:text-xl text-ink group-hover:text-primary transition-colors line-clamp-2 leading-snug mb-2.5">
+    <!-- Post Title (Wraps up to 3 lines, no truncation with ellipsis) -->
+    <h3 class="font-serif font-medium text-lg sm:text-xl text-ink group-hover:text-primary transition-colors leading-snug mb-2.5">
       <a href="<?= $postUrl ?>" class="focus:outline-none after:absolute after:inset-0 after:content-['']">
         <?= e($title) ?>
       </a>
@@ -117,8 +117,8 @@ $hasImageCover = ($coverType === 'image' && !empty($coverImage));
       <?= e($excerpt) ?>
     </p>
 
-    <!-- Action Link -->
-    <div class="mt-auto pt-3 border-t border-ink/10 flex items-center justify-between text-sm font-semibold text-accent-strong group-hover:text-accent-hover transition-colors">
+    <!-- Action Link (Arrow directly after text, gap-1) -->
+    <div class="mt-auto pt-3 border-t border-ink/10 flex items-center gap-1 text-sm font-semibold text-accent-strong group-hover:text-accent-hover transition-colors">
       <span>Read story</span>
       <span aria-hidden="true">&rarr;</span>
     </div>

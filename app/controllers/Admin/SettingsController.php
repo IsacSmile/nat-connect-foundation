@@ -175,6 +175,15 @@ class SettingsController
         $sectionTitleNewsletter = trim((string) ($_POST['section_title_newsletter'] ?? '')) ?: 'Stay informed';
         $sectionTitleDonate = trim((string) ($_POST['section_title_donate'] ?? '')) ?: 'Support our work';
 
+        $sectionSubtitleLatest    = trim((string) ($_POST['section_subtitle_latest'] ?? ''));
+        $sectionSubtitleTopics    = trim((string) ($_POST['section_subtitle_topics'] ?? ''));
+        $sectionSubtitleCauses    = trim((string) ($_POST['section_subtitle_causes'] ?? ''));
+        $sectionSubtitleCampaigns = trim((string) ($_POST['section_subtitle_campaigns'] ?? ''));
+        $sectionSubtitleRti       = trim((string) ($_POST['section_subtitle_rti'] ?? ''));
+        $sectionSubtitleGallery   = trim((string) ($_POST['section_subtitle_gallery'] ?? ''));
+        $sectionSubtitleNewsletter= trim((string) ($_POST['section_subtitle_newsletter'] ?? ''));
+        $galleryIntro             = trim((string) ($_POST['gallery_intro'] ?? ''));
+
         // Show/hide toggles: only update if on 'home' tab to prevent wiping toggles when saving 'general' tab
         $isHomeTab = ($tab === 'home');
         $sectionShowAnnouncement = $isHomeTab ? (!empty($_POST['section_show_announcement']) ? '1' : '0') : ($currentSettings['section_show_announcement'] ?? '0');
@@ -196,42 +205,50 @@ class SettingsController
 
         // Prepare key-value updates
         $updates = [
-            'site_name'                 => $siteName,
-            'site_tagline'              => $siteTagline,
-            'mission_statement'         => $missionStatement,
-            'footer_about'              => $footerAbout,
-            'contact_email'             => $contactEmail,
-            'contact_phone'             => $contactPhone,
-            'contact_whatsapp'          => $contactWhatsapp,
-            'contact_address'           => $contactAddress,
-            'donate_intro'              => $donateIntro,
-            'donate_upi_id'             => $donateUpiId,
-            'donate_upi_qr'             => $donateUpiQr,
-            'donate_bank_details'       => $donateBankDetails,
-            'announcement_text'         => $announcementText,
-            'announcement_link'         => $announcementLink,
-            'home_hero_headline'        => $homeHeroHeadline,
-            'home_hero_intro'           => $homeHeroIntro,
-            'section_title_latest'      => $sectionTitleLatest,
-            'section_title_topics'      => $sectionTitleTopics,
-            'section_title_causes'      => $sectionTitleCauses,
-            'section_title_campaigns'   => $sectionTitleCampaigns,
-            'section_title_rti'         => $sectionTitleRti,
-            'section_title_gallery'     => $sectionTitleGallery,
-            'section_title_newsletter'  => $sectionTitleNewsletter,
-            'section_title_donate'      => $sectionTitleDonate,
-            'section_intro_rti'         => $sectionIntroRti,
-            'section_intro_newsletter'  => $sectionIntroNewsletter,
-            'section_intro_donate'      => $sectionIntroDonate,
-            'section_show_announcement' => $sectionShowAnnouncement,
-            'section_show_latest'       => $sectionShowLatest,
-            'section_show_topics'       => $sectionShowTopics,
-            'section_show_causes'       => $sectionShowCauses,
-            'section_show_campaigns'    => $sectionShowCampaigns,
-            'section_show_rti'          => $sectionShowRti,
-            'section_show_gallery'      => $sectionShowGallery,
-            'section_show_newsletter'   => $sectionShowNewsletter,
-            'section_show_donate'       => $sectionShowDonate,
+            'site_name'                    => $siteName,
+            'site_tagline'                 => $siteTagline,
+            'mission_statement'            => $missionStatement,
+            'footer_about'                 => $footerAbout,
+            'contact_email'                => $contactEmail,
+            'contact_phone'                => $contactPhone,
+            'contact_whatsapp'             => $contactWhatsapp,
+            'contact_address'              => $contactAddress,
+            'donate_intro'                 => $donateIntro,
+            'donate_upi_id'                => $donateUpiId,
+            'donate_upi_qr'                => $donateUpiQr,
+            'donate_bank_details'          => $donateBankDetails,
+            'announcement_text'            => $announcementText,
+            'announcement_link'            => $announcementLink,
+            'home_hero_headline'           => $homeHeroHeadline,
+            'home_hero_intro'              => $homeHeroIntro,
+            'section_title_latest'         => $sectionTitleLatest,
+            'section_title_topics'         => $sectionTitleTopics,
+            'section_title_causes'         => $sectionTitleCauses,
+            'section_title_campaigns'      => $sectionTitleCampaigns,
+            'section_title_rti'            => $sectionTitleRti,
+            'section_title_gallery'        => $sectionTitleGallery,
+            'section_title_newsletter'     => $sectionTitleNewsletter,
+            'section_title_donate'         => $sectionTitleDonate,
+            'section_subtitle_latest'      => $sectionSubtitleLatest,
+            'section_subtitle_topics'      => $sectionSubtitleTopics,
+            'section_subtitle_causes'      => $sectionSubtitleCauses,
+            'section_subtitle_campaigns'   => $sectionSubtitleCampaigns,
+            'section_subtitle_rti'         => $sectionSubtitleRti,
+            'section_subtitle_gallery'     => $sectionSubtitleGallery,
+            'section_subtitle_newsletter'  => $sectionSubtitleNewsletter,
+            'gallery_intro'                => $galleryIntro,
+            'section_intro_rti'            => $sectionIntroRti,
+            'section_intro_newsletter'     => $sectionIntroNewsletter,
+            'section_intro_donate'         => $sectionIntroDonate,
+            'section_show_announcement'    => $sectionShowAnnouncement,
+            'section_show_latest'          => $sectionShowLatest,
+            'section_show_topics'          => $sectionShowTopics,
+            'section_show_causes'          => $sectionShowCauses,
+            'section_show_campaigns'       => $sectionShowCampaigns,
+            'section_show_rti'             => $sectionShowRti,
+            'section_show_gallery'         => $sectionShowGallery,
+            'section_show_newsletter'      => $sectionShowNewsletter,
+            'section_show_donate'          => $sectionShowDonate,
         ];
 
         foreach ($socialValues as $field => $val) {

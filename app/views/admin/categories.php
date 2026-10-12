@@ -56,6 +56,7 @@
             <tr class="bg-surface/50 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
               <th class="py-3 px-4">Name</th>
               <th class="py-3 px-4">Slug</th>
+              <th class="py-3 px-4 text-center">Order</th>
               <th class="py-3 px-4 text-center">Posts</th>
               <th class="py-3 px-4 text-right">Actions</th>
             </tr>
@@ -63,12 +64,17 @@
           <tbody class="divide-y divide-border text-sm">
             <?php if (empty($categories)): ?>
               <tr>
-                <td colspan="4" class="py-8 text-center text-ink-muted">
+                <td colspan="5" class="py-8 text-center text-ink-muted">
                   No categories found. Create your first category using the form.
                 </td>
               </tr>
             <?php else: ?>
-              <?php foreach ($categories as $cat): ?>
+              <?php $catTotal = count($categories); ?>
+              <?php foreach ($categories as $index => $cat): ?>
+                <?php
+                  $isFirst = ($index === 0);
+                  $isLast = ($index === $catTotal - 1);
+                ?>
                 <tr class="hover:bg-surface/30 transition-colors">
                   <td class="py-3.5 px-4 font-medium text-ink">
                     <?= e($cat['name']) ?>
@@ -78,6 +84,41 @@
                   </td>
                   <td class="py-3.5 px-4 text-ink-muted font-mono text-xs">
                     <?= e($cat['slug']) ?>
+                  </td>
+                  <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                    <div class="inline-flex items-center gap-1">
+                      <form action="/admin/categories/<?= (int) $cat['id'] ?>/move" method="POST" class="inline">
+                        <?= \App\Core\Csrf::field() ?>
+                        <input type="hidden" name="direction" value="up">
+                        <button 
+                          type="submit" 
+                          <?= $isFirst ? 'disabled' : '' ?>
+                          class="p-1.5 rounded-lg text-ink-muted hover:text-primary hover:bg-surface disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                          title="Move up"
+                          aria-label="Move up"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/>
+                          </svg>
+                        </button>
+                      </form>
+                      <span class="text-xs font-mono text-ink-muted px-1"><?= (int) ($cat['sort_order'] ?? ($index + 1)) ?></span>
+                      <form action="/admin/categories/<?= (int) $cat['id'] ?>/move" method="POST" class="inline">
+                        <?= \App\Core\Csrf::field() ?>
+                        <input type="hidden" name="direction" value="down">
+                        <button 
+                          type="submit" 
+                          <?= $isLast ? 'disabled' : '' ?>
+                          class="p-1.5 rounded-lg text-ink-muted hover:text-primary hover:bg-surface disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                          title="Move down"
+                          aria-label="Move down"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                          </svg>
+                        </button>
+                      </form>
+                    </div>
                   </td>
                   <td class="py-3.5 px-4 text-center">
                     <?php

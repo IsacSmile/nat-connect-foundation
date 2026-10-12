@@ -21,17 +21,20 @@
 ?>
 
 <footer class="mt-auto bg-white border-t border-border">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+  <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 lg:py-16">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
       
       <!-- Column 1: Brand & About -->
       <div class="lg:col-span-1 space-y-4">
         <a href="/" class="inline-flex items-center gap-3 group">
           <img 
-            src="<?= asset('assets/img/logo.png') ?>" 
+            src="<?= asset('assets/img/logo-mark.png') ?>" 
             alt="<?= e($siteName) ?>" 
-            class="h-14 w-auto object-contain"
+            class="h-10 w-auto object-contain"
           />
+          <span class="font-serif font-bold text-lg sm:text-xl text-primary group-hover:text-primary-hover transition-colors">
+            <?= e($siteName) ?>
+          </span>
         </a>
         
         <?php if (!empty($footerAbout)): ?>

@@ -516,7 +516,7 @@ class PublicController
 
         // 6. Causes we care about (tags with show_as_cause)
         $showCauses = setting('section_show_causes', '1') === '1';
-        $causes = $showCauses ? TagModel::getCauses(3) : [];
+        $causes = $showCauses ? TagModel::getCauses(20) : [];
 
         // 7. Campaigns category posts
         $showCampaigns = setting('section_show_campaigns', '1') === '1';
@@ -596,10 +596,12 @@ class PublicController
             'showTopics'         => $showTopics && !empty($topics),
             'topics'             => $topics,
             'titleTopics'        => setting('section_title_topics', 'Explore by topic'),
+            'subtitleTopics'     => setting('section_subtitle_topics', ''),
             // Section 4: Latest stories
             'showLatest'         => $showLatest && !empty($latestPosts),
             'latestPosts'        => $latestPosts,
             'titleLatest'        => setting('section_title_latest', 'Latest stories'),
+            'subtitleLatest'     => setting('section_subtitle_latest', ''),
             // Section 5: About band
             'showAboutBand'      => ($missionStatement !== ''),
             'siteName'           => $siteName,
@@ -609,25 +611,30 @@ class PublicController
             'showCauses'         => $showCauses && !empty($causes),
             'causes'             => $causes,
             'titleCauses'        => setting('section_title_causes', 'Causes we care about'),
+            'subtitleCauses'     => setting('section_subtitle_causes', ''),
             // Section 7: Campaigns
             'showCampaigns'      => $showCampaigns && !empty($campaignPosts),
             'campaignPosts'      => $campaignPosts,
             'campaignCategory'   => $campaignCategory,
             'titleCampaigns'     => setting('section_title_campaigns', 'Campaigns'),
+            'subtitleCampaigns'  => setting('section_subtitle_campaigns', ''),
             // Section 8: Right to Information
             'showRti'            => $showRti && !empty($rtiPosts),
             'rtiPosts'           => $rtiPosts,
             'rtiCategory'        => $rtiCategory,
             'titleRti'           => setting('section_title_rti', 'Right to Information'),
+            'subtitleRti'        => setting('section_subtitle_rti', ''),
             'introRti'           => setting('section_intro_rti', 'Our ongoing investigations and RTI appeals uncovering wetland encroachments and environmental governance issues.'),
             // Section 9: Gallery
             'showGallery'        => $showGallery && !empty($galleryPhotos),
             'galleryPhotos'      => $galleryPhotos,
             'titleGallery'       => setting('section_title_gallery', 'From the gallery'),
+            'subtitleGallery'    => setting('section_subtitle_gallery', ''),
             // Section 10: Stay informed
             'showNewsletter'     => $showNewsletter,
             'titleNewsletter'    => setting('section_title_newsletter', 'Stay informed'),
-            'introNewsletter'    => setting('section_intro_newsletter', 'Get our latest research, campaign dispatches, and RTI findings delivered straight to your inbox.'),
+            'subtitleNewsletter' => setting('section_subtitle_newsletter', ''),
+            'introNewsletter'    => setting('section_intro_newsletter', 'Grassroots investigations, campaign updates, and environmental governance research from NatConnect Foundation.'),
             // Section 11: Donate band
             'showDonate'         => $showDonate && $isDonateActive,
             'titleDonate'        => setting('section_title_donate', 'Support our work'),
@@ -869,6 +876,7 @@ class PublicController
             'pageTitle'       => $pageTitle,
             'metaDescription' => $metaDescription,
             'ogImage'         => $ogImage,
+            'galleryIntro'    => setting('gallery_intro', ''),
             'photos'          => $data['items'],
             'pagination'      => [
                 'current' => $data['page'],
