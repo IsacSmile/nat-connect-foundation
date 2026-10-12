@@ -273,7 +273,7 @@ declare(strict_types=1);
 
       <!-- Horizontal scroll row: starts aligned with 20px gutter, bleeds off right edge only -->
       <div 
-        class="flex items-center gap-2.5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-2 -mr-5 pr-5 sm:mr-0 sm:pr-0 sm:flex-wrap"
+        class="flex items-center gap-2.5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory scroll-pl-5 pb-2 -mr-5 pr-5 sm:mr-0 sm:pr-0 sm:flex-wrap"
         tabindex="0"
         role="region"
         aria-label="Topics chips scroll row"
@@ -442,7 +442,7 @@ declare(strict_types=1);
       <!-- Desktop: Grid adapts (1 = wide, 2 = two cols, 3 = three cols)
            Mobile: Scroll row starts aligned with gutter, bleeds off right edge only -->
       <div 
-        class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-5 pb-4 -mr-5 pr-5 sm:mr-0 sm:pr-0 sm:grid <?= $causeGridClass ?> sm:gap-8"
+        class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-pl-5 gap-5 pb-4 -mr-5 pr-5 sm:mr-0 sm:pr-0 sm:grid <?= $causeGridClass ?> sm:gap-8"
         tabindex="0"
         role="region"
         aria-label="Causes cards scroll row"
@@ -787,7 +787,7 @@ declare(strict_types=1);
 
       <!-- Desktop 3 columns; Mobile: horizontal scroll row starting aligned with gutter, bleeding off right edge only -->
       <div 
-        class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-5 pb-4 -mr-5 pr-5 sm:mr-0 sm:pr-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-8"
+        class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-pl-5 gap-5 pb-4 -mr-5 pr-5 sm:mr-0 sm:pr-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-8"
         tabindex="0"
         role="region"
         aria-label="Gallery photos scroll row"
