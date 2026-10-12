@@ -24,6 +24,14 @@ class Database
     }
 
     /**
+     * Alias for getConnection()
+     */
+    public static function pdo(): PDO
+    {
+        return self::getConnection();
+    }
+
+    /**
      * Get the shared PDO connection instance.
      *
      * @return PDO
@@ -53,6 +61,7 @@ class Database
 
         try {
             self::$instance = new PDO($dsn, $user, $pass, $options);
+            self::$instance->exec("SET time_zone = '+05:30'");
             return self::$instance;
         } catch (PDOException $e) {
             $logDir = dirname(__DIR__) . '/storage/logs';

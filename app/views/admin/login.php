@@ -30,9 +30,6 @@
       <h1 class="font-serif text-2xl sm:text-3xl font-bold text-primary tracking-tight mt-3">
         NatConnect Admin
       </h1>
-      <p class="text-xs sm:text-sm text-ink-muted mt-1.5">
-        Editorial & Foundation Management System
-      </p>
     </div>
 
     <!-- Sign In Card -->
@@ -88,7 +85,7 @@
             autofocus 
             autocomplete="username"
             class="w-full px-3.5 py-2.5 bg-surface border border-border rounded-xl text-sm text-ink placeholder:text-ink-subtle focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all min-h-[44px]"
-            placeholder="admin@natconnectfoundation.org"
+            placeholder=""
           />
         </div>
 
@@ -107,7 +104,7 @@
               required 
               autocomplete="current-password"
               class="w-full pl-3.5 pr-11 py-2.5 bg-surface border border-border rounded-xl text-sm text-ink placeholder:text-ink-subtle focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all min-h-[44px]"
-              placeholder="••••••••••••••••"
+              placeholder=""
             />
             <button 
               type="button" 

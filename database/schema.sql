@@ -1,4 +1,13 @@
--- NatConnect Foundation Database Schema
+-- =============================================================================
+-- DEPRECATED: DO NOT USE FOR NEW INSTALLATIONS OR SCHEMA UPDATES
+-- =============================================================================
+-- Schema management is now handled exclusively via numbered migrations in:
+--   database/migrations/
+-- Use `php bin/migrate.php` to apply migrations sequentially, or apply files in
+-- database/migrations/ manually via phpMyAdmin on Hostinger.
+-- This file is retained for reference only.
+-- =============================================================================
+-- NatConnect Foundation Database Schema (Archival Reference)
 -- Compatible with MySQL 8.x / MariaDB 10.4+ on Hostinger Shared Hosting
 -- Character set: utf8mb4 | Collation: utf8mb4_unicode_ci | Engine: InnoDB
 
@@ -49,6 +58,7 @@ CREATE TABLE IF NOT EXISTS `posts` (
   `content` LONGTEXT NULL,
   `cover_type` ENUM('image', 'video') NOT NULL DEFAULT 'image',
   `cover_image` VARCHAR(255) NULL,
+  `cover_alt` VARCHAR(255) NULL,
   `video_url` VARCHAR(255) NULL,
   `author_name` VARCHAR(150) NULL DEFAULT 'NatConnect Foundation',
   `category_id` INT UNSIGNED NULL,
@@ -154,6 +164,27 @@ CREATE TABLE IF NOT EXISTS `login_attempts` (
   `attempted_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX `idx_login_attempts_ip_time` (`ip_hash`, `attempted_at`),
   INDEX `idx_login_attempts_account_time` (`account_hash`, `attempted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -------------------------------------------------------------
+-- 12. Pages Table (Editable Public & System Pages)
+-- -------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `pages` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `title` VARCHAR(255) NOT NULL,
+  `slug` VARCHAR(255) NOT NULL UNIQUE,
+  `content` LONGTEXT NOT NULL,
+  `meta_title` VARCHAR(255) NULL DEFAULT NULL,
+  `meta_description` TEXT NULL DEFAULT NULL,
+  `status` ENUM('draft', 'published') NOT NULL DEFAULT 'draft',
+  `show_in_nav` TINYINT NOT NULL DEFAULT 0,
+  `nav_label` VARCHAR(40) NULL DEFAULT NULL,
+  `nav_order` INT NOT NULL DEFAULT 0,
+  `is_system` TINYINT NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_pages_status_nav` (`status`, `show_in_nav`, `nav_order`),
+  INDEX `idx_pages_slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

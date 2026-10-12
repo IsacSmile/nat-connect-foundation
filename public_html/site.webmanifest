@@ -1,0 +1,21 @@
+{
+  "name": "NatConnect Foundation",
+  "short_name": "NatConnect",
+  "description": "Environmental advocacy, wetland protection, and conservation platform.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#2F3A8F",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

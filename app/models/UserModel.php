@@ -154,6 +154,12 @@ class UserModel
     public static function recordFailedLogin(string $ipHash, ?string $accountHash = null): void
     {
         $db = Database::getConnection();
+
+        // 1% opportunistic pruning of login attempts older than 24 hours
+        if (mt_rand(1, 100) === 1) {
+            self::purgeOldAttempts(24);
+        }
+
         $stmt = $db->prepare("INSERT INTO login_attempts (ip_hash, account_hash, attempted_at) VALUES (:ip_hash, :account_hash, :attempted_at)");
         $stmt->execute([
             ':ip_hash'      => $ipHash,

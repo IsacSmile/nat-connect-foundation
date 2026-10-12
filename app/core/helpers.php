@@ -60,6 +60,44 @@ if (!function_exists('readTime')) {
     }
 }
 
+if (!function_exists('excerpt')) {
+    /**
+     * Generate a plain text excerpt from HTML or raw content cutting at a word boundary and ending with "…".
+     */
+    function excerpt(?string $text, int $limit = 160): string
+    {
+        if (empty($text)) {
+            return '';
+        }
+        $plain = trim((string) preg_replace('/\s+/', ' ', strip_tags($text)));
+        if (mb_strlen($plain) <= $limit) {
+            return $plain;
+        }
+
+        // Cut at word boundary within limit
+        $sub = mb_substr($plain, 0, $limit);
+        $lastSpace = mb_strrpos($sub, ' ');
+        if ($lastSpace !== false && $lastSpace > (int) ($limit * 0.4)) {
+            $sub = mb_substr($sub, 0, $lastSpace);
+        }
+
+        // Strip trailing punctuation before ellipsis
+        $sub = rtrim($sub, " \t\n\r\0\x0B.,:;!?-–—");
+
+        return $sub . '…';
+    }
+}
+
+if (!function_exists('snippet')) {
+    /**
+     * Alias for excerpt() to ensure consistent word-boundary truncation.
+     */
+    function snippet(?string $text, int $limit = 160): string
+    {
+        return excerpt($text, $limit);
+    }
+}
+
 if (!function_exists('formatDate')) {
     /**
      * Format a date string in standard Indian format (e.g. 12 Oct 2026).
@@ -128,6 +166,19 @@ if (!function_exists('youtubeId')) {
         }
 
         return null;
+    }
+}
+
+if (!function_exists('effectiveStatus')) {
+    /**
+     * Compute effective publication status for a post.
+     *
+     * @param array $post
+     * @return 'published'|'scheduled'|'draft'
+     */
+    function effectiveStatus(array $post): string
+    {
+        return \App\Models\PostModel::effectiveStatus($post);
     }
 }
 
@@ -316,4 +367,29 @@ if (!function_exists('hasFlash')) {
         return !empty($_SESSION['flash'][$type]);
     }
 }
+
+if (!function_exists('setting')) {
+    /**
+     * Retrieve a site setting by key.
+     */
+    function setting(string $key, ?string $default = null): ?string
+    {
+        return \App\Models\SettingModel::get($key, $default);
+    }
+}
+
+if (!function_exists('subscriberTimestampFields')) {
+    /**
+     * Generate signed timestamp hidden inputs for newsletter subscription form.
+     */
+    function subscriberTimestampFields(): string
+    {
+        $salt = (string) config('security.salt', 'salt');
+        $ts = time();
+        $sig = hash_hmac('sha256', (string) $ts, $salt);
+        return '<input type="hidden" name="sub_ts" value="' . $ts . '">' . "\n" .
+               '<input type="hidden" name="sub_sig" value="' . $sig . '">';
+    }
+}
+
 

@@ -19,7 +19,7 @@ class Csrf
     public static function token(): string
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+            @session_start();
         }
 
         if (empty($_SESSION[self::SESSION_KEY]) || !is_string($_SESSION[self::SESSION_KEY])) {

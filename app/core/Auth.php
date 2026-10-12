@@ -26,6 +26,11 @@ class Auth
             return;
         }
 
+        if (headers_sent()) {
+            @session_start();
+            return;
+        }
+
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_cookies', '1');
         ini_set('session.use_only_cookies', '1');
@@ -52,6 +57,14 @@ class Auth
     {
         self::startSession();
         return !empty($_SESSION[self::SESSION_USER_ID]);
+    }
+
+    /**
+     * Alias for check() to verify if user is logged in.
+     */
+    public static function isLoggedIn(): bool
+    {
+        return self::check();
     }
 
     /**

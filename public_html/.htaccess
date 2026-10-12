@@ -2,47 +2,40 @@
 # NatConnect Foundation — Production .htaccess for Hostinger Shared Hosting
 # ==============================================================================
 
-# Disable directory browsing
-Options -Indexes -MultiViews
+# Note: "Options" and "Header" directives cause HTTP 500 on Hostinger and are strictly forbidden.
+# Security headers are emitted from PHP in public_html/index.php.
+# Directory indexing is prevented by empty index.html files.
 
 # Set default charset
 AddDefaultCharset UTF-8
 
 # ------------------------------------------------------------------------------
-# 1. Security Headers
-# ------------------------------------------------------------------------------
-<IfModule mod_headers.c>
-    # Prevent MIME type sniffing
-    Header set X-Content-Type-Options "nosniff"
-
-    # Clickjacking protection
-    Header set X-Frame-Options "SAMEORIGIN"
-
-    # Cross-site scripting filter
-    Header set X-XSS-Protection "1; mode=block"
-
-    # Referrer policy for privacy
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
-
-    # Modern Permissions-Policy
-    Header set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
-</IfModule>
-
-# ------------------------------------------------------------------------------
-# 2. Block Access to Hidden / Sensitive Files (.git, .env, .sql, etc.)
+# 1. Block Access to Hidden / Sensitive Files (.git, .env, .sql, etc.)
 # ------------------------------------------------------------------------------
 <FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </FilesMatch>
 
 <FilesMatch "(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|psd|sh|sql|sw[op]|env))$">
-    Order allow,deny
-    Deny from all
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </FilesMatch>
 
 # ------------------------------------------------------------------------------
-# 3. Static Asset CachingDirectives (Fonts, CSS, JS, Images)
+# 2. Static Asset Caching Directives (Fonts, CSS, JS, Images)
+#    Note: mod_expires is unverified on Hostinger; harmless inside IfModule.
+#    Static asset caching also relies on Hostinger CDN.
 # ------------------------------------------------------------------------------
 <IfModule mod_expires.c>
     ExpiresActive On
@@ -67,20 +60,8 @@ AddDefaultCharset UTF-8
     ExpiresByType text/javascript "access plus 1 month"
 </IfModule>
 
-<IfModule mod_headers.c>
-    # 1 year cache for static fonts
-    <FilesMatch "\.(woff|woff2|ttf|eot)$">
-        Header set Cache-Control "max-age=31536000, public"
-    </FilesMatch>
-
-    # Cache control for versioned assets
-    <FilesMatch "\.(css|js|png|jpg|jpeg|gif|webp|svg|ico)$">
-        Header set Cache-Control "max-age=2592000, public"
-    </FilesMatch>
-</IfModule>
-
 # ------------------------------------------------------------------------------
-# 4. URL Rewriting — Route all non-file/dir requests to index.php
+# 3. URL Rewriting — Route all non-file/dir requests to index.php
 # ------------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
     RewriteEngine On

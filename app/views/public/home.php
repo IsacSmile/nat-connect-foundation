@@ -1,153 +1,827 @@
-<!-- NatConnect Foundation — Phase 0/1 Coming Soon Preview -->
-<section class="relative overflow-hidden py-16 sm:py-24">
-  <!-- Subtle Nature Accent Blob in Background -->
-  <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-accent/10 blur-3xl pointer-events-none"></div>
-  <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+<?php
+declare(strict_types=1);
 
-  <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-    
-    <!-- Hero / Coming Soon Banner -->
-    <div class="text-center max-w-3xl mx-auto space-y-6">
-      
-      <!-- Status Badge with Lucide Sparkles SVG -->
-      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent-strong font-semibold text-xs tracking-wider uppercase">
-        <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/>
-        </svg>
-        <span>Foundation Platform • Phase 0 & 1 Complete</span>
-      </div>
+/**
+ * NatConnect Foundation — Public Homepage
+ * Design Phase D2 Implementation
+ */
+?>
 
-      <!-- Main Headline in Fraunces Serif -->
-      <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-ink tracking-tight leading-[1.15]">
-        Preserving Ecosystems.<br>
-        <span class="text-primary">[CLIENT COPY: Primary Headline]</span>
-      </h1>
+<div class="space-y-16 sm:space-y-24">
 
-      <!-- Subtitle in Inter Sans with Placeholder -->
-      <p class="text-lg sm:text-xl text-ink-muted leading-relaxed font-normal max-w-2xl mx-auto">
-        [CLIENT COPY: mission statement and executive summary]
-      </p>
-
-      <!-- Launch Notice Card with Lucide Info SVG -->
-      <div class="inline-flex items-center gap-3 px-5 py-3 bg-white border border-border rounded-xl shadow-soft-sm text-sm text-ink-soft">
-        <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"/>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4M12 8h.01"/>
-        </svg>
-        <span>[CLIENT COPY: launch announcement or public notice]</span>
-      </div>
-
-    </div>
-
-    <!-- Category Pillars Grid with Lucide Inline SVGs (stroke-width 1.75) -->
-    <div class="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      
-      <!-- 1. Causes (Lucide Sprout / Leaf) -->
-      <div class="bg-white p-6 rounded-xl border border-border hover:border-primary/40 shadow-soft-sm hover:shadow-soft transition-all group">
-        <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-4 group-hover:bg-accent-strong group-hover:text-white transition-colors">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
-          </svg>
+  <!-- =========================================================================
+       1. ANNOUNCEMENT BAR (Dismissible via localStorage)
+       ========================================================================= -->
+  <?php if (!empty($showAnnouncement)): ?>
+    <div 
+      x-data="{ dismissed: localStorage.getItem('nc_announcement_dismissed') === '1' }" 
+      x-show="!dismissed" 
+      x-cloak
+      class="bg-primary text-white text-sm py-2.5 px-4 shadow-sm"
+      role="region"
+      aria-label="Announcement"
+    >
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div class="flex-1 text-center min-w-0">
+          <?php if (!empty($announcementLink)): ?>
+            <a href="<?= e($announcementLink) ?>" class="inline-flex items-center gap-1.5 hover:underline font-medium truncate">
+              <span><?= e($announcementText) ?></span>
+              <span aria-hidden="true">&rarr;</span>
+            </a>
+          <?php else: ?>
+            <span class="font-medium truncate inline-block"><?= e($announcementText) ?></span>
+          <?php endif; ?>
         </div>
-        <h3 class="font-serif text-lg font-bold text-ink mb-1 group-hover:text-primary transition-colors">Causes</h3>
-        <p class="text-sm text-ink-muted leading-relaxed">
-          [CLIENT COPY: description of environmental advocacy and conservation causes]
-        </p>
-      </div>
-
-      <!-- 2. News (Lucide Newspaper) -->
-      <div class="bg-white p-6 rounded-xl border border-border hover:border-primary/40 shadow-soft-sm hover:shadow-soft transition-all group">
-        <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"/>
-          </svg>
-        </div>
-        <h3 class="font-serif text-lg font-bold text-ink mb-1 group-hover:text-primary transition-colors">News</h3>
-        <p class="text-sm text-ink-muted leading-relaxed">
-          [CLIENT COPY: description of investigative bulletins and news archives]
-        </p>
-      </div>
-
-      <!-- 3. Campaigns (Lucide Megaphone) -->
-      <div class="bg-white p-6 rounded-xl border border-border hover:border-primary/40 shadow-soft-sm hover:shadow-soft transition-all group">
-        <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-4 group-hover:bg-accent-strong group-hover:text-white transition-colors">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m3 11 18-5v12L3 14v-3ZM11.6 16.8a3 3 0 1 1-5.8-1.6"/>
-          </svg>
-        </div>
-        <h3 class="font-serif text-lg font-bold text-ink mb-1 group-hover:text-primary transition-colors">Campaigns</h3>
-        <p class="text-sm text-ink-muted leading-relaxed">
-          [CLIENT COPY: description of community campaigns and civic petitions]
-        </p>
-      </div>
-
-      <!-- 4. RTI Applications (Lucide Scale) -->
-      <div class="bg-white p-6 rounded-xl border border-border hover:border-primary/40 shadow-soft-sm hover:shadow-soft transition-all group">
-        <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
-          </svg>
-        </div>
-        <h3 class="font-serif text-lg font-bold text-ink mb-1 group-hover:text-primary transition-colors">RTI Inquiries</h3>
-        <p class="text-sm text-ink-muted leading-relaxed">
-          [CLIENT COPY: description of Right to Information filings and accountability]
-        </p>
-      </div>
-
-    </div>
-
-    <!-- Editorial Prose Typography & Design System Verification Box -->
-    <div class="mt-20 bg-white border border-border rounded-2xl p-8 sm:p-12 shadow-soft">
-      <div class="border-b border-border-subtle pb-6 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <span class="text-xs font-semibold uppercase tracking-wider text-accent-strong">Design Token & Typography Test</span>
-          <h2 class="font-serif text-2xl sm:text-3xl font-bold text-primary mt-1">Sample Editorial Article (~68ch Prose)</h2>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="w-6 h-6 rounded-full bg-primary inline-block" title="Primary #2F3A8F"></span>
-          <span class="w-6 h-6 rounded-full bg-accent inline-block" title="Accent #3B8E3F"></span>
-          <span class="w-6 h-6 rounded-full bg-surface border border-border inline-block" title="Surface #FAFAF7"></span>
-          <span class="w-6 h-6 rounded-full bg-ink inline-block" title="Ink #1A1D29"></span>
-        </div>
-      </div>
-
-      <!-- Long-form Prose Container -->
-      <article class="prose">
-        <p>
-          [CLIENT COPY: introductory paragraph for sample article verifying prose line length and typeface rendering].
-        </p>
-
-        <blockquote>
-          "[CLIENT COPY: notable quotation or key excerpt emphasizing nature and environmental conservation]."
-        </blockquote>
-
-        <p>
-          [CLIENT COPY: secondary descriptive paragraph detailing investigative workflow, public interest engagement, and policy analysis].
-        </p>
-
-        <ul>
-          <li><strong>[CLIENT COPY: Focus Area 1]:</strong> [CLIENT COPY: brief summary].</li>
-          <li><strong>[CLIENT COPY: Focus Area 2]:</strong> [CLIENT COPY: brief summary].</li>
-          <li><strong>[CLIENT COPY: Focus Area 3]:</strong> [CLIENT COPY: brief summary].</li>
-        </ul>
-      </article>
-
-      <!-- Formatting & Helper Test verification footer -->
-      <div class="mt-10 pt-6 border-t border-border-subtle flex flex-wrap items-center justify-between gap-4 text-xs text-ink-muted">
-        <div>
-          <span>Indian Date Helper Test: <strong><?= formatDate(date('Y-m-d H:i:s')) ?></strong></span>
-          <span class="mx-2">•</span>
-          <span>Calculated Read Time: <strong><?= readTime("Sample prose article for reading time verification") ?> min read</strong></span>
-        </div>
-        <div>
-          <span>App Env: <strong class="text-primary"><?= e(config('app.env')) ?></strong></span>
-          <span class="mx-2">•</span>
-          <span>PHP Version: <strong><?= PHP_VERSION ?></strong></span>
-        </div>
+        <button 
+          type="button" 
+          @click="localStorage.setItem('nc_announcement_dismissed', '1'); dismissed = true" 
+          class="shrink-0 p-1 text-white/80 hover:text-white rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          aria-label="Dismiss announcement"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
     </div>
+  <?php endif; ?>
 
-  </div>
-</section>
+  <!-- =========================================================================
+       2. HERO SECTION
+       ========================================================================= -->
+  <?php if (!empty($heroPost)): ?>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6" aria-labelledby="hero-heading">
+      <!-- Top Row: Single h1 Headline (~60%) + Intro Paragraph & CTA (~40%) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-end pb-8 sm:pb-12 border-b border-ink/10">
+        <div class="lg:col-span-7 space-y-3">
+          <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block">
+            Environmental Advocacy &amp; Action
+          </span>
+          <h1 id="hero-heading" class="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-ink leading-tight tracking-tight">
+            <?= e($heroHeadline) ?>
+          </h1>
+        </div>
+        <div class="lg:col-span-5 space-y-3">
+          <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
+            <?= e($heroIntro) ?>
+          </p>
+          <div>
+            <a 
+              href="/stories" 
+              class="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-strong hover:text-accent-hover transition-colors"
+            >
+              <span>Explore all stories</span>
+              <span aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Layout: Featured Post Card + Editor's Picks -->
+      <div class="mt-8 sm:mt-10">
+        <?php if (!empty($editorPicks)): ?>
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            
+            <!-- Left: Featured Post Large Image Card (8 columns) -->
+            <div class="lg:col-span-8 flex">
+              <?php
+                $heroUrl = '/post/' . e($heroPost['slug']);
+                $heroCover = $heroPost['cover_image'] ?? '';
+                $heroAlt = !empty($heroPost['cover_alt']) ? $heroPost['cover_alt'] : $heroPost['title'];
+                $heroCategory = !empty($heroPost['category_name']) ? strtoupper((string) $heroPost['category_name']) : 'FEATURED';
+                $heroAttrs = \App\Core\ImageUploader::getResponsiveAttributes($heroCover, '(max-width: 1024px) 100vw, 66vw');
+              ?>
+              <article class="group relative w-full aspect-[16/10] min-h-[380px] lg:min-h-[460px] rounded-lg overflow-hidden border border-ink/10 bg-ink flex flex-col justify-end p-6 sm:p-10 shadow-soft-sm">
+                <?php if ($heroAttrs): ?>
+                  <img 
+                    src="<?= e($heroAttrs['src']) ?>" 
+                    srcset="<?= e($heroAttrs['srcset']) ?>" 
+                    sizes="<?= e($heroAttrs['sizes']) ?>" 
+                    alt="<?= e($heroAlt) ?>" 
+                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="eager" 
+                    fetchpriority="high"
+                  >
+                <?php elseif (!empty($heroCover)): ?>
+                  <img 
+                    src="<?= e(\App\Core\ImageUploader::getVariantUrl($heroCover, 1600)) ?>" 
+                    alt="<?= e($heroAlt) ?>" 
+                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="eager" 
+                    fetchpriority="high"
+                  >
+                <?php endif; ?>
+
+                <!-- Gradient Overlay: ink to transparent -->
+                <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/65 to-transparent pointer-events-none"></div>
+
+                <!-- Text Overlay Content -->
+                <div class="relative z-10 space-y-2.5 max-w-2xl">
+                  <div>
+                    <span class="text-[12px] uppercase tracking-wider font-semibold text-white/90 bg-white/10 backdrop-blur-sm px-2.5 py-1 rounded inline-block">
+                      <?= e($heroCategory) ?>
+                    </span>
+                  </div>
+                  <h3 class="font-serif text-xl sm:text-2xl lg:text-3xl font-medium text-white group-hover:text-white/90 transition-colors leading-snug">
+                    <a href="<?= $heroUrl ?>" class="focus:outline-none after:absolute after:inset-0 after:content-['']">
+                      <?= e($heroPost['title']) ?>
+                    </a>
+                  </h3>
+                  <?php if (!empty($heroPost['excerpt'])): ?>
+                    <p class="text-sm sm:text-base text-white/80 line-clamp-2 leading-relaxed">
+                      <?= e($heroPost['excerpt']) ?>
+                    </p>
+                  <?php endif; ?>
+                  <div class="pt-1">
+                    <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-white group-hover:underline">
+                      <span>Read the story</span>
+                      <span aria-hidden="true">&rarr;</span>
+                    </span>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <!-- Right: Editor's Picks (4 columns) -->
+            <div class="lg:col-span-4 flex flex-col">
+              <div class="rounded-lg border border-ink/10 bg-white p-6 flex flex-col justify-between h-full">
+                <div>
+                  <div class="flex items-center justify-between border-b border-ink/10 pb-3 mb-4">
+                    <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong">
+                      Editor's Picks
+                    </span>
+                    <span class="text-xs text-ink-muted">Latest curated</span>
+                  </div>
+
+                  <div class="divide-y divide-ink/10">
+                    <?php foreach ($editorPicks as $pick): ?>
+                      <?php
+                        $pickUrl = '/post/' . e($pick['slug']);
+                        $pickThumb = !empty($pick['cover_image']) ? \App\Core\ImageUploader::getVariantUrl($pick['cover_image'], 400) : '';
+                        $pickAlt = !empty($pick['cover_alt']) ? $pick['cover_alt'] : $pick['title'];
+                        $pickCategory = !empty($pick['category_name']) ? strtoupper((string) $pick['category_name']) : 'PICK';
+                      ?>
+                      <article class="group relative py-4 first:pt-0 last:pb-0 flex items-start gap-4">
+                        <?php if ($pickThumb): ?>
+                          <img 
+                            src="<?= e($pickThumb) ?>" 
+                            alt="<?= e($pickAlt) ?>" 
+                            width="96" 
+                            height="96" 
+                            class="w-24 h-24 shrink-0 rounded-lg object-cover border border-ink/10"
+                            loading="lazy"
+                          >
+                        <?php else: ?>
+                          <div class="w-24 h-24 shrink-0 rounded-lg bg-surface border border-ink/10 flex items-center justify-center text-primary/60">
+                            <span class="font-serif text-xs font-medium uppercase tracking-wider">Pick</span>
+                          </div>
+                        <?php endif; ?>
+
+                        <div class="flex-1 min-w-0 space-y-1">
+                          <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block">
+                            <?= e($pickCategory) ?>
+                          </span>
+                          <h3 class="font-serif text-sm sm:text-base font-medium text-ink group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                            <a href="<?= $pickUrl ?>" class="focus:outline-none after:absolute after:inset-0 after:content-['']">
+                              <?= e($pick['title']) ?>
+                            </a>
+                          </h3>
+                          <p class="text-xs text-ink-muted">
+                            <?= formatDate($pick['published_at'] ?? $pick['created_at']) ?>
+                          </p>
+                        </div>
+                      </article>
+                    <?php endforeach; ?>
+                  </div>
+                </div>
+
+                <div class="pt-4 mt-4 border-t border-ink/10 text-right">
+                  <a href="/stories" class="text-xs font-semibold text-primary hover:text-primary-hover inline-flex items-center gap-1">
+                    <span>All picks &amp; stories</span>
+                    <span aria-hidden="true">&rarr;</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        <?php else: ?>
+          <!-- Full Width Featured Card if No Editor's Picks -->
+          <?php
+            $heroUrl = '/post/' . e($heroPost['slug']);
+            $heroCover = $heroPost['cover_image'] ?? '';
+            $heroAlt = !empty($heroPost['cover_alt']) ? $heroPost['cover_alt'] : $heroPost['title'];
+            $heroCategory = !empty($heroPost['category_name']) ? strtoupper((string) $heroPost['category_name']) : 'FEATURED';
+            $heroAttrs = \App\Core\ImageUploader::getResponsiveAttributes($heroCover, '100vw');
+          ?>
+          <article class="group relative w-full aspect-[16/10] min-h-[380px] lg:min-h-[480px] rounded-lg overflow-hidden border border-ink/10 bg-ink flex flex-col justify-end p-6 sm:p-12 shadow-soft-sm">
+            <?php if ($heroAttrs): ?>
+              <img 
+                src="<?= e($heroAttrs['src']) ?>" 
+                srcset="<?= e($heroAttrs['srcset']) ?>" 
+                sizes="<?= e($heroAttrs['sizes']) ?>" 
+                alt="<?= e($heroAlt) ?>" 
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                loading="eager" 
+                fetchpriority="high"
+              >
+            <?php elseif (!empty($heroCover)): ?>
+              <img 
+                src="<?= e(\App\Core\ImageUploader::getVariantUrl($heroCover, 1600)) ?>" 
+                alt="<?= e($heroAlt) ?>" 
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                loading="eager" 
+                fetchpriority="high"
+              >
+            <?php endif; ?>
+            <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/65 to-transparent pointer-events-none"></div>
+            <div class="relative z-10 space-y-3 max-w-3xl">
+              <div>
+                <span class="text-[12px] uppercase tracking-wider font-semibold text-white/90 bg-white/10 backdrop-blur-sm px-2.5 py-1 rounded inline-block">
+                  <?= e($heroCategory) ?>
+                </span>
+              </div>
+              <h3 class="font-serif text-2xl sm:text-3xl lg:text-4xl font-medium text-white group-hover:text-white/90 transition-colors leading-snug">
+                <a href="<?= $heroUrl ?>" class="focus:outline-none after:absolute after:inset-0 after:content-['']">
+                  <?= e($heroPost['title']) ?>
+                </a>
+              </h3>
+              <?php if (!empty($heroPost['excerpt'])): ?>
+                <p class="text-sm sm:text-base text-white/80 line-clamp-2 leading-relaxed">
+                  <?= e($heroPost['excerpt']) ?>
+                </p>
+              <?php endif; ?>
+              <div class="pt-1">
+                <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-white group-hover:underline">
+                  <span>Read the story</span>
+                  <span aria-hidden="true">&rarr;</span>
+                </span>
+              </div>
+            </div>
+          </article>
+        <?php endif; ?>
+      </div>
+    </section>
+  <?php endif; ?>
+
+  <!-- =========================================================================
+       3. EXPLORE BY TOPIC
+       ========================================================================= -->
+  <?php if (!empty($showTopics)): ?>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-labelledby="topics-heading">
+      <div class="border-b border-ink/10 pb-4 mb-6 flex items-center justify-between">
+        <h2 id="topics-heading" class="font-serif text-[28px] sm:text-[36px] font-medium text-ink leading-tight">
+          <?= e($titleTopics) ?>
+        </h2>
+        <a href="/stories" class="text-sm font-semibold text-primary hover:text-primary-hover transition-colors">
+          <span>All stories</span>
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+
+      <!-- Horizontal scroll on mobile (no-scrollbar, scroll-snap), wrap on desktop -->
+      <div 
+        class="flex items-center gap-2.5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap"
+        tabindex="0"
+        role="region"
+        aria-label="Topics chips scroll row"
+      >
+        <!-- Active-style chip for All stories -->
+        <a 
+          href="/stories" 
+          class="shrink-0 snap-start inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-primary text-white shadow-soft-sm transition-colors"
+        >
+          All stories
+        </a>
+        <?php foreach ($topics as $topic): ?>
+          <a 
+            href="/tag/<?= e($topic['slug']) ?>" 
+            class="shrink-0 snap-start inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-surface border border-ink/10 text-ink hover:border-primary/40 transition-colors whitespace-nowrap"
+          >
+            <span>#<?= e($topic['name']) ?></span>
+            <?php if (!empty($topic['post_count'])): ?>
+              <span class="ml-1.5 text-xs text-ink-muted">(<?= (int) $topic['post_count'] ?>)</span>
+            <?php endif; ?>
+          </a>
+        <?php endforeach; ?>
+      </div>
+    </section>
+  <?php endif; ?>
+
+  <!-- =========================================================================
+       4. LATEST STORIES
+       ========================================================================= -->
+  <?php if (!empty($showLatest)): ?>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-labelledby="latest-heading">
+      <?php \App\Core\View::partial('partials/section-header', [
+        'title'        => $titleLatest,
+        'subtitle'     => 'Recent investigations, research updates, and environmental coverage.',
+        'viewAllUrl'   => '/stories',
+        'viewAllLabel' => 'View all stories',
+      ]); ?>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <?php foreach ($latestPosts as $p): ?>
+          <?php \App\Core\View::partial('partials/post-card', ['post' => $p]); ?>
+        <?php endforeach; ?>
+      </div>
+    </section>
+  <?php endif; ?>
+
+  <!-- =========================================================================
+       5. ABOUT BAND (Tinted bg-primary/5, Hidden if no mission statement)
+       ========================================================================= -->
+  <?php if (!empty($showAboutBand)): ?>
+    <section class="bg-primary/5 border-y border-ink/10 py-16 sm:py-24" aria-labelledby="about-band-heading">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          
+          <!-- Left: Eyebrow + Mission Statement as large serif statement (weight 400) -->
+          <div class="lg:col-span-7 space-y-4">
+            <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block">
+              About <?= e($siteName) ?>
+            </span>
+            <p id="about-band-heading" class="font-serif text-2xl sm:text-3xl lg:text-4xl font-normal text-ink leading-snug">
+              &ldquo;<?= e($missionStatement) ?>&rdquo;
+            </p>
+          </div>
+
+          <!-- Right: Footer/About text + Links -->
+          <div class="lg:col-span-5 space-y-5">
+            <?php if (!empty($footerAbout)): ?>
+              <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
+                <?= e($footerAbout) ?>
+              </p>
+            <?php else: ?>
+              <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
+                Dedicated to grassroots environmental activism, wetland conservation, coastal preservation, and RTI accountability across India.
+              </p>
+            <?php endif; ?>
+            <div class="flex items-center gap-6 pt-2">
+              <a 
+                href="/about" 
+                class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-hover transition-colors"
+              >
+                <span>About us</span>
+                <span aria-hidden="true">&rarr;</span>
+              </a>
+              <a 
+                href="/contact" 
+                class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-hover transition-colors"
+              >
+                <span>Contact</span>
+                <span aria-hidden="true">&rarr;</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
+
+  <!-- =========================================================================
+       6. CAUSES WE CARE ABOUT
+       ========================================================================= -->
+  <?php if (!empty($showCauses)): ?>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-labelledby="causes-heading">
+      <?php \App\Core\View::partial('partials/section-header', [
+        'eyebrow'      => 'Our Core Advocacy',
+        'title'        => $titleCauses,
+        'subtitle'     => 'Focus areas where grassroots vigilance and policy advocacy make a vital difference.',
+      ]); ?>
+
+      <!-- Desktop: 3 columns; Mobile: horizontal scroll-snap row with next card peeking -->
+      <div 
+        class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-6 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-8"
+        tabindex="0"
+        role="region"
+        aria-label="Causes cards scroll row"
+      >
+        <?php foreach ($causes as $cause): ?>
+          <?php
+            $causeUrl = '/tag/' . e($cause['slug']);
+            $causeImg = !empty($cause['image_path']) ? \App\Core\ImageUploader::getVariantUrl($cause['image_path'], 800) : '';
+            $causeAlt = !empty($cause['image_alt']) ? $cause['image_alt'] : $cause['name'];
+          ?>
+          <article class="min-w-[85%] sm:min-w-0 snap-start flex flex-col bg-white rounded-lg border border-ink/10 overflow-hidden hover:border-primary/30 transition-colors group relative">
+            <div class="relative aspect-[16/10] w-full overflow-hidden bg-surface">
+              <?php if ($causeImg): ?>
+                <img 
+                  src="<?= e($causeImg) ?>" 
+                  alt="<?= e($causeAlt) ?>" 
+                  width="800" 
+                  height="500" 
+                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy"
+                >
+              <?php else: ?>
+                <div class="w-full h-full flex items-center justify-center bg-surface text-primary/60 font-serif text-sm">
+                  Cause
+                </div>
+              <?php endif; ?>
+            </div>
+
+            <div class="p-5 sm:p-6 flex flex-col flex-1">
+              <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong mb-2 block">
+                Cause
+              </span>
+              <h3 class="font-serif text-xl sm:text-2xl font-medium text-ink group-hover:text-primary transition-colors leading-snug mb-2">
+                <a href="<?= $causeUrl ?>" class="focus:outline-none after:absolute after:inset-0 after:content-['']">
+                  <?= e($cause['name']) ?>
+                </a>
+              </h3>
+              <?php if (!empty($cause['description'])): ?>
+                <p class="text-sm text-ink-muted line-clamp-2 leading-relaxed mb-4">
+                  <?= e($cause['description']) ?>
+                </p>
+              <?php endif; ?>
+              <div class="mt-auto pt-3 border-t border-ink/10 flex items-center justify-between text-sm font-semibold text-accent-strong group-hover:text-accent-hover transition-colors">
+                <span>Explore</span>
+                <span aria-hidden="true">&rarr;</span>
+              </div>
+            </div>
+          </article>
+        <?php endforeach; ?>
+      </div>
+    </section>
+  <?php endif; ?>
+
+  <!-- =========================================================================
+       7. CAMPAIGNS
+       ========================================================================= -->
+  <?php if (!empty($showCampaigns)): ?>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-labelledby="campaigns-heading">
+      <?php \App\Core\View::partial('partials/section-header', [
+        'eyebrow'      => 'Field Actions',
+        'title'        => $titleCampaigns,
+        'subtitle'     => 'Direct citizen campaigns, environmental hearings, and legal notices.',
+        'viewAllUrl'   => $campaignCategory ? '/category/' . e($campaignCategory['slug']) : '/stories',
+        'viewAllLabel' => 'View all campaigns',
+      ]); ?>
+
+      <!-- Desktop: first post as wide card (image left, text right) + up to 2 compact text cards on right -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
+        <?php
+          $leadCampaign = $campaignPosts[0];
+          $subCampaigns = array_slice($campaignPosts, 1, 2);
+          $leadUrl = '/post/' . e($leadCampaign['slug']);
+          $leadCover = $leadCampaign['cover_image'] ?? '';
+          $leadAlt = !empty($leadCampaign['cover_alt']) ? $leadCampaign['cover_alt'] : $leadCampaign['title'];
+          $leadImg = $leadCover ? \App\Core\ImageUploader::getVariantUrl($leadCover, 800) : '';
+        ?>
+
+        <!-- First post: wide card (image left half, text right) -->
+        <article class="<?= empty($subCampaigns) ? 'lg:col-span-12' : 'lg:col-span-8' ?> bg-white rounded-lg border border-ink/10 overflow-hidden flex flex-col md:flex-row group relative hover:border-primary/30 transition-colors">
+          <div class="w-full md:w-1/2 aspect-[16/10] md:aspect-auto overflow-hidden bg-surface shrink-0">
+            <?php if ($leadImg): ?>
+              <img 
+                src="<?= e($leadImg) ?>" 
+                alt="<?= e($leadAlt) ?>" 
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              >
+            <?php else: ?>
+              <div class="w-full h-full min-h-[220px] flex items-center justify-center bg-surface text-primary/60 font-serif text-sm">
+                Campaign
+              </div>
+            <?php endif; ?>
+          </div>
+          <div class="p-6 sm:p-8 flex flex-col justify-between flex-1">
+            <div class="space-y-2.5">
+              <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block">
+                Campaign
+              </span>
+              <h3 class="font-serif text-xl sm:text-2xl font-medium text-ink group-hover:text-primary transition-colors leading-snug">
+                <a href="<?= $leadUrl ?>" class="focus:outline-none after:absolute after:inset-0 after:content-['']">
+                  <?= e($leadCampaign['title']) ?>
+                </a>
+              </h3>
+              <p class="text-sm text-ink-muted line-clamp-3 leading-relaxed">
+                <?= e(!empty($leadCampaign['excerpt']) ? $leadCampaign['excerpt'] : snippet($leadCampaign['content'] ?? '', 160)) ?>
+              </p>
+            </div>
+            <div class="pt-4 mt-4 border-t border-ink/10 flex items-center justify-between text-sm font-semibold text-accent-strong group-hover:text-accent-hover transition-colors">
+              <span>Read campaign</span>
+              <span aria-hidden="true">&rarr;</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Up to 2 compact text cards stacked on right -->
+        <?php if (!empty($subCampaigns)): ?>
+          <div class="lg:col-span-4 flex flex-col gap-6">
+            <?php foreach ($subCampaigns as $sub): ?>
+              <?php $subUrl = '/post/' . e($sub['slug']); ?>
+              <article class="bg-accent/5 rounded-lg border border-ink/10 p-6 flex flex-col justify-between flex-1 group relative hover:border-accent-strong/40 transition-colors">
+                <div class="space-y-2">
+                  <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block">
+                    Campaign
+                  </span>
+                  <h3 class="font-serif text-lg font-medium text-ink group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                    <a href="<?= $subUrl ?>" class="focus:outline-none after:absolute after:inset-0 after:content-['']">
+                      <?= e($sub['title']) ?>
+                    </a>
+                  </h3>
+                  <p class="text-sm text-ink-muted line-clamp-2 leading-relaxed">
+                    <?= e(!empty($sub['excerpt']) ? $sub['excerpt'] : snippet($sub['content'] ?? '', 120)) ?>
+                  </p>
+                </div>
+                <div class="pt-3 mt-3 border-t border-ink/10 flex items-center justify-between text-sm font-semibold text-accent-strong group-hover:text-accent-hover transition-colors">
+                  <span>Read</span>
+                  <span aria-hidden="true">&rarr;</span>
+                </div>
+              </article>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+      </div>
+    </section>
+  <?php endif; ?>
+
+  <!-- =========================================================================
+       8. RIGHT TO INFORMATION
+       ========================================================================= -->
+  <?php if (!empty($showRti)): ?>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-labelledby="rti-heading">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        
+        <!-- Left Column: Eyebrow + Title + Intro + Link -->
+        <div class="lg:col-span-5 space-y-4">
+          <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block">
+            Transparency &amp; Accountability
+          </span>
+          <h2 id="rti-heading" class="font-serif text-[28px] sm:text-[36px] font-medium text-ink leading-tight">
+            <?= e($titleRti) ?>
+          </h2>
+          <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
+            <?= e($introRti) ?>
+          </p>
+          <div class="pt-2">
+            <a 
+              href="<?= $rtiCategory ? '/category/' . e($rtiCategory['slug']) : '/stories' ?>" 
+              class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-hover transition-colors"
+            >
+              <span>View RTI applications</span>
+              <span aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right Column: Up to 2 RTI category posts as text cards with document icon (no images) -->
+        <div class="lg:col-span-7 flex flex-col sm:flex-row gap-6">
+          <?php foreach ($rtiPosts as $rtiPost): ?>
+            <?php $rtiUrl = '/post/' . e($rtiPost['slug']); ?>
+            <article class="bg-white rounded-lg border border-ink/10 p-6 flex flex-col justify-between flex-1 group relative hover:border-primary/30 transition-colors">
+              <div class="space-y-3">
+                <!-- Document Icon -->
+                <div class="w-10 h-10 rounded-md bg-surface border border-ink/10 flex items-center justify-center text-primary shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                </div>
+                <h3 class="font-serif text-lg sm:text-xl font-medium text-ink group-hover:text-primary transition-colors leading-snug line-clamp-2">
+                  <a href="<?= $rtiUrl ?>" class="focus:outline-none after:absolute after:inset-0 after:content-['']">
+                    <?= e($rtiPost['title']) ?>
+                  </a>
+                </h3>
+                <p class="text-sm text-ink-muted line-clamp-2 leading-relaxed">
+                  <?= e(!empty($rtiPost['excerpt']) ? $rtiPost['excerpt'] : snippet($rtiPost['content'] ?? '', 120)) ?>
+                </p>
+              </div>
+              <div class="pt-3 mt-4 border-t border-ink/10 flex items-center justify-between text-sm font-semibold text-accent-strong group-hover:text-accent-hover transition-colors">
+                <span>Read</span>
+                <span aria-hidden="true">&rarr;</span>
+              </div>
+            </article>
+          <?php endforeach; ?>
+        </div>
+
+      </div>
+    </section>
+  <?php endif; ?>
+
+  <!-- =========================================================================
+       9. FROM THE GALLERY
+       ========================================================================= -->
+  <?php if (!empty($showGallery)): ?>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-labelledby="gallery-heading">
+      <?php \App\Core\View::partial('partials/section-header', [
+        'eyebrow'      => 'Visual Documentation',
+        'title'        => $titleGallery,
+        'subtitle'     => 'Photographic evidence from wetland corridors, coastal habitats, and mangrove ecosystems.',
+        'viewAllUrl'   => '/gallery',
+        'viewAllLabel' => 'Visit the gallery',
+      ]); ?>
+
+      <!-- 3 latest photos (desktop 3 columns, 4:3, caption below in 14px), mobile horizontal scroll-snap -->
+      <div 
+        class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-6 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-8"
+        tabindex="0"
+        role="region"
+        aria-label="Gallery photos scroll row"
+      >
+        <?php foreach ($galleryPhotos as $photo): ?>
+          <?php
+            $photoImg = \App\Core\ImageUploader::getVariantUrl($photo['image_path'], 800);
+            $photoAlt = !empty($photo['alt_text']) ? $photo['alt_text'] : 'Conservation photograph';
+          ?>
+          <div class="min-w-[85%] sm:min-w-0 snap-start group">
+            <div class="aspect-[4/3] w-full overflow-hidden rounded-lg border border-ink/10 bg-surface">
+              <img 
+                src="<?= e($photoImg) ?>" 
+                alt="<?= e($photoAlt) ?>" 
+                width="800" 
+                height="600" 
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              >
+            </div>
+            <?php if (!empty($photo['caption'])): ?>
+              <p class="text-sm text-ink leading-snug mt-2.5 line-clamp-2">
+                <?= e($photo['caption']) ?>
+              </p>
+            <?php else: ?>
+              <p class="text-sm text-ink-muted leading-snug mt-2.5 line-clamp-2">
+                <?= e($photoAlt) ?>
+              </p>
+            <?php endif; ?>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </section>
+  <?php endif; ?>
+
+  <!-- =========================================================================
+       10. STAY INFORMED (Newsletter Subscription)
+       ========================================================================= -->
+  <?php if (!empty($showNewsletter)): ?>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-labelledby="newsletter-heading">
+      <div class="bg-white rounded-lg border border-ink/10 p-8 sm:p-12 shadow-soft-sm">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          
+          <!-- Left: Section Title + Newsletter Intro -->
+          <div class="lg:col-span-5 space-y-3">
+            <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block">
+              Direct Updates
+            </span>
+            <h2 id="newsletter-heading" class="font-serif text-[28px] sm:text-[36px] font-medium text-ink leading-tight">
+              <?= e($titleNewsletter) ?>
+            </h2>
+            <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
+              <?= e($introNewsletter) ?>
+            </p>
+          </div>
+
+          <!-- Right: Subscription Form -->
+          <div 
+            class="lg:col-span-7"
+            x-data="{
+              email: '',
+              consent: false,
+              loading: false,
+              message: '',
+              error: '',
+              submitted: false,
+              async submitForm(e) {
+                this.loading = true;
+                this.message = '';
+                this.error = '';
+                const form = e.target;
+                const formData = new FormData(form);
+
+                try {
+                  const res = await fetch('/subscribe', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: formData
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.success) {
+                    this.message = data.message || 'Thanks! You\'re on the list.';
+                    this.submitted = true;
+                    this.email = '';
+                    this.consent = false;
+                  } else {
+                    this.error = data.error || 'Unable to subscribe. Please try again.';
+                  }
+                } catch (err) {
+                  this.error = 'Network error. Please try again later.';
+                } finally {
+                  this.loading = false;
+                }
+              }
+            }"
+          >
+            <!-- Native Session Flash Messages (if non-JS submission occurred) -->
+            <?php if (!empty($_SESSION['flash_sub_success'])): ?>
+              <div class="p-4 mb-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm">
+                <?= e($_SESSION['flash_sub_success']) ?>
+              </div>
+              <?php unset($_SESSION['flash_sub_success']); ?>
+            <?php endif; ?>
+            <?php if (!empty($_SESSION['flash_sub_error'])): ?>
+              <div class="p-4 mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-sm">
+                <?= e($_SESSION['flash_sub_error']) ?>
+              </div>
+              <?php unset($_SESSION['flash_sub_error']); ?>
+            <?php endif; ?>
+
+            <!-- Inline Alpine Feedback -->
+            <div x-show="message" x-cloak class="p-4 mb-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium">
+              <span x-text="message"></span>
+            </div>
+            <div x-show="error" x-cloak class="p-4 mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-sm font-medium">
+              <span x-text="error"></span>
+            </div>
+
+            <form 
+              action="/subscribe" 
+              method="POST" 
+              @submit.prevent="submitForm" 
+              class="space-y-4"
+              x-show="!submitted"
+            >
+              <?= \App\Core\Csrf::field() ?>
+              <?= subscriberTimestampFields() ?>
+
+              <!-- Off-screen Spam Honeypot -->
+              <div style="position: absolute; left: -9999px; top: -9999px;" aria-hidden="true">
+                <label for="home_sub_hp_7">Leave empty</label>
+                <input type="text" id="home_sub_hp_7" name="sub_hp_7" tabindex="-1" autocomplete="off" value="">
+              </div>
+
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input 
+                  type="email" 
+                  name="email" 
+                  x-model="email" 
+                  required 
+                  maxlength="254" 
+                  placeholder="Enter your email address" 
+                  class="flex-1 px-4 py-3 rounded-lg border border-ink/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink placeholder:text-ink-muted"
+                >
+                <button 
+                  type="submit" 
+                  :disabled="loading" 
+                  class="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-semibold transition-colors disabled:opacity-50 shrink-0"
+                >
+                  <span x-show="!loading">Subscribe</span>
+                  <span x-show="loading" x-cloak>Subscribing...</span>
+                </button>
+              </div>
+
+              <!-- Required Consent Checkbox -->
+              <div class="flex items-start gap-2.5 pt-1">
+                <input 
+                  type="checkbox" 
+                  id="home_consent" 
+                  name="consent" 
+                  value="1" 
+                  x-model="consent" 
+                  required 
+                  class="mt-1 w-4 h-4 rounded border-ink/20 text-primary focus:ring-primary"
+                >
+                <label for="home_consent" class="text-xs text-ink-muted leading-relaxed">
+                  I agree to receive updates from <?= e($siteName) ?>. See our <a href="/privacy" class="text-primary hover:underline font-medium">privacy policy</a>.
+                </label>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
+
+  <!-- =========================================================================
+       11. DONATE BAND (Only if active & toggle on)
+       ========================================================================= -->
+  <?php if (!empty($showDonate)): ?>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8" aria-labelledby="donate-band-heading">
+      <div class="bg-primary text-white rounded-lg p-8 sm:p-12 shadow-soft flex flex-col md:flex-row items-center justify-between gap-8">
+        <div class="space-y-3 max-w-2xl text-center md:text-left">
+          <span class="text-[12px] uppercase tracking-wider font-semibold text-white/80 block">
+            <?= e($titleDonate) ?>
+          </span>
+          <h2 id="donate-band-heading" class="font-serif text-2xl sm:text-3xl font-normal text-white leading-snug">
+            <?= !empty($textDonate) ? e($textDonate) : 'Stand with us to protect wetlands, natural habitats, and coastal biodiversity.' ?>
+          </h2>
+        </div>
+        <div class="shrink-0 flex items-center gap-6">
+          <a 
+            href="/donate" 
+            class="inline-flex items-center justify-center px-6 py-3 bg-white text-primary hover:bg-white/90 text-sm font-semibold rounded-lg shadow-sm transition-colors"
+          >
+            Donate now &rarr;
+          </a>
+          <a 
+            href="/contact" 
+            class="text-white/80 hover:text-white underline text-sm transition-colors"
+          >
+            Contact us
+          </a>
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
+
+</div>

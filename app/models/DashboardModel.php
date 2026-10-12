@@ -43,13 +43,15 @@ class DashboardModel
         try {
             $db = Database::getConnection();
 
-            // ONE query with conditional SUM/CASE for all post status categories and view totals
+            // ONE query with conditional SUM/CASE using canonical PostModel SQL fragments
+            $sqlPub = PostModel::SQL_IS_PUBLISHED;
+            $sqlSched = PostModel::SQL_IS_SCHEDULED;
             $postQuery = "
                 SELECT
                     COUNT(*) AS total_posts,
-                    COALESCE(SUM(CASE WHEN `status` = 'published' OR (`status` = 'scheduled' AND `published_at` <= NOW()) THEN 1 ELSE 0 END), 0) AS published_posts,
+                    COALESCE(SUM(CASE WHEN {$sqlPub} THEN 1 ELSE 0 END), 0) AS published_posts,
                     COALESCE(SUM(CASE WHEN `status` = 'draft' THEN 1 ELSE 0 END), 0) AS draft_posts,
-                    COALESCE(SUM(CASE WHEN `status` = 'scheduled' AND `published_at` > NOW() THEN 1 ELSE 0 END), 0) AS scheduled_posts,
+                    COALESCE(SUM(CASE WHEN {$sqlSched} THEN 1 ELSE 0 END), 0) AS scheduled_posts,
                     COALESCE(SUM(`views`), 0) AS total_views
                 FROM `posts`
             ";
@@ -92,7 +94,13 @@ class DashboardModel
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();
 
-            return $stmt->fetchAll() ?: [];
+            $posts = $stmt->fetchAll() ?: [];
+            foreach ($posts as &$post) {
+                $post['effective_status'] = PostModel::effectiveStatus($post);
+            }
+            unset($post);
+
+            return $posts;
         } catch (Throwable) {
             return [];
         }
@@ -117,7 +125,13 @@ class DashboardModel
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();
 
-            return $stmt->fetchAll() ?: [];
+            $posts = $stmt->fetchAll() ?: [];
+            foreach ($posts as &$post) {
+                $post['effective_status'] = PostModel::effectiveStatus($post);
+            }
+            unset($post);
+
+            return $posts;
         } catch (Throwable) {
             return [];
         }

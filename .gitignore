@@ -7,18 +7,17 @@
 /app/storage/logs/*.log
 !/app/storage/logs/.gitkeep
 /app/storage/installed.lock
+/app/storage/cache/htmlpurifier/*
+!/app/storage/cache/htmlpurifier/.gitkeep
 
 # Uploads directory (preserve .htaccess and .gitkeep)
 /public_html/uploads/*
 !/public_html/uploads/.htaccess
 !/public_html/uploads/.gitkeep
+!/public_html/uploads/index.html
 
 # Local standalone binaries
 /tailwind/tailwindcss
-
-# Local Composer packages
-/vendor/
-composer.lock
 
 # OS & Editor files
 .DS_Store
@@ -29,3 +28,9 @@ Thumbs.db
 .vscode/
 *.swp
 *~
+
+# Local runtime files (never commit)
+app/storage/cache/htmlpurifier/*
+!app/storage/cache/htmlpurifier/.gitkeep
+app/storage/demo-manifest.json
+app/storage/installed.lock

@@ -9,6 +9,7 @@ declare(strict_types=1);
  */
 
 return [
+    'url' => 'http://127.0.0.1:8000', // Update to https://yourdomain.com on Hostinger
     'app' => [
         'name'     => 'NatConnect Foundation',
         'url'      => 'http://127.0.0.1:8000', // Update to https://yourdomain.com on Hostinger
@@ -39,5 +40,12 @@ return [
         // Generate a random 64-character hex string: bin2hex(random_bytes(32))
         'salt'            => 'c089d71c183cf99db4918e7e31ef408a99478f6916a0322bf20b411d7eb6bca3',
         'trusted_proxies' => [], // Array of trusted proxy IPs/CIDRs (e.g. ['10.0.0.1']). Default empty.
+    ],
+    'turnstile' => [
+        // Cloudflare Turnstile keys. On production, obtain real keys from Cloudflare dashboard.
+        // In local development, set official always-pass test keys in config.local.php:
+        // site_key: 1x00000000000000000000AA, secret_key: 1x0000000000000000000000000000000AA
+        'site_key'   => '',
+        'secret_key' => '',
     ],
 ];

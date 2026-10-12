@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers\Admin;
 
 use App\Core\Auth;
+use App\Core\LaunchCheck;
 use App\Core\View;
 use App\Models\DashboardModel;
 
@@ -19,32 +20,34 @@ class DashboardController
     {
         Auth::requireAuth('/admin/dashboard');
 
-        $stats       = DashboardModel::getStats();
-        $topPosts    = DashboardModel::getTopPostsByViews(5);
-        $recentPosts = DashboardModel::getRecentlyUpdatedPosts(5);
+        $stats           = DashboardModel::getStats();
+        $topPosts        = DashboardModel::getTopPostsByViews(5);
+        $recentPosts     = DashboardModel::getRecentlyUpdatedPosts(5);
+        $launchChecklist = LaunchCheck::runAll();
 
         View::render('admin/dashboard', [
-            'pageTitle'   => 'Admin Dashboard — NatConnect Foundation',
-            'activeNav'   => 'dashboard',
-            'stats'       => $stats,
-            'topPosts'    => $topPosts,
-            'recentPosts' => $recentPosts,
+            'pageTitle'       => 'Dashboard — NatConnect Foundation',
+            'activeNav'       => 'dashboard',
+            'stats'           => $stats,
+            'topPosts'        => $topPosts,
+            'recentPosts'     => $recentPosts,
+            'launchChecklist' => $launchChecklist,
         ], 'layouts/admin');
     }
 
     /**
-     * Phase 3 Placeholder: Articles & Posts Index.
+     * Phase 3 Placeholder: Posts Index.
      */
     public function posts(): void
     {
         Auth::requireAuth('/admin/posts');
 
         View::render('admin/placeholder', [
-            'pageTitle'    => 'Articles & Posts — NatConnect Foundation',
+            'pageTitle'    => 'Posts — NatConnect Foundation',
             'activeNav'    => 'posts',
-            'featureTitle' => 'Articles & Posts Management',
+            'featureTitle' => 'Posts',
             'featurePhase' => 'Phase 3: Post CRUD & Media Management',
-            'description'  => 'Create, publish, edit, schedule, and organize environmental articles and reports. Rich content editing and media uploads will be unlocked in Phase 3.',
+            'description'  => 'Create, publish, edit, schedule, and organize posts.',
         ], 'layouts/admin');
     }
 
@@ -56,11 +59,11 @@ class DashboardController
         Auth::requireAuth('/admin/posts/new');
 
         View::render('admin/placeholder', [
-            'pageTitle'    => 'New Article — NatConnect Foundation',
+            'pageTitle'    => 'New Post — NatConnect Foundation',
             'activeNav'    => 'new-post',
-            'featureTitle' => 'New Article Composer',
+            'featureTitle' => 'New Post',
             'featurePhase' => 'Phase 3: Post CRUD & Media Management',
-            'description'  => 'The editorial drafting screen, featured cover upload, YouTube embedding, and HTMLPurifier sanitization pipeline will arrive in Phase 3.',
+            'description'  => 'Create and schedule new posts.',
         ], 'layouts/admin');
     }
 
@@ -73,11 +76,11 @@ class DashboardController
         Auth::requireAuth("/admin/posts/{$id}/edit");
 
         View::render('admin/placeholder', [
-            'pageTitle'    => "Edit Article #{$id} — NatConnect Foundation",
+            'pageTitle'    => "Edit Post #{$id} — NatConnect Foundation",
             'activeNav'    => 'posts',
-            'featureTitle' => "Edit Article #{$id}",
+            'featureTitle' => "Edit Post #{$id}",
             'featurePhase' => 'Phase 3: Post CRUD & Media Management',
-            'description'  => "Article editor for record #{$id} will be functional in Phase 3 with revision tracking, status transitions, and tag management.",
+            'description'  => "Edit content and settings for post #{$id}.",
         ], 'layouts/admin');
     }
 

@@ -50,11 +50,26 @@ if (file_exists(ROOT_PATH . '/vendor/autoload.php')) {
 // -------------------------------------------------------------
 require_once APP_PATH . '/config/config.php';
 require_once APP_PATH . '/core/helpers.php';
+date_default_timezone_set('Asia/Kolkata');
 
 use App\Core\Auth;
 use App\Core\Database;
 use App\Core\Router;
 use App\Core\View;
+
+// -------------------------------------------------------------
+// 2b. Global Security Response Headers
+// Note: Hostinger mod_headers is unavailable (unwrapped causes 500,
+// wrapped is skipped). All security headers are sent via PHP.
+// -------------------------------------------------------------
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()');
+
+if (Auth::isHttps()) {
+    header('Strict-Transport-Security: max-age=31536000');
+}
 
 // -------------------------------------------------------------
 // 3. Robust Error & Exception Handling
@@ -106,27 +121,71 @@ if ($isDebug) {
 // -------------------------------------------------------------
 Auth::startSession();
 
+// Detect when post_max_size is exceeded (empty $_POST and $_FILES while CONTENT_LENGTH > 0)
+if (
+    ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' &&
+    empty($_POST) &&
+    empty($_FILES) &&
+    (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0
+) {
+    $requestUri  = $_SERVER['REQUEST_URI'] ?? '/';
+    $requestPath = '/' . trim((string) parse_url($requestUri, PHP_URL_PATH), '/');
+
+    $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+        || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json')
+        || str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'multipart/form-data')
+        || ($requestPath === '/admin/media/upload');
+
+    if ($isAjax) {
+        http_response_code(413);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode(['error' => 'Upload too large']);
+        exit;
+    }
+
+    $referer = $_SERVER['HTTP_REFERER'] ?? '/admin';
+    $_SESSION['flash_errors'] = ['general' => 'Upload too large'];
+    $_SESSION['flash_error'] = 'Upload too large';
+    header('Location: ' . $referer);
+    exit;
+}
+
 // -------------------------------------------------------------
 // 5. Initialize Router & Define Core Routes
 // -------------------------------------------------------------
 $router = new Router();
 
-// Phase 0/1: Temporary Home Route with Coming Soon section
-$router->get('/', function () {
-    View::render('public/home', [
-        'pageTitle'       => 'NatConnect Foundation — Nature, Everything',
-        'metaDescription' => 'NatConnect Foundation — Environmental advocacy and conservation platform.',
-    ], 'layouts/public');
-});
+// Phase 4A & 4B: Public Routes
+$router->get('/', [App\Controllers\PublicController::class, 'home']);
+$router->get('/post/{slug}', [App\Controllers\PublicController::class, 'post']);
+$router->get('/category/{slug}', [App\Controllers\PublicController::class, 'category']);
+$router->get('/tag/{slug}', [App\Controllers\PublicController::class, 'tag']);
+$router->get('/search', [App\Controllers\PublicController::class, 'search']);
+$router->get('/about', [App\Controllers\PublicController::class, 'about']);
+$router->get('/contact', [App\Controllers\PublicController::class, 'contact']);
+$router->get('/privacy', [App\Controllers\PublicController::class, 'privacy']);
+$router->get('/donate', [App\Controllers\PublicController::class, 'donate']);
+$router->get('/gallery', [App\Controllers\PublicController::class, 'gallery']);
 
-// Category Archives Preview Route
-$router->get('/category/{slug}', function (array $params) {
-    $categorySlug = $params['slug'] ?? '';
-    View::render('public/home', [
-        'pageTitle'       => ucfirst(str_replace('-', ' ', $categorySlug)) . ' — NatConnect Foundation',
-        'metaDescription' => 'Archive listing for ' . e($categorySlug),
-    ], 'layouts/public');
-});
+// Design Phase D1: All Stories Archive & Subscribe
+$router->get('/stories', [App\Controllers\PublicController::class, 'stories']);
+$router->post('/subscribe', [App\Controllers\PublicController::class, 'subscribe']);
+
+// Phase 6A: SEO & Syndication Routes
+$router->get('/sitemap.xml', [App\Controllers\PublicController::class, 'sitemapXml']);
+$router->get('/robots.txt', [App\Controllers\PublicController::class, 'robotsTxt']);
+$router->get('/feed', [App\Controllers\PublicController::class, 'rssFeed']);
+$router->get('/feed.xml', [App\Controllers\PublicController::class, 'rssFeed']);
+
+// Phase 5: Engagement API Routes
+$router->post('/api/view/{id}', [App\Controllers\PublicController::class, 'recordView']);
+$router->post('/api/view/{postId}', [App\Controllers\PublicController::class, 'recordView']);
+$router->post('/api/like/{id}', [App\Controllers\PublicController::class, 'toggleLike']);
+$router->post('/api/like/{postId}', [App\Controllers\PublicController::class, 'toggleLike']);
+$router->post('/post/{slug}/comment', [App\Controllers\PublicController::class, 'submitComment']);
+
+// Custom 404 Handler
+$router->setNotFound([App\Controllers\PublicController::class, 'notFound']);
 
 // -------------------------------------------------------------
 // Phase 2: Admin Authentication Routes
@@ -144,13 +203,73 @@ $router->get('/admin/account', [App\Controllers\Admin\AccountController::class, 
 $router->post('/admin/account/profile', [App\Controllers\Admin\AccountController::class, 'updateProfile']);
 $router->post('/admin/account/password', [App\Controllers\Admin\AccountController::class, 'updatePassword']);
 
-// Phase 3 Route Placeholders
-$router->get('/admin/posts', [App\Controllers\Admin\DashboardController::class, 'posts']);
-$router->get('/admin/posts/new', [App\Controllers\Admin\DashboardController::class, 'newPost']);
-$router->get('/admin/posts/{id}/edit', [App\Controllers\Admin\DashboardController::class, 'editPost']);
-$router->get('/admin/categories', [App\Controllers\Admin\DashboardController::class, 'categories']);
-$router->get('/admin/comments', [App\Controllers\Admin\DashboardController::class, 'comments']);
-$router->get('/admin/settings', [App\Controllers\Admin\DashboardController::class, 'settings']);
+// -------------------------------------------------------------
+// Phase 3A: Categories Routes
+// -------------------------------------------------------------
+$router->get('/admin/categories', [App\Controllers\Admin\CategoryController::class, 'index']);
+$router->post('/admin/categories', [App\Controllers\Admin\CategoryController::class, 'store']);
+$router->post('/admin/categories/{id}/edit', [App\Controllers\Admin\CategoryController::class, 'update']);
+$router->post('/admin/categories/{id}/delete', [App\Controllers\Admin\CategoryController::class, 'delete']);
+
+// Design Phase D1: Tags Management Routes
+$router->get('/admin/tags', [App\Controllers\Admin\TagController::class, 'index']);
+$router->post('/admin/tags', [App\Controllers\Admin\TagController::class, 'store']);
+$router->get('/admin/tags/{id}/edit', [App\Controllers\Admin\TagController::class, 'edit']);
+$router->post('/admin/tags/{id}/edit', [App\Controllers\Admin\TagController::class, 'update']);
+$router->post('/admin/tags/{id}/delete', [App\Controllers\Admin\TagController::class, 'delete']);
+
+// -------------------------------------------------------------
+// Phase 3A: Posts Editorial Routes
+// -------------------------------------------------------------
+$router->get('/admin/posts', [App\Controllers\Admin\PostController::class, 'index']);
+$router->get('/admin/posts/new', [App\Controllers\Admin\PostController::class, 'create']);
+$router->post('/admin/posts/new', [App\Controllers\Admin\PostController::class, 'store']);
+$router->get('/admin/posts/{id}/edit', [App\Controllers\Admin\PostController::class, 'edit']);
+$router->post('/admin/posts/{id}/edit', [App\Controllers\Admin\PostController::class, 'update']);
+$router->get('/admin/posts/{id}/preview', [App\Controllers\Admin\PostController::class, 'preview']);
+$router->post('/admin/posts/{id}/delete', [App\Controllers\Admin\PostController::class, 'delete']);
+$router->post('/admin/posts/bulk-delete', [App\Controllers\Admin\PostController::class, 'bulkDelete']);
+
+// Phase 3A: Keepalive Heartbeat
+$router->get('/admin/keepalive', [App\Controllers\Admin\PostController::class, 'keepalive']);
+$router->post('/admin/keepalive', [App\Controllers\Admin\PostController::class, 'keepalive']);
+
+// Phase 3B: Media Upload
+$router->post('/admin/media/upload', [App\Controllers\Admin\MediaController::class, 'upload']);
+
+// Phase 4C: Admin Gallery Routes
+$router->get('/admin/gallery', [App\Controllers\Admin\GalleryController::class, 'index']);
+$router->post('/admin/gallery/upload', [App\Controllers\Admin\GalleryController::class, 'upload']);
+$router->post('/admin/gallery/{id}/edit', [App\Controllers\Admin\GalleryController::class, 'update']);
+$router->post('/admin/gallery/{id}/delete', [App\Controllers\Admin\GalleryController::class, 'delete']);
+$router->post('/admin/gallery/{id}/move', [App\Controllers\Admin\GalleryController::class, 'reorder']);
+
+// Phase 5: Admin Comments Routes
+$router->get('/admin/comments', [App\Controllers\Admin\CommentController::class, 'index']);
+$router->post('/admin/comments/bulk', [App\Controllers\Admin\CommentController::class, 'bulk']);
+$router->post('/admin/comments/{id}/approve', [App\Controllers\Admin\CommentController::class, 'approve']);
+$router->post('/admin/comments/{id}/spam', [App\Controllers\Admin\CommentController::class, 'spam']);
+$router->post('/admin/comments/{id}/delete', [App\Controllers\Admin\CommentController::class, 'delete']);
+
+// Design Phase D1: Admin Subscribers Routes
+$router->get('/admin/subscribers', [App\Controllers\Admin\SubscriberController::class, 'index']);
+$router->get('/admin/subscribers/export', [App\Controllers\Admin\SubscriberController::class, 'exportCsv']);
+$router->post('/admin/subscribers/{id}/delete', [App\Controllers\Admin\SubscriberController::class, 'delete']);
+
+$router->get('/admin/settings', [App\Controllers\Admin\SettingsController::class, 'show']);
+$router->post('/admin/settings', [App\Controllers\Admin\SettingsController::class, 'save']);
+
+// Phase 6: Admin Pages Routes
+$router->get('/admin/pages', [App\Controllers\Admin\PageController::class, 'index']);
+$router->get('/admin/pages/new', [App\Controllers\Admin\PageController::class, 'create']);
+$router->post('/admin/pages/new', [App\Controllers\Admin\PageController::class, 'store']);
+$router->get('/admin/pages/{id}/edit', [App\Controllers\Admin\PageController::class, 'edit']);
+$router->post('/admin/pages/{id}/edit', [App\Controllers\Admin\PageController::class, 'update']);
+$router->get('/admin/pages/{id}/preview', [App\Controllers\Admin\PageController::class, 'preview']);
+$router->post('/admin/pages/{id}/delete', [App\Controllers\Admin\PageController::class, 'delete']);
+
+// Dynamic Public Pages Fallback (checked after all fixed routes, before 404)
+$router->get('/{slug}', [App\Controllers\PublicController::class, 'showPage']);
 
 // -------------------------------------------------------------
 // 6. Admin Auth Middleware & Request Dispatch

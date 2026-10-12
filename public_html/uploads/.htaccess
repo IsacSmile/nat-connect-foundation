@@ -1,13 +1,22 @@
 # ==============================================================================
-# NatConnect Foundation — Uploads Security Lockdown (LiteSpeed & Apache Safe)
+# NatConnect Foundation — Uploads Security Lockdown
 # ==============================================================================
+# Note: "Options" directives are strictly forbidden as they cause HTTP 500 on Hostinger.
+# Directory indexing is prevented by an empty index.html file.
 
-Options -Indexes -ExecCGI
-
-<FilesMatch "\.(php|php\d|phtml|phar|pl|py|cgi|sh)$">
-    Require all denied
-</FilesMatch>
-
-<IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
+# 1. Deny execution of any scripts via mod_rewrite [F]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule \.(php|php\d|phtml|phar|pl|py|cgi|sh)$ - [F,L,NC]
 </IfModule>
+
+# 2. Deny direct access to scripts via FilesMatch with Apache 2.4+ and 2.2 fallbacks
+<FilesMatch "\.(php|php\d|phtml|phar|pl|py|cgi|sh)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

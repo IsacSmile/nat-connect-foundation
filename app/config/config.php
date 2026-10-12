@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 
 $defaults = [
+    'url' => 'http://127.0.0.1:8000',
     'app' => [
         'name'     => 'NatConnect Foundation',
         'tagline'  => 'Nature, Everything',
@@ -39,6 +40,10 @@ $defaults = [
         'salt'            => 'replace-with-a-random-64-char-string-in-config.local.php',
         'trusted_proxies' => [], // Array of trusted proxy IPs/CIDRs (e.g. ['10.0.0.1', '172.16.0.0/12']). Default empty.
     ],
+    'turnstile' => [
+        'site_key'   => '',
+        'secret_key' => '',
+    ],
 ];
 
 $localConfigPath = __DIR__ . '/config.local.php';
@@ -54,8 +59,8 @@ if (file_exists($localConfigPath)) {
 // Deep merge defaults with local overrides
 $config = array_replace_recursive($defaults, $overrides);
 
-// Timezone setup
-date_default_timezone_set($config['app']['timezone'] ?? 'Asia/Kolkata');
+// Timezone setup: All times are IST. Never mix in UTC.
+date_default_timezone_set('Asia/Kolkata');
 
 /**
  * Access configuration values using dot notation.
@@ -67,6 +72,10 @@ function config(?string $key = null, mixed $default = null): mixed
 
     if ($key === null) {
         return $config;
+    }
+
+    if ($key === 'url') {
+        return $config['url'] ?? $config['app']['url'] ?? $default;
     }
 
     $segments = explode('.', $key);

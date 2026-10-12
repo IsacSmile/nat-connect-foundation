@@ -247,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             minlength="12" 
             required 
             class="w-full px-3.5 py-2.5 bg-surface border border-border rounded-xl text-sm text-ink focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-            placeholder="••••••••••••••••"
+            placeholder=""
           />
         </div>
 
@@ -260,7 +260,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             minlength="12" 
             required 
             class="w-full px-3.5 py-2.5 bg-surface border border-border rounded-xl text-sm text-ink focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-            placeholder="••••••••••••••••"
+            placeholder=""
           />
         </div>
 
