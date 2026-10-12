@@ -442,13 +442,13 @@ try {
 
     // Assertion: No post ID appears twice in the home page data
     $shownIds = [];
-    $hero = PostModel::getFeaturedPublished();
-    if ($hero) {
-        $shownIds[] = (int) $hero['id'];
-        $picks = PostModel::getEditorsPicks(3, $shownIds);
-        foreach ($picks as $p) {
-            $shownIds[] = (int) $p['id'];
-        }
+    $sliderPosts = PostModel::getSliderPosts(5);
+    foreach ($sliderPosts as $p) {
+        $shownIds[] = (int) $p['id'];
+    }
+    $mostRead = PostModel::getMostRead(3, $shownIds);
+    foreach ($mostRead as $p) {
+        $shownIds[] = (int) $p['id'];
     }
     $latest = PostModel::getLatestPublished(3, $shownIds);
     foreach ($latest as $p) {
@@ -478,10 +478,16 @@ try {
         'showAnnouncement'   => false,
         'announcementText'   => '',
         'announcementLink'   => '',
-        'heroPost'           => null,
-        'editorPicks'        => [],
+        'sliderPosts'        => [],
+        'mostReadPosts'      => [],
+        'sliderAutoRotate'   => false,
         'heroHeadline'       => 'Headline',
         'heroIntro'          => 'Intro',
+        'isDonateActive'     => false,
+        'impactNumbers'      => [],
+        'showGetInvolved'    => false,
+        'getInvolvedTitle'   => 'Get involved',
+        'getInvolvedCards'   => [],
         'showTopics'         => false,
         'topics'             => [],
         'titleTopics'        => 'Topics',
@@ -489,6 +495,8 @@ try {
         'latestPosts'        => [],
         'titleLatest'        => 'Latest',
         'showAboutBand'      => false,
+        'aboutBandPhoto'     => '',
+        'aboutBandPhotoAlt'  => '',
         'siteName'           => 'NatConnect',
         'missionStatement'   => '',
         'footerAbout'        => '',
@@ -516,7 +524,9 @@ try {
     ], 'layouts/public');
     $emptyRenderHtml = ob_get_clean();
 
-    assert(!str_contains($emptyRenderHtml, 'id="hero-heading"'), "Hero section must not render when hero post is absent");
+    assert(!str_contains($emptyRenderHtml, 'id="hero-heading"'), "Hero section must not render when slider posts are absent");
+    assert(!str_contains($emptyRenderHtml, 'id="impact-numbers"'), "Impact strip must not render when impact numbers are empty");
+    assert(!str_contains($emptyRenderHtml, 'id="get-involved"'), "Get involved section must not render when showGetInvolved is false");
     assert(!str_contains($emptyRenderHtml, 'id="topics-heading"'), "Topics section must not render when topics are empty");
     assert(!str_contains($emptyRenderHtml, 'id="latest-heading"'), "Latest stories section must not render when empty");
     assert(!str_contains($emptyRenderHtml, 'id="about-band-heading"'), "About band must not render when mission statement is empty");
@@ -558,8 +568,231 @@ try {
     assert(in_array("Set 'url' in config.local.php to the live domain", $siteAddrCheck['details'], true) || $siteAddrCheck['passed'], "Failed site address check must suggest fixing 'url' in config.local.php");
     echo "  [PASS] Site address launch check rules and fix recommendation verified.\n\n";
 
+    // --- Test 11: Home Page Round 2 Assertions ---
+    echo "--- Test 11: Home Page Round 2 Assertions (Hero Slider, Impact Strip, WhatsApp) ---\n";
+
+    // 11.1 Slider uses picks with fallback (<2 picks => newest posts)
+    echo "  - Subtest 11.1: Slider uses picks when >=2 exist, falls back to newest when <2\n";
+    $stmtOrigPicks = $pdo->query("SELECT id FROM posts WHERE is_pick = 1");
+    $origPickIds = $stmtOrigPicks->fetchAll(\PDO::FETCH_COLUMN);
+
+    // Case A: 0 picks -> fallback to newest published posts
+    $pdo->exec("UPDATE posts SET is_pick = 0");
+    $fallbackPosts = PostModel::getSliderPosts(5);
+    assert(!empty($fallbackPosts), "Fallback slider must return published posts");
+    assert(count($fallbackPosts) <= 5, "Fallback slider respects limit of 5");
+    for ($i = 0; $i < count($fallbackPosts) - 1; $i++) {
+        $t1 = strtotime($fallbackPosts[$i]['published_at'] ?? $fallbackPosts[$i]['created_at']);
+        $t2 = strtotime($fallbackPosts[$i + 1]['published_at'] ?? $fallbackPosts[$i + 1]['created_at']);
+        assert($t1 >= $t2, "Fallback slider posts must be sorted newest first");
+    }
+
+    // Case B: Exactly 1 pick -> still <2 picks, so must fallback to newest posts
+    $pdo->prepare("UPDATE posts SET is_pick = 1 WHERE id = :id")->execute(['id' => $postD]);
+    $onePickSlider = PostModel::getSliderPosts(5);
+    assert(!empty($onePickSlider), "Slider with 1 pick should fall back to newest posts");
+    assert(count($onePickSlider) >= 2 || count($fallbackPosts) < 2, "Slider with 1 pick must not be restricted to only 1 slide if more posts exist");
+
+    // Case C: >=2 picks -> must use editor picks
+    $pdo->prepare("UPDATE posts SET is_pick = 1 WHERE id = :id")->execute(['id' => $postB]);
+    $picksSlider = PostModel::getSliderPosts(5);
+    $pickSliderIds = array_column($picksSlider, 'id');
+    assert(in_array($postB, $pickSliderIds, true), "Slider must include pick post B");
+    assert(in_array($postD, $pickSliderIds, true), "Slider must include pick post D");
+    foreach ($picksSlider as $sp) {
+        assert((int) $sp['is_pick'] === 1, "When >=2 picks exist, slider must contain only pick posts");
+    }
+    echo "    [PASS] Slider correctly uses picks when >=2 exist and falls back to newest posts when <2.\n";
+
+    // Restore original picks
+    $pdo->exec("UPDATE posts SET is_pick = 0");
+    if (!empty($origPickIds)) {
+        $restoreStmt = $pdo->prepare("UPDATE posts SET is_pick = 1 WHERE id = :id");
+        foreach ($origPickIds as $pId) {
+            $restoreStmt->execute(['id' => $pId]);
+        }
+    }
+
+    // 11.2 No post repeats across slider / most read / latest / campaigns / RTI
+    echo "  - Subtest 11.2: Strict no-repeat data allocation across all home sections\n";
+    $round2ShownIds = [];
+    $sliderCheck = PostModel::getSliderPosts(5);
+    foreach ($sliderCheck as $p) {
+        $round2ShownIds[] = (int) $p['id'];
+    }
+    $mostReadCheck = PostModel::getMostRead(3, $round2ShownIds);
+    foreach ($mostReadCheck as $p) {
+        $round2ShownIds[] = (int) $p['id'];
+    }
+    $latestCheck = PostModel::getLatestPublished(3, $round2ShownIds);
+    foreach ($latestCheck as $p) {
+        $round2ShownIds[] = (int) $p['id'];
+    }
+    if ($campCat) {
+        $campCheck = PostModel::getPublishedForCategory((int) $campCat['id'], 3, $round2ShownIds);
+        foreach ($campCheck as $p) {
+            $round2ShownIds[] = (int) $p['id'];
+        }
+    }
+    if ($rtiCat) {
+        $rtiCheck = PostModel::getPublishedForCategory((int) $rtiCat['id'], 2, $round2ShownIds);
+        foreach ($rtiCheck as $p) {
+            $round2ShownIds[] = (int) $p['id'];
+        }
+    }
+    assert(count($round2ShownIds) === count(array_unique($round2ShownIds)), "Strict no-repeat: post IDs must be unique across all 5 sections");
+    echo "    [PASS] No post repeats across slider, most read, latest, campaigns, and RTI.\n";
+
+    // 11.3 Impact strip hidden when empty, visible when populated
+    echo "  - Subtest 11.3: Impact strip hidden when empty and visible when populated\n";
+    ob_start();
+    \App\Core\View::render('public/home', [
+        'pageTitle'          => 'Test Home',
+        'metaDescription'    => '',
+        'shownPostIds'       => [],
+        'showAnnouncement'   => false,
+        'announcementText'   => '',
+        'announcementLink'   => '',
+        'sliderPosts'        => $sliderCheck,
+        'mostReadPosts'      => [],
+        'sliderAutoRotate'   => false,
+        'heroHeadline'       => 'Headline',
+        'heroIntro'          => 'Intro',
+        'isDonateActive'     => false,
+        'impactNumbers'      => [], // EMPTY
+        'showGetInvolved'    => false,
+        'getInvolvedTitle'   => 'Get involved',
+        'getInvolvedCards'   => [],
+        'showTopics'         => false,
+        'topics'             => [],
+        'titleTopics'        => 'Topics',
+        'showLatest'         => false,
+        'latestPosts'        => [],
+        'titleLatest'        => 'Latest',
+        'showAboutBand'      => false,
+        'aboutBandPhoto'     => '',
+        'aboutBandPhotoAlt'  => '',
+        'siteName'           => 'NatConnect',
+        'missionStatement'   => '',
+        'footerAbout'        => '',
+        'showCauses'         => false,
+        'causes'             => [],
+        'titleCauses'        => 'Causes',
+        'showCampaigns'      => false,
+        'campaignPosts'      => [],
+        'campaignCategory'   => null,
+        'titleCampaigns'     => 'Campaigns',
+        'showRti'            => false,
+        'rtiPosts'           => [],
+        'rtiCategory'        => null,
+        'titleRti'           => 'RTI',
+        'introRti'           => '',
+        'showGallery'        => false,
+        'galleryPhotos'      => [],
+        'titleGallery'       => 'Gallery',
+        'showNewsletter'     => false,
+        'titleNewsletter'    => 'Newsletter',
+        'introNewsletter'    => '',
+        'showDonate'         => false,
+        'titleDonate'        => 'Donate',
+        'textDonate'         => '',
+    ], 'layouts/public');
+    $htmlNoImpact = ob_get_clean();
+    assert(!str_contains($htmlNoImpact, 'id="impact-numbers"'), "Impact numbers strip must NOT be rendered when empty");
+
+    ob_start();
+    \App\Core\View::render('public/home', [
+        'pageTitle'          => 'Test Home',
+        'metaDescription'    => '',
+        'shownPostIds'       => [],
+        'showAnnouncement'   => false,
+        'announcementText'   => '',
+        'announcementLink'   => '',
+        'sliderPosts'        => $sliderCheck,
+        'mostReadPosts'      => [],
+        'sliderAutoRotate'   => false,
+        'heroHeadline'       => 'Headline',
+        'heroIntro'          => 'Intro',
+        'isDonateActive'     => false,
+        'impactNumbers'      => [
+            ['number' => '10+', 'label' => 'Years of Advocacy'],
+            ['number' => '500+', 'label' => 'RTI Applications'],
+        ],
+        'showGetInvolved'    => false,
+        'getInvolvedTitle'   => 'Get involved',
+        'getInvolvedCards'   => [],
+        'showTopics'         => false,
+        'topics'             => [],
+        'titleTopics'        => 'Topics',
+        'showLatest'         => false,
+        'latestPosts'        => [],
+        'titleLatest'        => 'Latest',
+        'showAboutBand'      => false,
+        'aboutBandPhoto'     => '',
+        'aboutBandPhotoAlt'  => '',
+        'siteName'           => 'NatConnect',
+        'missionStatement'   => '',
+        'footerAbout'        => '',
+        'showCauses'         => false,
+        'causes'             => [],
+        'titleCauses'        => 'Causes',
+        'showCampaigns'      => false,
+        'campaignPosts'      => [],
+        'campaignCategory'   => null,
+        'titleCampaigns'     => 'Campaigns',
+        'showRti'            => false,
+        'rtiPosts'           => [],
+        'rtiCategory'        => null,
+        'titleRti'           => 'RTI',
+        'introRti'           => '',
+        'showGallery'        => false,
+        'galleryPhotos'      => [],
+        'titleGallery'       => 'Gallery',
+        'showNewsletter'     => false,
+        'titleNewsletter'    => 'Newsletter',
+        'introNewsletter'    => '',
+        'showDonate'         => false,
+        'titleDonate'        => 'Donate',
+        'textDonate'         => '',
+    ], 'layouts/public');
+    $htmlWithImpact = ob_get_clean();
+    assert(str_contains($htmlWithImpact, 'id="impact-numbers"'), "Impact numbers strip MUST be rendered when populated");
+    assert(str_contains($htmlWithImpact, '10+'), "Impact numbers must contain number text '10+'");
+    assert(str_contains($htmlWithImpact, 'Years of Advocacy'), "Impact numbers must contain label 'Years of Advocacy'");
+    echo "    [PASS] Impact strip correctly hidden when empty and rendered when populated.\n";
+
+    // 11.4 WhatsApp URL builder with encoding
+    echo "  - Subtest 11.4: WhatsApp URL builder and encoded message\n";
+    $waUrl1 = buildWhatsAppUrl('+91 (987) 654-3210', 'Hello, I want to volunteer! & participate');
+    assert($waUrl1 === 'https://wa.me/919876543210?text=Hello%2C%20I%20want%20to%20volunteer%21%20%26%20participate', "WhatsApp URL must strip non-digits and URL-encode message");
+
+    $waUrl2 = buildWhatsAppUrl('9876543210');
+    assert($waUrl2 === 'https://wa.me/9876543210', "WhatsApp URL with empty message must omit ?text parameter");
+
+    $waUrl3 = buildWhatsAppUrl('', 'Test message');
+    assert($waUrl3 === '/contact', "WhatsApp URL with empty phone must fall back to /contact");
+
+    $origWaSetting = SettingModel::get('contact_whatsapp');
+    SettingModel::set('contact_whatsapp', '+91 99999 88888');
+    SettingModel::clearCache();
+
+    $resolvedWa = resolveCardLink('whatsapp', 'Hi! I want to share a story.');
+    assert(str_starts_with($resolvedWa, 'https://wa.me/919999988888?text='), "resolveCardLink('whatsapp') must build wa.me URL");
+    assert(str_contains($resolvedWa, 'Hi%21%20I%20want%20to%20share%20a%20story.'), "resolveCardLink('whatsapp') must encode prefilled message");
+
+    $resolvedPath = resolveCardLink('/contact');
+    assert($resolvedPath === '/contact', "resolveCardLink should return path as-is");
+
+    $resolvedExternal = resolveCardLink('https://example.org/volunteer');
+    assert($resolvedExternal === 'https://example.org/volunteer', "resolveCardLink should return external URL as-is");
+
+    // Restore original setting
+    SettingModel::set('contact_whatsapp', $origWaSetting ?? '');
+    SettingModel::clearCache();
+    echo "    [PASS] WhatsApp URL builder produces valid wa.me URLs with URL-encoded messages and safe fallback.\n\n";
+
     echo "========================================================\n";
-    echo "ALL PUBLIC, JSON-LD, D2 HOME & LAUNCH CHECK ASSERTIONS PASSED!\n";
+    echo "ALL PUBLIC, JSON-LD, D2 HOME & ROUND 2 ASSERTIONS PASSED!\n";
     echo "========================================================\n";
 
 } catch (Throwable $e) {

@@ -134,6 +134,50 @@ class SettingsController
             $tab = 'general';
         }
 
+        $isHomeTab = ($tab === 'home');
+
+        // About band photo (ImageUploader + required alt)
+        $aboutBandPhoto = (string) ($currentSettings['about_band_photo'] ?? '');
+        $aboutBandPhotoAlt = trim((string) ($_POST['about_band_photo_alt'] ?? ($currentSettings['about_band_photo_alt'] ?? '')));
+
+        if (!empty($_POST['remove_about_band_photo'])) {
+            if ($aboutBandPhoto !== '') {
+                try {
+                    ImageUploader::deleteVariants($aboutBandPhoto);
+                } catch (Throwable) {
+                    // Suppress file delete errors
+                }
+                $aboutBandPhoto = '';
+                $aboutBandPhotoAlt = '';
+            }
+        }
+
+        if (isset($_FILES['about_band_photo_file']) && (int) $_FILES['about_band_photo_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+            try {
+                $uploadRes = ImageUploader::upload($_FILES['about_band_photo_file']);
+                if ($aboutBandPhoto !== '') {
+                    try {
+                        ImageUploader::deleteVariants($aboutBandPhoto);
+                    } catch (Throwable) {
+                        // Suppress file delete errors
+                    }
+                }
+                $aboutBandPhoto = $uploadRes['location'];
+            } catch (Throwable $e) {
+                $errors['about_band_photo'] = $e->getMessage();
+            }
+        }
+
+        if ($aboutBandPhoto !== '') {
+            if ($aboutBandPhotoAlt === '') {
+                $errors['about_band_photo_alt'] = 'Alternative text is required for the About band photo.';
+            } elseif (preg_match('/\.(jpg|jpeg|png|webp|gif|svg)$/i', $aboutBandPhotoAlt)) {
+                $errors['about_band_photo_alt'] = 'Alternative text cannot be a file name.';
+            } elseif (mb_strlen($aboutBandPhotoAlt) < 3) {
+                $errors['about_band_photo_alt'] = 'Alternative text must be at least 3 characters.';
+            }
+        }
+
         // 5. Home Page settings
         $announcementText = trim((string) ($_POST['announcement_text'] ?? ''));
         $announcementLink = trim((string) ($_POST['announcement_link'] ?? ''));
@@ -149,6 +193,57 @@ class SettingsController
         $homeHeroIntro = trim((string) ($_POST['home_hero_intro'] ?? ''));
         if (mb_strlen($homeHeroIntro) > 200) {
             $errors['home_hero_intro'] = 'Hero intro cannot exceed 200 characters.';
+        }
+
+        // Hero slider auto-rotate
+        $heroSliderAutorotate = $isHomeTab ? (!empty($_POST['hero_slider_autorotate']) ? '1' : '0') : ($currentSettings['hero_slider_autorotate'] ?? '0');
+
+        // Impact numbers: up to 4 pairs (number max 12 chars, label max 40 chars)
+        $impactNumbersUpdates = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $numKey = "home_impact_number_{$i}";
+            $lblKey = "home_impact_label_{$i}";
+            $num = $isHomeTab ? trim((string) ($_POST[$numKey] ?? '')) : (string) ($currentSettings[$numKey] ?? '');
+            $lbl = $isHomeTab ? trim((string) ($_POST[$lblKey] ?? '')) : (string) ($currentSettings[$lblKey] ?? '');
+
+            if (mb_strlen($num) > 12) {
+                $errors[$numKey] = "Impact number {$i} cannot exceed 12 characters.";
+            }
+            if (mb_strlen($lbl) > 40) {
+                $errors[$lblKey] = "Impact label {$i} cannot exceed 40 characters.";
+            }
+
+            $impactNumbersUpdates[$numKey] = $num;
+            $impactNumbersUpdates[$lblKey] = $lbl;
+        }
+
+        // Get involved section: title, show/hide, 3 cards
+        $sectionShowGetInvolved = $isHomeTab ? (!empty($_POST['section_show_get_involved']) ? '1' : '0') : ($currentSettings['section_show_get_involved'] ?? '1');
+        $sectionTitleGetInvolved = trim((string) ($_POST['section_title_get_involved'] ?? '')) ?: 'Get involved';
+
+        $cardUpdates = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $cTitleKey = "home_card_{$i}_title";
+            $cTextKey  = "home_card_{$i}_text";
+            $cBtnKey   = "home_card_{$i}_btn_label";
+            $cLinkKey  = "home_card_{$i}_link";
+            $cWaKey    = "home_card_{$i}_wa_message";
+
+            $cTitle = $isHomeTab ? trim((string) ($_POST[$cTitleKey] ?? '')) : (string) ($currentSettings[$cTitleKey] ?? '');
+            $cText  = $isHomeTab ? trim((string) ($_POST[$cTextKey] ?? '')) : (string) ($currentSettings[$cTextKey] ?? '');
+            $cBtn   = $isHomeTab ? trim((string) ($_POST[$cBtnKey] ?? '')) : (string) ($currentSettings[$cBtnKey] ?? '');
+            $cLink  = $isHomeTab ? trim((string) ($_POST[$cLinkKey] ?? '')) : (string) ($currentSettings[$cLinkKey] ?? '');
+            $cWa    = $isHomeTab ? trim((string) ($_POST[$cWaKey] ?? '')) : (string) ($currentSettings[$cWaKey] ?? '');
+
+            if (mb_strlen($cText) > 140) {
+                $errors[$cTextKey] = "Card {$i} text cannot exceed 140 characters.";
+            }
+
+            $cardUpdates[$cTitleKey] = $cTitle;
+            $cardUpdates[$cTextKey]  = $cText;
+            $cardUpdates[$cBtnKey]   = $cBtn;
+            $cardUpdates[$cLinkKey]  = $cLink;
+            $cardUpdates[$cWaKey]    = $cWa;
         }
 
         $sectionIntroRti = trim((string) ($_POST['section_intro_rti'] ?? ''));
@@ -185,7 +280,6 @@ class SettingsController
         $galleryIntro             = trim((string) ($_POST['gallery_intro'] ?? ''));
 
         // Show/hide toggles: only update if on 'home' tab to prevent wiping toggles when saving 'general' tab
-        $isHomeTab = ($tab === 'home');
         $sectionShowAnnouncement = $isHomeTab ? (!empty($_POST['section_show_announcement']) ? '1' : '0') : ($currentSettings['section_show_announcement'] ?? '0');
         $sectionShowLatest       = $isHomeTab ? (!empty($_POST['section_show_latest']) ? '1' : '0') : ($currentSettings['section_show_latest'] ?? '1');
         $sectionShowTopics       = $isHomeTab ? (!empty($_POST['section_show_topics']) ? '1' : '0') : ($currentSettings['section_show_topics'] ?? '1');
@@ -217,10 +311,15 @@ class SettingsController
             'donate_upi_id'                => $donateUpiId,
             'donate_upi_qr'                => $donateUpiQr,
             'donate_bank_details'          => $donateBankDetails,
+            'about_band_photo'             => $aboutBandPhoto,
+            'about_band_photo_alt'         => $aboutBandPhotoAlt,
             'announcement_text'            => $announcementText,
             'announcement_link'            => $announcementLink,
             'home_hero_headline'           => $homeHeroHeadline,
             'home_hero_intro'              => $homeHeroIntro,
+            'hero_slider_autorotate'       => $heroSliderAutorotate,
+            'section_show_get_involved'    => $sectionShowGetInvolved,
+            'section_title_get_involved'   => $sectionTitleGetInvolved,
             'section_title_latest'         => $sectionTitleLatest,
             'section_title_topics'         => $sectionTitleTopics,
             'section_title_causes'         => $sectionTitleCauses,
@@ -251,6 +350,14 @@ class SettingsController
             'section_show_donate'          => $sectionShowDonate,
         ];
 
+        foreach ($impactNumbersUpdates as $k => $v) {
+            $updates[$k] = $v;
+        }
+
+        foreach ($cardUpdates as $k => $v) {
+            $updates[$k] = $v;
+        }
+
         foreach ($socialValues as $field => $val) {
             $updates[$field] = $val;
         }
@@ -258,6 +365,7 @@ class SettingsController
         SettingModel::setMany($updates);
 
         $_SESSION['flash_success'] = 'Settings saved successfully.';
+
         header('Location: /admin/settings?tab=' . urlencode($tab));
         exit;
     }

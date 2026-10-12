@@ -47,6 +47,14 @@
     color: #1A1D29;
   }
 
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
   :focus-visible {
     outline: 2px solid #3B8E3F;
     outline-offset: 3px;

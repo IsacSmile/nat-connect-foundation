@@ -592,7 +592,7 @@
             >
             <div>
               <span class="text-xs font-semibold uppercase tracking-wider text-ink block">Editor's pick</span>
-              <span class="text-[11px] text-ink-subtle block">Shown in the picks list on the home page (latest 3 picks).</span>
+              <span class="text-[11px] text-ink-subtle block">Shown in the home page slider.</span>
             </div>
           </label>
         </div>

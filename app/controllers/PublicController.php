@@ -478,27 +478,40 @@ class PublicController
         $announcementText = trim((string) setting('announcement_text', ''));
         $announcementLink = trim((string) setting('announcement_link', ''));
 
-        // 2. Hero Section: newest published post + editor's picks
+        // 2. Hero Section: Slider (up to 5 picks or fallback) + Most Read (3 most viewed in last 30 days)
         $showHero = setting('section_show_hero', '1') !== '0';
-        $heroPost = $showHero ? PostModel::getFeaturedPublished() : null;
-        $editorPicks = [];
-
-        if ($heroPost) {
-            $shownIds[] = (int) $heroPost['id'];
-            $editorPicks = PostModel::getEditorsPicks(3, $shownIds);
-            foreach ($editorPicks as $pick) {
-                $shownIds[] = (int) $pick['id'];
-            }
+        $sliderPosts = $showHero ? PostModel::getSliderPosts(5) : [];
+        foreach ($sliderPosts as $sp) {
+            $shownIds[] = (int) $sp['id'];
         }
 
+        $mostReadPosts = ($showHero && !empty($sliderPosts)) ? PostModel::getMostRead(3, $shownIds) : [];
+        foreach ($mostReadPosts as $mr) {
+            $shownIds[] = (int) $mr['id'];
+        }
+
+        $sliderAutoRotate = setting('hero_slider_autorotate', '0') === '1';
         $heroHeadline = trim((string) setting('home_hero_headline', 'Championing Nature, Defending Tomorrow'));
         $heroIntro = trim((string) setting('home_hero_intro', 'NatConnect Foundation drives grassroots environmental action, RTI-backed wetland conservation, and coastal ecosystem protection across India.'));
 
-        // 3. Explore by topic (tags with show_as_topic)
+        // 3. Impact numbers (up to 4 pairs, hidden if none filled)
+        $impactNumbers = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $num = trim((string) setting("home_impact_number_{$i}", ''));
+            $lbl = trim((string) setting("home_impact_label_{$i}", ''));
+            if ($num !== '' || $lbl !== '') {
+                $impactNumbers[] = [
+                    'number' => $num,
+                    'label'  => $lbl,
+                ];
+            }
+        }
+
+        // 4. Explore by topic (tags with show_as_topic)
         $showTopics = setting('section_show_topics', '1') === '1';
         $topics = $showTopics ? TagModel::getTopics(30) : [];
 
-        // 4. Latest stories (3 newest remaining published posts)
+        // 5. Latest stories (3 newest remaining published posts)
         $showLatest = setting('section_show_latest', '1') === '1';
         $latestPosts = [];
         if ($showLatest) {
@@ -508,17 +521,47 @@ class PublicController
             }
         }
 
-        // 5. About band
+        // 6. Get Involved (3 cards, id="get-involved")
+        $showGetInvolved = setting('section_show_get_involved', '1') === '1';
+        $titleGetInvolved = trim((string) setting('section_title_get_involved', 'Get involved')) ?: 'Get involved';
+        $getInvolvedCards = [];
+        $defaultCardTitles = ['Volunteer with us', 'Report an environmental concern', 'Share a story'];
+        $defaultCardTexts = [
+            'Join our community conservation efforts and ground initiatives to protect nature and local ecosystems.',
+            'Notice illegal wetland damage or coastal violations? Send details to help us investigate and document.',
+            'Have local environmental news, observations, or RTI findings? Share your story with our editorial team.'
+        ];
+        $defaultCardBtns = ['Volunteer', 'Report concern', 'Share story'];
+        for ($i = 1; $i <= 3; $i++) {
+            $cTitle = trim((string) setting("home_card_{$i}_title", '')) ?: $defaultCardTitles[$i - 1];
+            $cText  = trim((string) setting("home_card_{$i}_text", '')) ?: $defaultCardTexts[$i - 1];
+            $cBtn   = trim((string) setting("home_card_{$i}_btn_label", '')) ?: $defaultCardBtns[$i - 1];
+            $cLink  = trim((string) setting("home_card_{$i}_link", '')) ?: '/contact';
+            $cWaMsg = trim((string) setting("home_card_{$i}_wa_message", ''));
+            $resolvedUrl = resolveCardLink($cLink, $cWaMsg);
+            $getInvolvedCards[] = [
+                'title'      => $cTitle,
+                'text'       => $cText,
+                'btn_label'  => $cBtn,
+                'link'       => $cLink,
+                'wa_message' => $cWaMsg,
+                'url'        => $resolvedUrl,
+            ];
+        }
+
+        // 7. About band
         $siteName = setting('site_name', 'NatConnect Foundation');
         $siteTagline = setting('site_tagline', '');
         $missionStatement = trim((string) setting('mission_statement', ''));
         $footerAbout = trim((string) setting('footer_about', ''));
+        $aboutBandPhoto = trim((string) setting('about_band_photo', ''));
+        $aboutBandPhotoAlt = trim((string) setting('about_band_photo_alt', ''));
 
-        // 6. Causes we care about (tags with show_as_cause)
+        // 8. Causes we care about (tags with show_as_cause)
         $showCauses = setting('section_show_causes', '1') === '1';
         $causes = $showCauses ? TagModel::getCauses(20) : [];
 
-        // 7. Campaigns category posts
+        // 9. Campaigns category posts
         $showCampaigns = setting('section_show_campaigns', '1') === '1';
         $campaignPosts = [];
         $campaignCategory = null;
@@ -541,7 +584,7 @@ class PublicController
             }
         }
 
-        // 8. Right to Information category posts
+        // 10. Right to Information category posts
         $showRti = setting('section_show_rti', '1') === '1';
         $rtiPosts = [];
         $rtiCategory = null;
@@ -566,14 +609,14 @@ class PublicController
             }
         }
 
-        // 9. From the gallery (3 latest gallery photos)
+        // 11. From the gallery (3 latest gallery photos)
         $showGallery = setting('section_show_gallery', '1') === '1';
         $galleryPhotos = $showGallery ? GalleryModel::getLatest(3) : [];
 
-        // 10. Stay informed (newsletter subscription)
+        // 12. Stay informed (newsletter subscription)
         $showNewsletter = setting('section_show_newsletter', '1') === '1';
 
-        // 11. Donate band (only if active)
+        // 13. Donate band (only if active)
         $showDonate = setting('section_show_donate', '1') === '1';
         $isDonateActive = SettingModel::isDonateActive();
 
@@ -583,59 +626,69 @@ class PublicController
             'pageTitle'          => !empty($siteTagline) ? "{$siteName} — {$siteTagline}" : $siteName,
             'metaDescription'    => $metaDescription,
             'shownPostIds'       => $shownIds,
+            'isDonateActive'     => $isDonateActive,
             // Section 1: Announcement
             'showAnnouncement'   => $showAnnouncement && ($announcementText !== ''),
             'announcementText'   => $announcementText,
             'announcementLink'   => $announcementLink,
-            // Section 2: Hero
-            'heroPost'           => $heroPost,
-            'editorPicks'        => $editorPicks,
+            // Section 2: Hero Slider & Most Read
+            'sliderPosts'        => $sliderPosts,
+            'mostReadPosts'      => $mostReadPosts,
+            'sliderAutoRotate'   => $sliderAutoRotate,
             'heroHeadline'       => $heroHeadline,
             'heroIntro'          => $heroIntro,
-            // Section 3: Topics
+            // Section 3: Impact Numbers
+            'impactNumbers'      => $impactNumbers,
+            // Section 4: Topics
             'showTopics'         => $showTopics && !empty($topics),
             'topics'             => $topics,
             'titleTopics'        => setting('section_title_topics', 'Explore by topic'),
             'subtitleTopics'     => setting('section_subtitle_topics', ''),
-            // Section 4: Latest stories
+            // Section 5: Latest stories
             'showLatest'         => $showLatest && !empty($latestPosts),
             'latestPosts'        => $latestPosts,
             'titleLatest'        => setting('section_title_latest', 'Latest stories'),
             'subtitleLatest'     => setting('section_subtitle_latest', ''),
-            // Section 5: About band
+            // Section 6: Get involved
+            'showGetInvolved'    => $showGetInvolved && !empty($getInvolvedCards),
+            'titleGetInvolved'   => $titleGetInvolved,
+            'getInvolvedCards'   => $getInvolvedCards,
+            // Section 7: About band
             'showAboutBand'      => ($missionStatement !== ''),
             'siteName'           => $siteName,
             'missionStatement'   => $missionStatement,
             'footerAbout'        => $footerAbout,
-            // Section 6: Causes
+            'aboutBandPhoto'     => $aboutBandPhoto,
+            'aboutBandPhotoAlt'  => $aboutBandPhotoAlt,
+            // Section 8: Causes
             'showCauses'         => $showCauses && !empty($causes),
             'causes'             => $causes,
             'titleCauses'        => setting('section_title_causes', 'Causes we care about'),
             'subtitleCauses'     => setting('section_subtitle_causes', ''),
-            // Section 7: Campaigns
+            // Section 9: Campaigns
             'showCampaigns'      => $showCampaigns && !empty($campaignPosts),
             'campaignPosts'      => $campaignPosts,
             'campaignCategory'   => $campaignCategory,
             'titleCampaigns'     => setting('section_title_campaigns', 'Campaigns'),
             'subtitleCampaigns'  => setting('section_subtitle_campaigns', ''),
-            // Section 8: Right to Information
+            // Section 10: Right to Information
             'showRti'            => $showRti && !empty($rtiPosts),
             'rtiPosts'           => $rtiPosts,
             'rtiCategory'        => $rtiCategory,
             'titleRti'           => setting('section_title_rti', 'Right to Information'),
             'subtitleRti'        => setting('section_subtitle_rti', ''),
             'introRti'           => setting('section_intro_rti', 'Our ongoing investigations and RTI appeals uncovering wetland encroachments and environmental governance issues.'),
-            // Section 9: Gallery
+            // Section 11: Gallery
             'showGallery'        => $showGallery && !empty($galleryPhotos),
             'galleryPhotos'      => $galleryPhotos,
             'titleGallery'       => setting('section_title_gallery', 'From the gallery'),
             'subtitleGallery'    => setting('section_subtitle_gallery', ''),
-            // Section 10: Stay informed
+            // Section 12: Stay informed
             'showNewsletter'     => $showNewsletter,
             'titleNewsletter'    => setting('section_title_newsletter', 'Stay informed'),
             'subtitleNewsletter' => setting('section_subtitle_newsletter', ''),
             'introNewsletter'    => setting('section_intro_newsletter', 'Grassroots investigations, campaign updates, and environmental governance research from NatConnect Foundation.'),
-            // Section 11: Donate band
+            // Section 13: Donate band
             'showDonate'         => $showDonate && $isDonateActive,
             'titleDonate'        => setting('section_title_donate', 'Support our work'),
             'textDonate'         => setting('section_intro_donate') ?: (setting('donate_intro') ?: setting('home_text_donate', '')),

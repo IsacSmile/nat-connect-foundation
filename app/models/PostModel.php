@@ -1109,4 +1109,71 @@ class PostModel
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Retrieve slides for the home hero slider:
+     * Up to 5 posts with is_pick = 1 (newest first).
+     * If fewer than 2 picks, use the newest published posts instead.
+     *
+     * @param int $limit
+     * @return array
+     */
+    public static function getSliderPosts(int $limit = 5): array
+    {
+        $pdo = Database::getConnection();
+        $sqlPub = self::sqlPublished('p');
+        $stmt = $pdo->prepare("
+            SELECT p.*, c.name AS category_name, c.slug AS category_slug
+            FROM posts p
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.is_pick = 1 AND {$sqlPub}
+            ORDER BY COALESCE(p.published_at, p.created_at) DESC, p.id DESC
+            LIMIT :limit
+        ");
+        $stmt->bindValue(':limit', max(1, $limit), PDO::PARAM_INT);
+        $stmt->execute();
+        $picks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (count($picks) >= 2) {
+            return $picks;
+        }
+
+        return self::getLatestPublished($limit);
+    }
+
+    /**
+     * Retrieve up to 3 most viewed posts in the last 30 days, excluding specified post IDs.
+     *
+     * @param int $limit
+     * @param array<int> $excludeIds
+     * @return array
+     */
+    public static function getMostRead(int $limit = 3, array $excludeIds = []): array
+    {
+        $pdo = Database::getConnection();
+        $sqlPub = self::sqlPublished('p');
+        $excludeSql = '';
+        if (!empty($excludeIds)) {
+            $clean = implode(',', array_map('intval', $excludeIds));
+            $excludeSql = " AND p.id NOT IN ({$clean})";
+        }
+        $sql = "SELECT p.*, c.name AS category_name, c.slug AS category_slug,
+                       COALESCE(recent.recent_count, 0) AS recent_views
+                FROM posts p
+                LEFT JOIN categories c ON p.category_id = c.id
+                LEFT JOIN (
+                    SELECT post_id, COUNT(*) AS recent_count
+                    FROM post_views
+                    WHERE viewed_on >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                    GROUP BY post_id
+                ) recent ON p.id = recent.post_id
+                WHERE {$sqlPub}{$excludeSql}
+                ORDER BY recent_views DESC, p.views DESC, COALESCE(p.published_at, p.created_at) DESC, p.id DESC
+                LIMIT :limit";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':limit', max(1, $limit), PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
+

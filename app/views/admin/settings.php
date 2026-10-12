@@ -482,6 +482,254 @@
             <p class="text-xs text-rose-600 mt-1"><?= e($errors['home_hero_intro']) ?></p>
           <?php endif; ?>
         </div>
+
+        <!-- Auto-rotate Hero Slider -->
+        <div class="pt-3 border-t border-border">
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              name="hero_slider_autorotate" 
+              value="1" 
+              <?= !empty($settings['hero_slider_autorotate']) ? 'checked' : '' ?>
+              class="rounded border-border text-primary focus:ring-primary h-4 w-4"
+            >
+            <span class="ml-2.5 text-xs font-semibold text-ink">Auto-rotate hero slider</span>
+          </label>
+          <p class="text-xs text-ink-muted mt-1">Rotates slides every 7 seconds (default OFF). Pauses on hover, focus, touch, and hidden tabs. Disabled if visitor prefers reduced motion.</p>
+        </div>
+      </div>
+
+      <!-- Impact Numbers Card -->
+      <div class="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-soft-sm space-y-5">
+        <div class="border-b border-border pb-3">
+          <h2 class="font-serif text-lg font-bold text-ink">Impact Numbers</h2>
+          <p class="text-xs text-ink-muted mt-0.5">Up to 4 number/label pairs displayed under the hero. Shown 2x2 on mobile, 4 in a row on desktop. Hidden entirely if none are filled.</p>
+          <p class="text-xs text-accent-strong font-medium mt-1">Only use real, verifiable figures.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <?php for ($i = 1; $i <= 4; $i++): ?>
+            <?php
+              $numKey = "home_impact_number_{$i}";
+              $lblKey = "home_impact_label_{$i}";
+            ?>
+            <div class="p-4 rounded-xl border border-border bg-surface/50 space-y-3">
+              <span class="text-xs font-semibold uppercase tracking-wider text-ink-muted block">Figure <?= $i ?></span>
+              <div>
+                <label for="<?= $numKey ?>" class="block text-[11px] text-ink-muted mb-1">Number Text (Max 12 chars)</label>
+                <input 
+                  type="text" 
+                  id="<?= $numKey ?>" 
+                  name="<?= $numKey ?>" 
+                  maxlength="12"
+                  placeholder="e.g. 50+ or 1,200" 
+                  value="<?= e($settings[$numKey] ?? '') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border <?= isset($errors[$numKey]) ? 'border-rose-400 bg-rose-50/20' : 'border-border' ?> focus:outline-none focus:ring-2 focus:ring-primary text-sm font-serif font-bold text-ink bg-white"
+                >
+                <?php if (isset($errors[$numKey])): ?>
+                  <p class="text-xs text-rose-600 mt-1"><?= e($errors[$numKey]) ?></p>
+                <?php endif; ?>
+              </div>
+              <div>
+                <label for="<?= $lblKey ?>" class="block text-[11px] text-ink-muted mb-1">Label (Max 40 chars)</label>
+                <input 
+                  type="text" 
+                  id="<?= $lblKey ?>" 
+                  name="<?= $lblKey ?>" 
+                  maxlength="40"
+                  placeholder="e.g. RTI Applications Filed" 
+                  value="<?= e($settings[$lblKey] ?? '') ?>" 
+                  class="w-full px-3.5 py-2 rounded-xl border <?= isset($errors[$lblKey]) ? 'border-rose-400 bg-rose-50/20' : 'border-border' ?> focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink bg-white"
+                >
+                <?php if (isset($errors[$lblKey])): ?>
+                  <p class="text-xs text-rose-600 mt-1"><?= e($errors[$lblKey]) ?></p>
+                <?php endif; ?>
+              </div>
+            </div>
+          <?php endfor; ?>
+        </div>
+      </div>
+
+      <!-- Get Involved Section Card -->
+      <div class="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-soft-sm space-y-6">
+        <div class="flex items-center justify-between border-b border-border pb-3">
+          <div>
+            <h2 class="font-serif text-lg font-bold text-ink">Get Involved Section</h2>
+            <p class="text-xs text-ink-muted mt-0.5">3 action cards encouraging community engagement (id="get-involved").</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              name="section_show_get_involved" 
+              value="1" 
+              <?= !empty($settings['section_show_get_involved'] ?? '1') ? 'checked' : '' ?>
+              class="rounded border-border text-primary focus:ring-primary h-4 w-4"
+            >
+            <span class="ml-2 text-xs font-semibold text-ink">Show section</span>
+          </label>
+        </div>
+
+        <div>
+          <label for="section_title_get_involved" class="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+            Section Title
+          </label>
+          <input 
+            type="text" 
+            id="section_title_get_involved" 
+            name="section_title_get_involved" 
+            value="<?= e($settings['section_title_get_involved'] ?? 'Get involved') ?>" 
+            class="w-full px-3.5 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink font-serif font-bold"
+          >
+        </div>
+
+        <div class="space-y-6 divide-y divide-border">
+          <?php
+            $defaultCardIcons = ['hand-heart', 'megaphone', 'pen'];
+            $defaultCardTitles = ['Volunteer with us', 'Report an environmental concern', 'Share a story'];
+          ?>
+          <?php for ($i = 1; $i <= 3; $i++): ?>
+            <?php
+              $tKey = "home_card_{$i}_title";
+              $xKey = "home_card_{$i}_text";
+              $bKey = "home_card_{$i}_btn_label";
+              $lKey = "home_card_{$i}_link";
+              $wKey = "home_card_{$i}_wa_message";
+            ?>
+            <div class="pt-5 first:pt-0 space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-ink">
+                  Card <?= $i ?>: <?= e($defaultCardTitles[$i - 1]) ?> (Fixed icon: <?= $defaultCardIcons[$i - 1] ?>)
+                </span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="<?= $tKey ?>" class="block text-[11px] text-ink-muted mb-1">Title</label>
+                  <input 
+                    type="text" 
+                    id="<?= $tKey ?>" 
+                    name="<?= $tKey ?>" 
+                    value="<?= e($settings[$tKey] ?? $defaultCardTitles[$i - 1]) ?>" 
+                    class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                  >
+                </div>
+                <div>
+                  <label for="<?= $bKey ?>" class="block text-[11px] text-ink-muted mb-1">Button Label</label>
+                  <input 
+                    type="text" 
+                    id="<?= $bKey ?>" 
+                    name="<?= $bKey ?>" 
+                    value="<?= e($settings[$bKey] ?? 'Contact us') ?>" 
+                    class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                  >
+                </div>
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label for="<?= $xKey ?>" class="block text-[11px] text-ink-muted">Short Text</label>
+                  <span class="text-[10px] text-ink-subtle">Max 140 chars</span>
+                </div>
+                <textarea 
+                  id="<?= $xKey ?>" 
+                  name="<?= $xKey ?>" 
+                  rows="2" 
+                  maxlength="140"
+                  class="w-full px-3.5 py-2 rounded-xl border <?= isset($errors[$xKey]) ? 'border-rose-400 bg-rose-50/20' : 'border-border' ?> focus:outline-none focus:ring-2 focus:ring-primary text-xs text-ink"
+                ><?= e($settings[$xKey] ?? '') ?></textarea>
+                <?php if (isset($errors[$xKey])): ?>
+                  <p class="text-xs text-rose-600 mt-1"><?= e($errors[$xKey]) ?></p>
+                <?php endif; ?>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="<?= $lKey ?>" class="block text-[11px] text-ink-muted mb-1">Link Destination</label>
+                  <input 
+                    type="text" 
+                    id="<?= $lKey ?>" 
+                    name="<?= $lKey ?>" 
+                    value="<?= e($settings[$lKey] ?? '/contact') ?>" 
+                    placeholder="e.g. /contact, https://..., or 'whatsapp'" 
+                    class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-xs text-ink font-mono"
+                  >
+                  <p class="text-[10px] text-ink-subtle mt-1">Set to <code>whatsapp</code> to open WhatsApp, or enter a path/URL.</p>
+                </div>
+                <div>
+                  <label for="<?= $wKey ?>" class="block text-[11px] text-ink-muted mb-1">WhatsApp Prefilled Message</label>
+                  <input 
+                    type="text" 
+                    id="<?= $wKey ?>" 
+                    name="<?= $wKey ?>" 
+                    value="<?= e($settings[$wKey] ?? '') ?>" 
+                    placeholder="e.g. Hello NatConnect, I would like to volunteer." 
+                    class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-xs text-ink"
+                  >
+                  <p class="text-[10px] text-ink-subtle mt-1">Used when Link Destination is set to <code>whatsapp</code>.</p>
+                </div>
+              </div>
+            </div>
+          <?php endfor; ?>
+        </div>
+      </div>
+
+      <!-- About Band Photo Card -->
+      <div class="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-soft-sm space-y-5" x-data="{ removeAboutPhoto: false }">
+        <h2 class="font-serif text-lg font-bold text-ink border-b border-border pb-3">About Band Photo</h2>
+        <p class="text-xs text-ink-muted">Optional photo (4:3 aspect ratio) shown in the About section on the home page. When provided, the photo is displayed alongside the mission statement.</p>
+
+        <?php if (!empty($settings['about_band_photo'])): ?>
+          <div x-show="!removeAboutPhoto" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-xl border border-border bg-surface/50">
+            <img 
+              src="<?= e(\App\Core\ImageUploader::getVariantUrl($settings['about_band_photo'], 400)) ?>" 
+              alt="<?= e($settings['about_band_photo_alt'] ?? 'About band photo') ?>" 
+              class="w-32 h-24 object-cover rounded-lg border border-border"
+            >
+            <div class="space-y-2">
+              <p class="text-xs text-ink font-medium">Current photo configured</p>
+              <label class="inline-flex items-center cursor-pointer text-xs text-rose-600 hover:text-rose-700">
+                <input 
+                  type="checkbox" 
+                  name="remove_about_band_photo" 
+                  value="1" 
+                  x-model="removeAboutPhoto"
+                  class="rounded border-border text-rose-600 focus:ring-rose-500 h-4 w-4 mr-1.5"
+                >
+                Remove photo
+              </label>
+            </div>
+          </div>
+        <?php endif; ?>
+
+        <div>
+          <label for="about_band_photo_file" class="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+            <?= !empty($settings['about_band_photo']) ? 'Replace Photo' : 'Upload Photo (4:3 Recommended)' ?>
+          </label>
+          <input 
+            type="file" 
+            id="about_band_photo_file" 
+            name="about_band_photo_file" 
+            accept="image/jpeg,image/png,image/webp" 
+            class="w-full text-xs text-ink file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover file:cursor-pointer"
+          >
+          <?php if (isset($errors['about_band_photo'])): ?>
+            <p class="text-xs text-rose-600 mt-1"><?= e($errors['about_band_photo']) ?></p>
+          <?php endif; ?>
+        </div>
+
+        <div>
+          <label for="about_band_photo_alt" class="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+            Photo Alternative Text (Alt Text)
+          </label>
+          <input 
+            type="text" 
+            id="about_band_photo_alt" 
+            name="about_band_photo_alt" 
+            value="<?= e($settings['about_band_photo_alt'] ?? '') ?>" 
+            placeholder="Descriptive text for accessibility (required if photo is set)" 
+            class="w-full px-3.5 py-2.5 rounded-xl border <?= isset($errors['about_band_photo_alt']) ? 'border-rose-400 bg-rose-50/20' : 'border-border' ?> focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+          >
+          <?php if (isset($errors['about_band_photo_alt'])): ?>
+            <p class="text-xs text-rose-600 mt-1"><?= e($errors['about_band_photo_alt']) ?></p>
+          <?php endif; ?>
+        </div>
       </div>
 
       <!-- 3. Section Titles, Intros & Visibility Card -->

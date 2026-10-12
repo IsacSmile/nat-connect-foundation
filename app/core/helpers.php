@@ -392,4 +392,35 @@ if (!function_exists('subscriberTimestampFields')) {
     }
 }
 
+if (!function_exists('buildWhatsAppUrl')) {
+    /**
+     * Build a valid WhatsApp wa.me link with URL-encoded prefilled message.
+     */
+    function buildWhatsAppUrl(?string $phone, string $message = ''): string
+    {
+        $cleanPhone = preg_replace('/[^0-9]/', '', (string) $phone);
+        $url = 'https://wa.me/' . $cleanPhone;
+        if (trim($message) !== '') {
+            $url .= '?text=' . urlencode(trim($message));
+        }
+        return $url;
+    }
+}
+
+if (!function_exists('resolveCardLink')) {
+    /**
+     * Resolve a card action link (URL, site path, or whatsapp).
+     */
+    function resolveCardLink(?string $link, string $waMessage = ''): string
+    {
+        $trimmed = trim((string) $link);
+        if (strtolower($trimmed) === 'whatsapp') {
+            $waPhone = setting('contact_whatsapp', '');
+            return buildWhatsAppUrl($waPhone, $waMessage);
+        }
+        return $trimmed !== '' ? $trimmed : '/contact';
+    }
+}
+
+
 
