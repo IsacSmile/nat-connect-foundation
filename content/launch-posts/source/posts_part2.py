@@ -157,7 +157,7 @@ POSTS_2 = [
 "scene": "world_day", "seed": 83,
 "cover_alt": "Illustration of a large flock of birds flying over a wide blue wetland, with soft clouds and green hills on the horizon.",
 "cover_caption": "World Wetlands Day marks the signing of the Ramsar Convention in 1971.",
-"excerpt": "World Wetlands Day marks the date in 1971 when the Ramsar Convention was signed. Here is the story behind the day and how you can use it locally.",
+"excerpt": "World Wetlands Day marks the date in 1971 when the Ramsar Convention was signed. Here is the story behind the day, the Ramsar Sites in Maharashtra, and how to use the day locally.",
 "content": """
 <p>Every year on 2 February, people around the world mark World Wetlands Day. The date is not random. It recalls the signing of an international treaty that remains the main global agreement on wetlands.</p>
 
@@ -165,7 +165,7 @@ POSTS_2 = [
 <p>On 2 February 1971, governments met in the Iranian city of Ramsar and adopted the Convention on Wetlands, usually called the Ramsar Convention. It is one of the oldest international environmental agreements. Countries that join it commit to the wise use of their wetlands and to designating important wetlands as "Wetlands of International Importance", widely known as Ramsar Sites.</p>
 
 <h2>India and Ramsar</h2>
-<p>India is a party to the convention and has designated many Ramsar Sites across the country, a list that has grown considerably in recent years. Kerala's sites include Vembanad-Kol, Ashtamudi and Sasthamkotta.</p>
+<p>India is a party to the convention and has designated many Ramsar Sites across the country, a list that has grown considerably in recent years. Maharashtra's Ramsar Sites include Nandur Madhmeshwar in Nashik district, Lonar Lake in Buldhana district, and Thane Creek, right on the edge of Mumbai, where flocks of flamingos gather in the shallow mudflats.</p>
 <p>Being a Ramsar Site brings international recognition and attention, but it does not by itself stop pollution, encroachment or overuse. Day-to-day protection still depends on national and state laws, and on local people.</p>
 
 <h2>How the day became global</h2>

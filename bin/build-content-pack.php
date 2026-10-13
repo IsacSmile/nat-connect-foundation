@@ -35,13 +35,8 @@ define('ROOT_PATH', $stageDir);
 define('PUBLIC_PATH', $repoRoot . '/public_html');
 define('APP_PATH', PUBLIC_PATH . '/app');
 
-require_once PUBLIC_PATH . '/vendor/autoload.php';
-require_once APP_PATH . '/core/helpers.php';
-require_once APP_PATH . '/core/Sanitizer.php';
-require_once APP_PATH . '/core/ImageUploader.php';
-date_default_timezone_set('Asia/Kolkata');
+require_once __DIR__ . '/lib/pack-helpers.php';
 
-use App\Core\ImageUploader;
 use App\Core\Sanitizer;
 
 $jsonPath = $argv[1] ?? ($repoRoot . '/content/launch-posts/posts.json');
@@ -58,37 +53,6 @@ $categories = [
     'Campaigns'        => 'campaigns',
     'RTI Applications' => 'rti-applications',
 ];
-
-/** MySQL string literal (utf8mb4-safe). */
-function q(?string $v): string
-{
-    if ($v === null) {
-        return 'NULL';
-    }
-    return "'" . strtr($v, [
-        "\\"   => "\\\\",
-        "\0"   => "\\0",
-        "\n"   => "\\n",
-        "\r"   => "\\r",
-        "'"    => "\\'",
-        "\x1a" => "\\Z",
-    ]) . "'";
-}
-
-function rrmdir(string $dir): void
-{
-    if (!is_dir($dir)) {
-        return;
-    }
-    $it = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
-        RecursiveIteratorIterator::CHILD_FIRST
-    );
-    foreach ($it as $f) {
-        $f->isDir() ? rmdir($f->getPathname()) : unlink($f->getPathname());
-    }
-    rmdir($dir);
-}
 
 rrmdir($outDir);
 mkdir($stageDir . '/public_html/uploads', 0775, true);
@@ -121,7 +85,7 @@ foreach ($posts as $i => $p) {
     if (!isset($categories[$cat])) {
         $errors[] = "#{$n}: unknown category '{$cat}'";
     }
-    if (mb_strlen($alt) < 20 || !str_contains($alt, ' ') || preg_match('/\.(jpe?g|png|webp)$/i', $alt)) {
+    if (!packAltOk($alt)) {
         $errors[] = "#{$n}: cover alt text must be a descriptive sentence";
     }
     if (($p['status'] ?? '') !== 'published') {
@@ -146,16 +110,12 @@ foreach ($posts as $i => $p) {
         continue;
     }
 
-    // Process through the same pipeline as the admin uploader (work on a copy).
-    $tmp = tempnam(sys_get_temp_dir(), 'ncpack');
-    copy($imgPath, $tmp);
+    // Process through the same pipeline as the admin uploader.
     try {
-        $result = ImageUploader::processFile($tmp, basename($imgPath), (int) filesize($tmp));
+        $coverLocation = packProcessImage($imgPath);
     } catch (Throwable $e) {
         $errors[] = "#{$n}: image rejected: " . $e->getMessage();
         continue;
-    } finally {
-        @unlink($tmp);
     }
 
     $tags = [];
@@ -176,7 +136,7 @@ foreach ($posts as $i => $p) {
         'category'     => $categories[$cat] ?? '',
         'excerpt'      => trim((string) ($p['excerpt'] ?? '')) ?: null,
         'content'      => $clean,
-        'cover_image'  => $result['location'],
+        'cover_image'  => $coverLocation,
         'cover_alt'    => $alt,
         'cover_caption'=> trim((string) ($p['cover_caption'] ?? '')) ?: null,
         'is_pick'      => !empty($p['is_pick']) ? 1 : 0,
@@ -185,7 +145,6 @@ foreach ($posts as $i => $p) {
         'meta_title'   => trim((string) ($p['meta_title'] ?? '')) ?: null,
         'meta_desc'    => trim((string) ($p['meta_description'] ?? '')) ?: null,
         'tags'         => $tags,
-        'variants'     => $result['variants'],
     ];
 }
 
@@ -263,23 +222,7 @@ file_put_contents($outDir . '/remove.sql', implode("\n", $rm) . "\n");
 // ---------------------------------------------------------------------------
 // 4. uploads.zip — paths start at uploads/ so it extracts straight into public_html
 // ---------------------------------------------------------------------------
-$zip = new ZipArchive();
-if ($zip->open($outDir . '/uploads.zip', ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-    fwrite(STDERR, "[ERROR] Could not create uploads.zip\n");
-    exit(1);
-}
-$uploadsRoot = $stageDir . '/public_html/';
-$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($uploadsRoot . 'uploads', FilesystemIterator::SKIP_DOTS));
-$fileCount = 0;
-foreach ($it as $f) {
-    $rel = substr($f->getPathname(), strlen($uploadsRoot));
-    if ($rel === 'uploads/index.html') {
-        continue; // already present on every install
-    }
-    $zip->addFile($f->getPathname(), $rel);
-    $fileCount++;
-}
-$zip->close();
+$fileCount = packZipUploads($stageDir, $outDir . '/uploads.zip');
 
 // ---------------------------------------------------------------------------
 // 5. titles.txt

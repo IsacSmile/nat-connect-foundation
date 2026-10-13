@@ -134,43 +134,44 @@ POSTS_1 = [
 """
 },
 {
-"title": "Sacred Groves of Kerala: Small Forests With a Long Memory",
+"title": "Devrais: The Sacred Groves of Maharashtra",
 "category": "Causes",
-"tags": ["sacred-groves", "biodiversity", "kerala", "forests"],
+"tags": ["sacred-groves", "biodiversity", "maharashtra", "forests"],
 "is_pick": False,
 "published_at": "2026-07-18 09:15:00",
 "scene": "grove", "seed": 47,
 "cover_alt": "Illustration of a dense green grove with layered tree canopies and soft beams of sunlight falling between the trunks.",
 "cover_caption": "Sacred groves often hold plants that have vanished from the surrounding land.",
-"excerpt": "Kerala's kavus are patches of forest protected by tradition for generations. They hold rare plants, feed nearby water sources and are under quiet pressure.",
+"excerpt": "Across the Sahyadris and the Konkan, village communities have protected small patches of forest called devrais for generations. They hold rare plants, feed water sources and are under quiet pressure.",
 "content": """
-<p>Across Kerala, many family and temple compounds include a small patch of thick forest known as a <em>kavu</em>. Often associated with serpent worship, these sacred groves have been left largely untouched for generations because of the beliefs attached to them.</p>
+<p>In many villages across the Sahyadri hills and the Konkan coast, there is a patch of old, dense forest that nobody cuts. It is known as a <em>devrai</em>, a sacred grove dedicated to a local deity. Similar groves exist across India under different names, such as <em>kavu</em> in Kerala and <em>orans</em> in Rajasthan.</p>
 
-<h2>Forests protected by tradition</h2>
-<p>Unlike reserved forests, most sacred groves were never protected by law. They survived because communities agreed not to cut trees, collect firewood or disturb the ground there. That shared restraint has kept some of them in remarkably natural condition.</p>
+<h2>Forests protected by belief</h2>
+<p>Most devrais were never protected by law. They survived because communities agreed, often through generations of custom, not to fell trees, collect timber or disturb the ground there. Dead wood and fallen leaves are left where they lie. That shared restraint has kept some groves in remarkably natural condition.</p>
 
 <h2>Why they matter for nature</h2>
 <h3>Living seed banks</h3>
-<p>Because they have been left alone for so long, sacred groves can hold native trees, climbers, shrubs and medicinal plants that have become rare in the surrounding landscape.</p>
+<p>Because they have been left alone for so long, devrais can hold large old trees, climbers, shrubs and medicinal plants that have become rare in the surrounding landscape of farms, plantations and settlements.</p>
 
 <h3>Water sources</h3>
-<p>Many groves sit next to ponds or springs. The thick leaf litter and undisturbed soil help rainwater soak in, which can keep nearby wells and ponds fed through the dry months.</p>
+<p>Many groves sit near springs, streams or ponds. Thick leaf litter and undisturbed soil help monsoon rain soak into the ground, which can keep nearby water sources flowing longer into the dry season.</p>
 
 <h3>Shelter for wildlife</h3>
 <p>Birds, bats, reptiles, insects and small mammals use groves as refuges in landscapes that are otherwise cleared or built up.</p>
 
 <h2>The pressures they face</h2>
 <ul>
-<li>Division of family land, where the grove ends up on a plot someone wants to build on.</li>
-<li>Clearing groves to replace them with concrete shrines or compound walls.</li>
-<li>Loss of the traditions that once protected them.</li>
-<li>Invasive plants and dumping at the edges.</li>
+<li>Land disputes and changing ownership, where the grove ends up on a plot someone wants to use.</li>
+<li>Clearing parts of a grove to build larger concrete temples, halls or compound walls.</li>
+<li>Weakening of the customs that once protected them.</li>
+<li>Roads, quarries and construction pushing up against grove edges.</li>
+<li>Invasive plants and dumping at the margins.</li>
 </ul>
 
 <blockquote>A sacred grove is a reminder that conservation existed long before the word did.</blockquote>
 
 <h2>Keeping groves alive</h2>
-<p>The groves that survive best are the ones whose owners and neighbours value them. If your family or temple has a kavu, the simplest help is to leave it as it is: no clearing, no burning of leaf litter, no concrete inside it. Recording the plants and animals found there, with the owners' permission, also builds a picture of what each grove holds and why it is worth keeping.</p>
+<p>The groves that survive best are the ones whose communities still value them. The simplest help is often to leave a grove as it is: no clearing, no burning of leaf litter, no concrete inside it. Recording the plants and animals found there, with the community's permission, builds a picture of what each grove holds and why it is worth keeping. When a new road or building is planned nearby, asking early how it will affect the grove is far easier than trying to undo damage later.</p>
 """
 },
 ]

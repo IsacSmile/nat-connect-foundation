@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "get_involved_intro": "Wetlands, mangroves and green spaces last longest when the people around them pay attention. Here are a few simple ways to start.",
+    "get_involved_photo": {
+      "image": "images/get-involved.jpg",
+      "alt": "Illustration of a lake shore with a row of newly planted saplings, a wooden boat and three filled waste sacks after a clean-up."
+    }
+  },
+  "causes": [
+    {
+      "slug": "wetlands",
+      "name": "Wetlands",
+      "description": "Marshes, creeks, lakes and floodplains that hold floodwater, clean water and shelter wildlife.",
+      "image": "images/cause-wetlands.jpg",
+      "image_alt": "Illustration of a wide blue wetland with a flock of birds flying under soft clouds.",
+      "sort_order": 1
+    },
+    {
+      "slug": "mangroves",
+      "name": "Mangroves",
+      "description": "Coastal forests that protect shorelines and shelter young fish and crabs.",
+      "image": "images/cause-mangroves.jpg",
+      "image_alt": "Illustration of mangrove trees standing in shallow water on arching roots.",
+      "sort_order": 2
+    },
+    {
+      "slug": "lakes",
+      "name": "Lakes",
+      "description": "Lakes, tanks and ponds in our towns that store monsoon rain and recharge groundwater.",
+      "image": "images/cause-urban-lakes.jpg",
+      "image_alt": "Illustration of a city lake at sunset with buildings along the far shore and reeds in the water.",
+      "sort_order": 3
+    },
+    {
+      "slug": "sacred-groves",
+      "name": "Sacred groves",
+      "description": "Village forests protected by tradition that hold rare plants and feed local water sources.",
+      "image": "images/cause-sacred-groves.jpg",
+      "image_alt": "Illustration of a dense green grove with sunlight falling between the tree trunks.",
+      "sort_order": 4
+    }
+  ],
+  "topics": [
+    "wetlands",
+    "mangroves",
+    "lakes",
+    "rti",
+    "plastic",
+    "flooding",
+    "composting",
+    "volunteering",
+    "citizen-action",
+    "biodiversity"
+  ],
+  "post_updates": [
+    {
+      "old_slug": "sacred-groves-of-kerala-small-forests-with-a-long-memory",
+      "slug": "devrais-the-sacred-groves-of-maharashtra"
+    },
+    {
+      "old_slug": "world-wetlands-day-why-february-2-matters",
+      "slug": "world-wetlands-day-why-february-2-matters"
+    }
+  ],
+  "retired_tags": [
+    "kerala"
+  ]
+}
