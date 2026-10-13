@@ -1,6 +1,13 @@
 <?php
 declare(strict_types=1);
 
+// These checks use assert(). With zend.assertions=-1 (the default in many php.ini files)
+// every assert() is compiled out and the suite would print PASS without checking anything.
+if (ini_get('zend.assertions') !== '1') {
+    fwrite(STDERR, "[ERROR] Assertions are disabled. Run: php -d zend.assertions=1 " . basename(__FILE__) . "\n");
+    exit(1);
+}
+
 /**
  * NatConnect Foundation — Phase 3A Editorial Post & Category Assertions
  *

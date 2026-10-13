@@ -1,6 +1,13 @@
 <?php
 declare(strict_types=1);
 
+// These checks use assert(). With zend.assertions=-1 (the default in many php.ini files)
+// every assert() is compiled out and the suite would print PASS without checking anything.
+if (ini_get('zend.assertions') !== '1') {
+    fwrite(STDERR, "[ERROR] Assertions are disabled. Run: php -d zend.assertions=1 " . basename(__FILE__) . "\n");
+    exit(1);
+}
+
 /**
  * NatConnect Foundation — Phase 4A Public Queries & Browsing Verification
  *
@@ -118,7 +125,7 @@ try {
     $olderPastTime = date('Y-m-d H:i:s', $now - 7200);
     $futureTime = date('Y-m-d H:i:s', $now + 172800);
 
-    $insertPost = function (string $title, string $slug, string $status, ?string $pubAt) use ($pdo, $catId, $tagId, &$createdPostIds) {
+    $insertPost = function (string $title, string $slug, string $status, ?string $pubAt, ?string $content = null) use ($pdo, $catId, $tagId, &$createdPostIds) {
         $stmt = $pdo->prepare("
             INSERT INTO posts (title, slug, content, excerpt, category_id, status, published_at, author_name)
             VALUES (:title, :slug, :content, :excerpt, :catId, :status, :pubAt, 'Test Author')
@@ -126,7 +133,7 @@ try {
         $stmt->execute([
             'title'   => $title,
             'slug'    => $slug,
-            'content' => "<p>Content for {$title} with literal %100_special token.</p>",
+            'content' => $content ?? "<p>Content for {$title} with literal %100_special token.</p>",
             'excerpt' => "Excerpt for {$title}",
             'catId'   => $catId,
             'status'  => $status,
@@ -226,7 +233,7 @@ try {
 
     // 4C: Single wildcard '%' search should NOT match all posts in the entire database
     // Create an un-matched control post without % in title
-    $postE = $insertPost('Control Post No Percent Or Underscore', 'post-e-control-' . bin2hex(random_bytes(3)), 'published', $olderPastTime);
+    $postE = $insertPost('Control Post No Percent Or Underscore', 'post-e-control-' . bin2hex(random_bytes(3)), 'published', date('Y-m-d H:i:s', $now - 10800), '<p>Control content with no special characters.</p>');
     $searchWild = PostModel::searchPublished('%', 1, 50);
     $wildIds = array_column($searchWild['items'], 'id');
     // Post E does NOT have a literal '%' so it must NOT be matched when searching for '%'
@@ -526,7 +533,7 @@ try {
 
     assert(!str_contains($emptyRenderHtml, 'id="hero-heading"'), "Hero section must not render when slider posts are absent");
     assert(!str_contains($emptyRenderHtml, 'id="impact-numbers"'), "Impact strip must not render when impact numbers are empty");
-    assert(!str_contains($emptyRenderHtml, 'id="get-involved"'), "Get involved section must not render when showGetInvolved is false");
+    assert(!str_contains($emptyRenderHtml, '<section id="get-involved"'), "Get involved section must not render when showGetInvolved is false");
     assert(!str_contains($emptyRenderHtml, 'id="topics-heading"'), "Topics section must not render when topics are empty");
     assert(!str_contains($emptyRenderHtml, 'id="latest-heading"'), "Latest stories section must not render when empty");
     assert(!str_contains($emptyRenderHtml, 'id="about-band-heading"'), "About band must not render when mission statement is empty");
@@ -1030,8 +1037,11 @@ try {
 
     // 13.4 Strip hidden when its toggle is off and rendered when on
     echo "  - Subtest 13.4: Strip hidden when its toggle is off and rendered when on\n";
+    // The admin toggle saves both keys; the home controller reads section_show_latest_strip first.
     $origToggle = SettingModel::get('section_show_latest');
+    $origStripToggle = SettingModel::get('section_show_latest_strip');
     SettingModel::set('section_show_latest', '0');
+    SettingModel::set('section_show_latest_strip', '0');
     SettingModel::clearCache();
 
     ob_start();
@@ -1040,6 +1050,7 @@ try {
     assert(!str_contains($htmlStripOff, 'aria-label="Latest stories"'), "Latest strip MUST be hidden when toggle is off");
 
     SettingModel::set('section_show_latest', '1');
+    SettingModel::set('section_show_latest_strip', '1');
     SettingModel::clearCache();
 
     ob_start();
@@ -1047,8 +1058,11 @@ try {
     $htmlStripOn = ob_get_clean();
     assert(str_contains($htmlStripOn, 'aria-label="Latest stories"'), "Latest strip MUST be visible when toggle is on and >=2 posts exist");
 
+    echo "    [PASS] Latest strip is hidden when its toggle is off and rendered when on.\n";
+
     // Restore toggle
     SettingModel::set('section_show_latest', $origToggle ?? '1');
+    SettingModel::set('section_show_latest_strip', $origStripToggle ?? '1');
     SettingModel::clearCache();
     // 14. Home Page: About Band & Get Involved Redesign Assertions
     echo "--- Test 14: About Band & Get Involved Redesign Assertions ---\n";
@@ -1068,7 +1082,7 @@ try {
     // Subtest 14.2: Get Involved actions as stacked rows without filled primary buttons
     echo "  - Subtest 14.2: Get Involved actions as stacked rows without filled primary buttons\n";
     // Check that Get Involved section contains divide-y and no filled primary buttons
-    $getInvolvedPos = strpos($homeHtml, 'id="get-involved"');
+    $getInvolvedPos = strpos($homeHtml, '<section id="get-involved"');
     $aboutBandPos = strpos($homeHtml, 'aria-labelledby="about-band-heading"');
     assert($getInvolvedPos !== false && $aboutBandPos !== false, "Both Get Involved and About band sections must exist on home page");
     $getInvolvedHtml = substr($homeHtml, $getInvolvedPos, $aboutBandPos - $getInvolvedPos);
@@ -1159,15 +1173,15 @@ try {
 
     // 15.2 Check category sort_order: Causes 1, News 2, Campaigns 3, RTI Applications 4
     echo "  - Subtest 15.2: Default category sort_order: Causes 1, News 2, Campaigns 3, RTI Applications 4\n";
-    assert(preg_match("/\('Causes',\s*'causes',[^)]*1\)/", $seedSql) === 1, "seed.sql must have Causes with sort_order 1");
-    assert(preg_match("/\('News',\s*'news',[^)]*2\)/", $seedSql) === 1, "seed.sql must have News with sort_order 2");
-    assert(preg_match("/\('Campaigns',\s*'campaigns',[^)]*3\)/", $seedSql) === 1, "seed.sql must have Campaigns with sort_order 3");
-    assert(preg_match("/\('RTI Applications',\s*'rti-applications',[^)]*4\)/", $seedSql) === 1, "seed.sql must have RTI Applications with sort_order 4");
+    assert(preg_match("/\((?:\d+,\s*)?'Causes',\s*'causes',[^)]*,\s*1\)/", $seedSql) === 1, "seed.sql must have Causes with sort_order 1");
+    assert(preg_match("/\((?:\d+,\s*)?'News',\s*'news',[^)]*,\s*2\)/", $seedSql) === 1, "seed.sql must have News with sort_order 2");
+    assert(preg_match("/\((?:\d+,\s*)?'Campaigns',\s*'campaigns',[^)]*,\s*3\)/", $seedSql) === 1, "seed.sql must have Campaigns with sort_order 3");
+    assert(preg_match("/\((?:\d+,\s*)?'RTI Applications',\s*'rti-applications',[^)]*,\s*4\)/", $seedSql) === 1, "seed.sql must have RTI Applications with sort_order 4");
 
-    assert(preg_match("/\('Causes',\s*'causes',[^)]*1\)/", $installSql) === 1, "install.sql must have Causes with sort_order 1");
-    assert(preg_match("/\('News',\s*'news',[^)]*2\)/", $installSql) === 1, "install.sql must have News with sort_order 2");
-    assert(preg_match("/\('Campaigns',\s*'campaigns',[^)]*3\)/", $installSql) === 1, "install.sql must have Campaigns with sort_order 3");
-    assert(preg_match("/\('RTI Applications',\s*'rti-applications',[^)]*4\)/", $installSql) === 1, "install.sql must have RTI Applications with sort_order 4");
+    assert(preg_match("/\((?:\d+,\s*)?'Causes',\s*'causes',[^)]*,\s*1\)/", $installSql) === 1, "install.sql must have Causes with sort_order 1");
+    assert(preg_match("/\((?:\d+,\s*)?'News',\s*'news',[^)]*,\s*2\)/", $installSql) === 1, "install.sql must have News with sort_order 2");
+    assert(preg_match("/\((?:\d+,\s*)?'Campaigns',\s*'campaigns',[^)]*,\s*3\)/", $installSql) === 1, "install.sql must have Campaigns with sort_order 3");
+    assert(preg_match("/\((?:\d+,\s*)?'RTI Applications',\s*'rti-applications',[^)]*,\s*4\)/", $installSql) === 1, "install.sql must have RTI Applications with sort_order 4");
 
     $stmtCats = $pdo->query("SELECT slug, sort_order FROM categories WHERE slug IN ('causes', 'news', 'campaigns', 'rti-applications')");
     $catRows = $stmtCats->fetchAll(\PDO::FETCH_KEY_PAIR);

@@ -461,7 +461,7 @@ nat-connect-foundation/
     - Demo content (`bin/seed-demo.php`) is strictly local-only for UI and design review; `bin/` is never deployed.
     - Always run `php bin/seed-demo.php --clean` before any export of the database or deployment to staging/production.
 22. **Task Completion and Git Protocol**:
-    - At the end of every task, run the test suites (`for t in tests/*_check.php; do php "$t"; done`).
+    - At the end of every task, run the test suites (`for t in tests/*_check.php; do php -d zend.assertions=1 "$t"; done`). The `-d zend.assertions=1` flag is required: the assert-based suites refuse to run without it, because with assertions off they would print PASS without checking anything.
     - Run `git add -A`.
     - Confirm that `config.local.php`, uploads images, `demo-manifest.json`, and logs are NOT staged.
     - Commit with a clear, descriptive message, and push to `origin dev`.
