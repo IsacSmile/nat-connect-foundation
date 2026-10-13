@@ -5,6 +5,12 @@ on:
     branches:
       - staging
   workflow_dispatch:
+    inputs:
+      include_setup:
+        description: 'Include setup.php in deployment (one-time first install only)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   deploy_staging:
@@ -26,6 +32,8 @@ jobs:
       # 2. LOCAL PUBLIC_HTML DIRECTORY DEPLOYMENT:
       #    - Uploads the contents of public_html/ (which now houses app/, vendor/,
       #      database/migrations/, database/install.sql, assets/, and front controller).
+      #    - Excludes setup.php by default (first install uploads it manually or via
+      #      the one-time workflow_dispatch input "include_setup").
       #    - Excludes client uploads/ except security barrier files (.htaccess & index.html).
       #    - Excludes app/config/config.local.php (server-specific environment secrets).
       #    - Excludes app/storage/ runtime files (except .gitkeep).
@@ -51,8 +59,17 @@ jobs:
 
       - name: Sync public_html via rsync over SSH
         run: |
+          EXTRA_RSYNC_ARGS=""
+          if [ "${{ github.event.inputs.include_setup }}" != "true" ]; then
+            EXTRA_RSYNC_ARGS="--exclude=setup.php"
+            echo "setup.php is excluded from rsync (default / push)."
+          else
+            echo "include_setup=true requested via workflow_dispatch: setup.php will be uploaded."
+          fi
+
           rsync -avz --itemize-changes \
             -e "ssh -p ${{ secrets.STAGING_SSH_PORT }} -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" \
+            $EXTRA_RSYNC_ARGS \
             --include='*/' \
             --include='uploads/.htaccess' \
             --include='uploads/index.html' \

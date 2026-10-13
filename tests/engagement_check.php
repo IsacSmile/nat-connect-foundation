@@ -200,9 +200,39 @@ $respDraft = json_decode(ob_get_clean(), true);
 
 $draftViews = (int) $pdo->query("SELECT views FROM posts WHERE id = {$draftPostId}")->fetchColumn();
 if (($respDraft['status'] ?? '') === 'ignored' && ($respDraft['reason'] ?? '') === 'not_published' && $draftViews === 0) {
-    echo "[PASS] Unpublished Gate: Draft post view was ignored (Views = 0).\n\n";
+    echo "[PASS] Unpublished Gate: Draft post view was ignored (Views = 0).\n";
 } else {
     echo "[FAIL] Unpublished Gate failed: Views counted on draft post ({$draftViews})\n";
+    exit(1);
+}
+
+// Test 1.4: IPv6 /64 view deduplication
+$_SERVER['REMOTE_ADDR'] = '2001:db8:8888:9999:0000:0000:0000:0001';
+$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0';
+
+ob_start();
+$controller->recordView(['id' => $publishedPostId]);
+$respIpv6_1 = json_decode(ob_get_clean(), true);
+$viewsAfterIpv6_1 = (int) $pdo->query("SELECT views FROM posts WHERE id = {$publishedPostId}")->fetchColumn();
+
+// Same /64, different host interface ID
+$_SERVER['REMOTE_ADDR'] = '2001:db8:8888:9999:ffff:ffff:ffff:ffff';
+ob_start();
+$controller->recordView(['id' => $publishedPostId]);
+$respIpv6_2 = json_decode(ob_get_clean(), true);
+$viewsAfterIpv6_2 = (int) $pdo->query("SELECT views FROM posts WHERE id = {$publishedPostId}")->fetchColumn();
+
+// Different /64 prefix
+$_SERVER['REMOTE_ADDR'] = '2001:db8:8888:aaaa:0000:0000:0000:0001';
+ob_start();
+$controller->recordView(['id' => $publishedPostId]);
+$respIpv6_diff = json_decode(ob_get_clean(), true);
+$viewsAfterIpv6_diff = (int) $pdo->query("SELECT views FROM posts WHERE id = {$publishedPostId}")->fetchColumn();
+
+if ($respIpv6_1['counted'] === true && $respIpv6_2['counted'] === false && $viewsAfterIpv6_1 === $viewsAfterIpv6_2 && $respIpv6_diff['counted'] === true && $viewsAfterIpv6_diff === ($viewsAfterIpv6_2 + 1)) {
+    echo "[PASS] IPv6 View Deduplication: different IPv6 addresses in same /64 deduplicated, different /64 counted.\n\n";
+} else {
+    echo "[FAIL] IPv6 View Deduplication failed: first={$viewsAfterIpv6_1}, second={$viewsAfterIpv6_2}, diff={$viewsAfterIpv6_diff}\n";
     exit(1);
 }
 
@@ -274,6 +304,40 @@ if (($statusCode === 403 || !empty($crossOriginResp['error'])) && !empty($crossO
 // Reset valid origin headers
 $_SERVER['HTTP_ORIGIN'] = 'http://' . $siteHost . ':8000';
 @http_response_code(200);
+
+// Test 2.4: IPv6 /64 Like Rate Limiting
+$ipv6LikeA = '2001:db8:1111:2222:0000:0000:0000:0001';
+$ipv6LikeB = '2001:db8:1111:2222:ffff:ffff:ffff:ffff';
+$ipv6HashA = ipHash($ipv6LikeA);
+$ipv6HashB = ipHash($ipv6LikeB);
+if ($ipv6HashA !== $ipv6HashB) {
+    echo "[FAIL] IPv6 like hash mismatch for same /64\n";
+    exit(1);
+}
+
+$pdo->beginTransaction();
+$insLikeStmt = $pdo->prepare("INSERT INTO like_rate_limits (ip_hash, created_at) VALUES (?, NOW())");
+for ($i = 0; $i < 60; $i++) {
+    $insLikeStmt->execute([$ipv6HashA]);
+}
+$pdo->commit();
+
+$_SERVER['REMOTE_ADDR'] = $ipv6LikeB;
+$_COOKIE['nc_vid'] = bin2hex(random_bytes(16));
+ob_start();
+@http_response_code(200);
+$controller->toggleLike(['id' => $publishedPostId]);
+$likeRateResp = json_decode(ob_get_clean(), true);
+$likeRateStatus = http_response_code();
+
+$pdo->prepare("DELETE FROM like_rate_limits WHERE ip_hash = ?")->execute([$ipv6HashA]);
+
+if ($likeRateStatus === 429 || (!empty($likeRateResp['error']) && str_contains($likeRateResp['error'], 'Rate limit'))) {
+    echo "[PASS] IPv6 Like Rate Limiting: 60 attempts from IPv6 address A blocked address B in same /64 (429).\n\n";
+} else {
+    echo "[FAIL] IPv6 Like Rate Limiting failed: status={$likeRateStatus}, resp=" . json_encode($likeRateResp) . "\n";
+    exit(1);
+}
 
 // =========================================================================
 // 3. COMMENTS TESTS
@@ -418,6 +482,50 @@ if ($totalForIp === 3 && !empty($rateErrors['rate'])) {
     echo "[PASS] Rate Limiter: 4th comment within 10 minutes from same IP was rejected.\n";
 } else {
     echo "[FAIL] Rate Limiter failed! Total comments for IP = {$totalForIp}\n";
+    exit(1);
+}
+
+// Test 3.4b: IPv6 /64 Comment rate limiting
+$ipv6CommA = '2001:db8:3333:4444:0000:0000:0000:0001';
+$ipv6CommB = '2001:db8:3333:4444:ffff:ffff:ffff:ffff';
+$commHashA = ipHash($ipv6CommA);
+$commHashB = ipHash($ipv6CommB);
+
+$seededCommentIds = [];
+$insComm = $pdo->prepare("INSERT INTO comments (post_id, name, email, body, status, ip_hash, created_at) VALUES (?, 'Test', 't@example.com', 'Body', 'approved', ?, NOW())");
+for ($i = 0; $i < 3; $i++) {
+    $insComm->execute([$publishedPostId, $commHashA]);
+    $seededCommentIds[] = (int) $pdo->lastInsertId();
+}
+
+$_SERVER['REMOTE_ADDR'] = $ipv6CommB;
+Turnstile::$mockVerifier = fn($token, $ip) => true;
+$_POST = [
+    'contact_fax'           => '',
+    'name'                  => 'IPv6 Subnet User',
+    'email'                 => 'ipv6@example.com',
+    'comment'               => 'Attempting 4th comment from same /64 subnet.',
+    'comment_ts'            => $validTs,
+    'comment_sig'           => hash_hmac('sha256', (string) $validTs, (string) config('security.salt')),
+    'cf-turnstile-response' => 'mock-pass',
+];
+unset($_SESSION['comment_errors']);
+ob_start();
+try {
+    $controller->submitComment(['slug' => $publishedSlug]);
+} catch (Throwable $e) {}
+ob_end_clean();
+
+$ipv6RateErrors = $_SESSION['comment_errors'] ?? [];
+Turnstile::$mockVerifier = null;
+foreach ($seededCommentIds as $cid) {
+    $pdo->exec("DELETE FROM comments WHERE id = {$cid}");
+}
+
+if (!empty($ipv6RateErrors['rate'])) {
+    echo "[PASS] IPv6 Comment Rate Limiting: 3 comments from address A blocked address B in same /64.\n";
+} else {
+    echo "[FAIL] IPv6 Comment Rate Limiting failed: " . json_encode($ipv6RateErrors) . "\n";
     exit(1);
 }
 

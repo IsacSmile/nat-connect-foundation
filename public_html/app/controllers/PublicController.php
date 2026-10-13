@@ -248,9 +248,9 @@ class PublicController
             return;
         }
 
-        $ip = clientIp();
+        $ipPrefix = clientIpPrefix();
         $salt = (string) config('security.salt', 'salt');
-        $visitorHash = hash('sha256', $ip . $ua . $salt);
+        $visitorHash = hash('sha256', $ipPrefix . $ua . $salt);
 
         $recorded = EngagementModel::recordView($postId, $visitorHash);
 
@@ -312,11 +312,11 @@ class PublicController
 
         $ip = clientIp();
         $salt = (string) config('security.salt', 'salt');
-        $ipHash = hash('sha256', $ip . $salt);
+        $ipHash = ipHash($ip, $salt);
 
         // Rate limit: 60 like actions per hour per IP hash
         if (!EngagementModel::checkLikeRateLimit($ipHash, 60, 1)) {
-            http_response_code(429);
+            @http_response_code(429);
             if (!headers_sent()) {
                 header('Content-Type: application/json; charset=UTF-8');
             }
@@ -383,7 +383,7 @@ class PublicController
         $errors = [];
         $salt = (string) config('security.salt', 'salt');
         $ip = clientIp();
-        $ipHash = hash('sha256', $ip . $salt);
+        $ipHash = ipHash($ip, $salt);
 
         // 1. Signed timestamp check (minimum 3 seconds between render and submit)
         $ts = (int) ($_POST['comment_ts'] ?? 0);
@@ -1318,7 +1318,7 @@ class PublicController
     {
         $salt = (string) config('security.salt', 'salt');
         $ip = clientIp();
-        $ipHash = hash('sha256', $ip . $salt);
+        $ipHash = ipHash($ip, $salt);
 
         $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
             || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json')

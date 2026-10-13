@@ -375,6 +375,46 @@ assert(($resp['status_code'] ?? http_response_code()) === 429, "6th submission i
 assert(!empty($resp['error']) && str_contains($resp['error'], 'Too many'), "Error must indicate rate limit exceeded");
 echo "[PASS] Rate limit enforced: 5 submissions allowed per hour; 6th is rejected with 429.\n";
 
+// 3.5 IPv6 /64 Subscribe Rate Limiting
+$ipv6SubA = '2001:db8:9999:aaaa:0000:0000:0000:0001';
+$ipv6SubB = '2001:db8:9999:aaaa:ffff:ffff:ffff:ffff';
+$ipv6SubHash = ipHash($ipv6SubA, $salt);
+$testedIpHashes[] = $ipv6SubHash;
+
+// First 5 submissions from address A
+$_SERVER['REMOTE_ADDR'] = $ipv6SubA;
+for ($i = 1; $i <= 5; $i++) {
+    $_POST = [
+        'email'    => "ipv6-sub-{$i}-{$rand}@example.com",
+        'consent'  => '1',
+        'sub_ts'   => time() - 10,
+        'sub_sig'  => hash_hmac('sha256', (string) (time() - 10), $salt),
+        'sub_hp_7' => '',
+    ];
+    ob_start();
+    $controller->subscribe();
+    $respJson = ob_get_clean();
+    $resp = json_decode($respJson, true);
+    assert(($resp['status_code'] ?? http_response_code()) === 200, "IPv6 submission #{$i} must succeed (200)");
+}
+
+// 6th submission from address B (same /64) must be rejected with 429
+$_SERVER['REMOTE_ADDR'] = $ipv6SubB;
+$_POST = [
+    'email'    => "ipv6-sub-6-{$rand}@example.com",
+    'consent'  => '1',
+    'sub_ts'   => time() - 10,
+    'sub_sig'  => hash_hmac('sha256', (string) (time() - 10), $salt),
+    'sub_hp_7' => '',
+];
+ob_start();
+$controller->subscribe();
+$respJson = ob_get_clean();
+$resp = json_decode($respJson, true);
+assert(($resp['status_code'] ?? http_response_code()) === 429, "6th submission from same IPv6 /64 must be rejected with 429");
+assert(!empty($resp['error']) && str_contains($resp['error'], 'Too many'), "Error must indicate rate limit exceeded for IPv6 /64");
+echo "[PASS] IPv6 subscribe rate limit enforced across /64 network prefix (429).\n";
+
 
 // =============================================================
 // TEST 4: Duplicate Email Anti-Enumeration & No Second Row

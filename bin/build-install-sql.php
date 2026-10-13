@@ -45,6 +45,54 @@ if (empty($tables)) {
     exit(1);
 }
 
+// 1b. Order CREATE TABLE statements by dependency (parent tables before child tables)
+$fkQuery = "
+    SELECT TABLE_NAME, REFERENCED_TABLE_NAME 
+    FROM information_schema.KEY_COLUMN_USAGE 
+    WHERE TABLE_SCHEMA = DATABASE() 
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+";
+$fkRows = $db->query($fkQuery)->fetchAll(PDO::FETCH_ASSOC);
+
+$deps = [];
+foreach ($tables as $t) {
+    $deps[$t] = [];
+}
+foreach ($fkRows as $row) {
+    $child = (string) $row['TABLE_NAME'];
+    $parent = (string) $row['REFERENCED_TABLE_NAME'];
+    if (in_array($child, $tables, true) && in_array($parent, $tables, true) && $child !== $parent) {
+        $deps[$child][] = $parent;
+    }
+}
+
+// Topological sort: parents before children
+$orderedTables = [];
+$visited = [];
+
+$visit = function (string $table) use (&$visit, &$visited, &$orderedTables, $deps): void {
+    if (isset($visited[$table])) {
+        return;
+    }
+    $visited[$table] = true;
+    if (!empty($deps[$table])) {
+        $parents = array_unique($deps[$table]);
+        sort($parents);
+        foreach ($parents as $parent) {
+            $visit($parent);
+        }
+    }
+    $orderedTables[] = $table;
+};
+
+$sortedAlphabetically = $tables;
+sort($sortedAlphabetically);
+foreach ($sortedAlphabetically as $t) {
+    $visit($t);
+}
+
+$tables = $orderedTables;
+
 $output = [];
 $output[] = "-- =====================================================================";
 $output[] = "-- NatConnect Foundation — Fresh Installation Schema & Baseline Seed";

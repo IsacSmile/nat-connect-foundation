@@ -345,6 +345,30 @@ class LaunchCheck
             ];
         }
 
+        // 9b. Security salt check
+        $saltValid = self::isSaltValid();
+        if ($saltValid) {
+            $checks[] = [
+                'key'       => 'security_salt',
+                'name'      => 'Security salt',
+                'passed'    => true,
+                'message'   => 'Security salt is properly configured',
+                'fix_url'   => null,
+                'fix_label' => null,
+                'details'   => [],
+            ];
+        } else {
+            $checks[] = [
+                'key'       => 'security_salt',
+                'name'      => 'Security salt',
+                'passed'    => false,
+                'message'   => 'Security salt is using placeholder or is shorter than 32 characters',
+                'fix_url'   => null,
+                'fix_label' => null,
+                'details'   => ["Generate a random 32+ character salt (e.g. openssl rand -hex 32) and set 'security.salt' in config.local.php"],
+            ];
+        }
+
         // 10. At least one published post
         if ($db) {
             try {
@@ -515,6 +539,25 @@ class LaunchCheck
             if (strcasecmp($parsed['host'], $reqHostClean) !== 0) {
                 return false;
             }
+        }
+        return true;
+    }
+
+    /**
+     * Check whether config 'security.salt' is properly configured:
+     * - must not equal placeholder 'CHANGE_ME_generate_with_openssl_rand_hex_32'
+     * - must not be shorter than 32 characters
+     * - must not equal template default 'replace-with-a-random-64-char-string-in-config.local.php'
+     */
+    public static function isSaltValid(?string $salt = null): bool
+    {
+        if ($salt === null) {
+            $salt = (string) config('security.salt', '');
+        }
+        $placeholder = 'CHANGE_ME_generate_with_openssl_rand_hex_32';
+        $defaultConfig = 'replace-with-a-random-64-char-string-in-config.local.php';
+        if ($salt === $placeholder || $salt === $defaultConfig || strlen($salt) < 32) {
+            return false;
         }
         return true;
     }

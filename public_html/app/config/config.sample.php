@@ -37,8 +37,8 @@ return [
         'lockout_minutes'      => 15,     // Lockout duration in minutes
     ],
     'security' => [
-        // Generate a random 64-character hex string: bin2hex(random_bytes(32))
-        'salt'            => 'c089d71c183cf99db4918e7e31ef408a99478f6916a0322bf20b411d7eb6bca3',
+        // Generate a random 64-character hex string: openssl rand -hex 32 or bin2hex(random_bytes(32))
+        'salt'            => 'CHANGE_ME_generate_with_openssl_rand_hex_32',
         'trusted_proxies' => [], // Array of trusted proxy IPs/CIDRs (e.g. ['10.0.0.1']). Default empty.
     ],
     'turnstile' => [

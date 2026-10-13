@@ -2,7 +2,7 @@
 -- NatConnect Foundation — Fresh Installation Schema & Baseline Seed
 -- =====================================================================
 -- FRESH INSTALL PROTOCOL: Import database/install.sql only.
--- Generated: 2026-10-13 13:06:24 (IST)
+-- Generated: 2026-10-13 14:16:40 (IST)
 -- Contains:
 --   1. Full database table structure (clean DDL, no auto-increment values)
 --   2. Seed categories, site settings, and default pages
@@ -27,6 +27,37 @@ CREATE TABLE `categories` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS `posts`;
+CREATE TABLE `posts` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `slug` varchar(191) NOT NULL,
+  `excerpt` text DEFAULT NULL,
+  `content` longtext DEFAULT NULL,
+  `cover_type` enum('image','video') NOT NULL DEFAULT 'image',
+  `cover_image` varchar(255) DEFAULT NULL,
+  `cover_alt` varchar(255) DEFAULT NULL,
+  `video_url` varchar(255) DEFAULT NULL,
+  `author_name` varchar(150) DEFAULT 'NatConnect Foundation',
+  `category_id` int(10) unsigned DEFAULT NULL,
+  `status` enum('draft','published','scheduled') NOT NULL DEFAULT 'draft',
+  `is_pick` tinyint(4) NOT NULL DEFAULT 0,
+  `published_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `views` int(10) unsigned NOT NULL DEFAULT 0,
+  `likes` int(10) unsigned NOT NULL DEFAULT 0,
+  `read_time_minutes` int(10) unsigned NOT NULL DEFAULT 1,
+  `meta_title` varchar(255) DEFAULT NULL,
+  `meta_description` varchar(500) DEFAULT NULL,
+  `legacy_url` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`),
+  KEY `idx_posts_status_published` (`status`,`published_at`),
+  KEY `idx_posts_category_id` (`category_id`),
+  CONSTRAINT `fk_posts_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `comments`;
@@ -108,6 +139,22 @@ CREATE TABLE `post_likes` (
   CONSTRAINT `fk_post_likes_post` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS `tags`;
+CREATE TABLE `tags` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(150) NOT NULL,
+  `description` text DEFAULT NULL,
+  `image_path` varchar(255) DEFAULT NULL,
+  `image_alt` varchar(255) DEFAULT NULL,
+  `show_as_topic` tinyint(4) NOT NULL DEFAULT 0,
+  `show_as_cause` tinyint(4) NOT NULL DEFAULT 0,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `slug` varchar(191) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 DROP TABLE IF EXISTS `post_tags`;
 CREATE TABLE `post_tags` (
   `post_id` int(10) unsigned NOT NULL,
@@ -129,37 +176,6 @@ CREATE TABLE `post_views` (
   KEY `idx_post_views_post` (`post_id`),
   KEY `idx_post_views_viewed_on` (`viewed_on`),
   CONSTRAINT `fk_post_views_post` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-DROP TABLE IF EXISTS `posts`;
-CREATE TABLE `posts` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) NOT NULL,
-  `slug` varchar(191) NOT NULL,
-  `excerpt` text DEFAULT NULL,
-  `content` longtext DEFAULT NULL,
-  `cover_type` enum('image','video') NOT NULL DEFAULT 'image',
-  `cover_image` varchar(255) DEFAULT NULL,
-  `cover_alt` varchar(255) DEFAULT NULL,
-  `video_url` varchar(255) DEFAULT NULL,
-  `author_name` varchar(150) DEFAULT 'NatConnect Foundation',
-  `category_id` int(10) unsigned DEFAULT NULL,
-  `status` enum('draft','published','scheduled') NOT NULL DEFAULT 'draft',
-  `is_pick` tinyint(4) NOT NULL DEFAULT 0,
-  `published_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `views` int(10) unsigned NOT NULL DEFAULT 0,
-  `likes` int(10) unsigned NOT NULL DEFAULT 0,
-  `read_time_minutes` int(10) unsigned NOT NULL DEFAULT 1,
-  `meta_title` varchar(255) DEFAULT NULL,
-  `meta_description` varchar(500) DEFAULT NULL,
-  `legacy_url` varchar(500) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `slug` (`slug`),
-  KEY `idx_posts_status_published` (`status`,`published_at`),
-  KEY `idx_posts_category_id` (`category_id`),
-  CONSTRAINT `fk_posts_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `redirects`;
@@ -207,22 +223,6 @@ CREATE TABLE `subscribers` (
   UNIQUE KEY `email` (`email`),
   KEY `idx_subscribers_created` (`created_at`),
   KEY `idx_subscribers_ip` (`ip_hash`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-DROP TABLE IF EXISTS `tags`;
-CREATE TABLE `tags` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(150) NOT NULL,
-  `description` text DEFAULT NULL,
-  `image_path` varchar(255) DEFAULT NULL,
-  `image_alt` varchar(255) DEFAULT NULL,
-  `show_as_topic` tinyint(4) NOT NULL DEFAULT 0,
-  `show_as_cause` tinyint(4) NOT NULL DEFAULT 0,
-  `sort_order` int(11) NOT NULL DEFAULT 0,
-  `slug` varchar(191) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `users`;

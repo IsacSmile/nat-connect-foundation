@@ -315,6 +315,47 @@ if (!function_exists('clientIp')) {
     }
 }
 
+if (!function_exists('clientIpPrefix')) {
+    /**
+     * Return normalized IP network prefix for rate limiting, deduplication, and storage.
+     * For IPv6, extracts the /64 network prefix (upper 64 bits zero-extended)
+     * so that privacy extensions and ephemeral interface IDs are grouped together.
+     * For IPv4 (or invalid addresses), returns the address unchanged.
+     *
+     * @param string|null $ip If null, defaults to clientIp().
+     * @return string
+     */
+    function clientIpPrefix(?string $ip = null): string
+    {
+        $ip = $ip ?? clientIp();
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $bin = @inet_pton($ip);
+            if ($bin !== false && strlen($bin) === 16) {
+                return (string) inet_ntop(substr($bin, 0, 8) . str_repeat("\0", 8));
+            }
+        }
+        return $ip;
+    }
+}
+
+if (!function_exists('ipHash')) {
+    /**
+     * Compute SHA-256 hash of client IP for rate limiting, deduplication, and storage.
+     * For IPv6, hashes the /64 network prefix.
+     * For IPv4, hashes the full address.
+     *
+     * @param string|null $ip If null, defaults to clientIp().
+     * @param string|null $salt If null, defaults to config('security.salt', '').
+     * @return string
+     */
+    function ipHash(?string $ip = null, ?string $salt = null): string
+    {
+        $prefix = clientIpPrefix($ip);
+        $salt = $salt ?? (string) config('security.salt', '');
+        return hash('sha256', $prefix . $salt);
+    }
+}
+
 if (!function_exists('setFlash')) {
     /**
      * Set a one-time flash message in session.

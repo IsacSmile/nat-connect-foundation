@@ -568,6 +568,24 @@ try {
     assert(in_array("Set 'url' in config.local.php to the live domain", $siteAddrCheck['details'], true) || $siteAddrCheck['passed'], "Failed site address check must suggest fixing 'url' in config.local.php");
     echo "  [PASS] Site address launch check rules and fix recommendation verified.\n\n";
 
+    // --- Test 10b: Launch Check 'Security salt is properly configured' ---
+    echo "--- Test 10b: Launch Check 'Security salt is properly configured' ---\n";
+    assert(!LaunchCheck::isSaltValid('CHANGE_ME_generate_with_openssl_rand_hex_32'), "isSaltValid must fail for CHANGE_ME placeholder");
+    assert(!LaunchCheck::isSaltValid('replace-with-a-random-64-char-string-in-config.local.php'), "isSaltValid must fail for template default");
+    assert(!LaunchCheck::isSaltValid('short-salt'), "isSaltValid must fail for salt < 32 chars");
+    assert(LaunchCheck::isSaltValid('c089d71c183cf99db4918e7e31ef408a99478f6916a0322bf20b411d7eb6bca3'), "isSaltValid must pass for 32+ char salt");
+
+    $saltCheck = null;
+    foreach ($allChecks['checks'] as $chk) {
+        if ($chk['key'] === 'security_salt') {
+            $saltCheck = $chk;
+            break;
+        }
+    }
+    assert($saltCheck !== null, "Security salt check must be included in LaunchCheck::runAll()");
+    assert($saltCheck['passed'] === true, "Active test environment security salt must pass");
+    echo "  [PASS] Security salt launch check rules and placeholder rejection verified.\n\n";
+
     // --- Test 11: Home Page Round 2 Assertions ---
     echo "--- Test 11: Home Page Round 2 Assertions (Hero Slider, Impact Strip, WhatsApp) ---\n";
 

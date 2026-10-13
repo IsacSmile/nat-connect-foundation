@@ -56,7 +56,7 @@ class AuthController
         $next        = Auth::isValidAdminRedirect($_POST['next'] ?? null) ? (string) $_POST['next'] : '/admin/dashboard';
         $ip          = clientIp();
         $salt        = (string) config('security.salt', '');
-        $ipHash      = hash('sha256', $ip . $salt);
+        $ipHash      = ipHash($ip, $salt);
         $accountHash = $email !== '' ? hash('sha256', strtolower($email) . $salt) : null;
 
         // 4. Rate limiting: Check failed attempts in the last 15 minutes (IP and Account)

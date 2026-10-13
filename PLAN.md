@@ -23,10 +23,15 @@
 | `mod_rewrite` (`RewriteRule`, `RewriteCond`) | **WORKING (Verified)** | `RewriteRule` with `[F]` and front-controller routing (`!-f`, `!-d` -> `index.php`) work properly. |
 | `<FilesMatch>` + `Require all denied` | **WORKING (Verified)** | Works correctly for denying script execution in `/uploads/` and blocking sensitive files (with `<IfModule !mod_authz_core.c>` fallback). |
 | Static Asset Caching (`mod_expires`) | **UNVERIFIED (Harmless)** | Wrapped in `<IfModule mod_expires.c>`. Static asset caching relies on mod_expires (unverified) and the Hostinger CDN; verify on staging with `curl -I` on a CSS file after the first deploy. |
+| Database Connectivity | **`localhost` (PHP only)** | DB host for websites is `localhost` (works from PHP), but the SSH shell cannot reach the DB. Use phpMyAdmin for imports. |
+| phpMyAdmin Host & Access | **`h5g11-db.hstgr.io`** | Access database via Hostinger phpMyAdmin on host `h5g11-db.hstgr.io`. |
+| phpMyAdmin Import Fallback | **Untick FK Checks** | Tables in `install.sql` are ordered parents-first with `SET FOREIGN_KEY_CHECKS = 0;`. If any import error occurs in phpMyAdmin, untick "Enable foreign key checks" as a fallback. |
+| Client IP & Reverse Proxy | **Direct `REMOTE_ADDR`** | `REMOTE_ADDR` is the real client IP behind Hostinger CDN (`security.trusted_proxies` stays empty). |
+| PHP Configuration Options | **Minimum 128M** | PHP options minimum 128M upload/post on this plan (`upload_max_filesize=128M`, `post_max_size=128M`, `memory_limit=256M`). |
 | Pre-Launch Staging Gate | **MANDATORY** | Before launch, upload the real `public_html/.htaccess` to staging and confirm no 500. |
 - **Language & Runtime**: PHP 8.3 (configured in hPanel) without heavy frameworks.
-  - **Hostinger PHP Configuration**: In Hostinger hPanel → PHP Configuration, set `upload_max_filesize=10M`, `post_max_size=12M`, and `memory_limit=256M`.
-  - **Local Development Server**: Run the site locally only with `./bin/serve.sh` (matches Hostinger limits: `php -d upload_max_filesize=10M -d post_max_size=12M -d memory_limit=256M -S 127.0.0.1:8000 -t public_html`).
+  - **Hostinger PHP Configuration**: In Hostinger hPanel → PHP Configuration, set PHP options minimum 128M upload/post on this plan (`upload_max_filesize=128M`, `post_max_size=128M`, and `memory_limit=256M`).
+  - **Local Development Server**: Run the site locally with `./bin/serve.sh` (`php -d upload_max_filesize=10M -d post_max_size=12M -d memory_limit=256M -S 127.0.0.1:8000 -t public_html public_html/index.php`).
 - **Database**: MySQL 8.x / MariaDB accessed strictly through **PDO** with prepared statements.
 - **CSS Architecture**: **Tailwind CSS v3 (specifically v3.4.17 standalone CLI)**. All current and future development must strictly use Tailwind v3 syntax and `tailwind.config.js`. Do not use v4 `@theme` block directives. Only the compiled production CSS (`/public_html/assets/css/app.css`) is deployed.
 - **Client-Side Interactivity**: **Alpine.js** self-hosted locally (`/public_html/assets/js/alpine.min.js`), no CDN dependencies.
@@ -349,14 +354,15 @@ nat-connect-foundation/
   - **`main`**: Production release branch. (Commented placeholder in workflow; activated once client production hosting details are finalized).
 
 ##### FIRST INSTALL CHECKLIST
-1. hPanel: .htaccess support enabled; PHP version 8.3; PHP limits 10M/12M/256M.
-2. Databases: create DB + user; phpMyAdmin: import database/install.sql.
+1. hPanel: .htaccess support enabled; PHP version 8.3; PHP options minimum 128M upload/post on this plan (upload_max_filesize=128M, post_max_size=128M, memory_limit=256M).
+2. Databases: create DB + user; phpMyAdmin (host `h5g11-db.hstgr.io`): import database/install.sql. Note: DB host for websites is "localhost" (works from PHP), but SSH shell cannot reach the DB (use phpMyAdmin for imports). If needed during phpMyAdmin import: untick "Enable foreign key checks" as a fallback.
 3. File Manager: delete default.php; create app/storage/logs and app/storage/cache/htmlpurifier inside public_html.
-4. Upload app/config/config.local.php by hand (debug=false, real DB, new salt, url = https site address, Turnstile keys).
-5. /setup.php → create admin → delete setup.php.
-6. Admin → Maintenance → Run security self-test: all green.
-7. Manual checks: /uploads/test.php 403, random URL styled 404, login lockout, Secure cookie, ip.php REMOTE_ADDR test for trusted_proxies (then delete ip.php).
-8. Dashboard launch checklist all green.
+4. Upload app/config/config.local.php by hand (debug=false, real DB, new salt >= 32 chars, url = https site address, Turnstile keys).
+5. Deploy: exclude setup.php from rsync (first install uploads it manually or via a one-time workflow_dispatch input "include_setup").
+6. /setup.php → create admin → delete setup.php from server.
+7. Admin → Maintenance → Run security self-test: all green.
+8. Manual checks: /uploads/test.php 403, random URL styled 404, login lockout, Secure cookie, ip.php REMOTE_ADDR test for trusted_proxies (REMOTE_ADDR is the real client IP behind Hostinger CDN, so trusted_proxies stays empty; then delete ip.php).
+9. Dashboard launch checklist all green.
 
 ##### Update Flow
 1. **Merge**: Merge approved pull request into `staging` (or `main`).
@@ -435,7 +441,7 @@ nat-connect-foundation/
     2. Open Hostinger phpMyAdmin (or MySQL CLI) and run:
        `UPDATE users SET password_hash = '<GENERATED_HASH>' WHERE email = '<ADMIN_EMAIL>';`
     If the admin is locked out by failed attempts, run in phpMyAdmin: `DELETE FROM login_attempts;`
-15. **Reverse Proxy & Client IP Verification on Hostinger**: `clientIp()` relies on `REMOTE_ADDR` exclusively by default to prevent IP spoofing attacks. On Hostinger, check what `$_SERVER['REMOTE_ADDR']` outputs; if Hostinger / Cloudflare CDN routes web traffic through a reverse proxy, configure `security.trusted_proxies` in `config.local.php` with the upstream proxy IPs/subnets. Otherwise, if left unconfigured on a reverse proxy, all visitors share one rate-limit bucket.
+15. **Reverse Proxy & Client IP Verification on Hostinger**: `clientIp()` relies on `REMOTE_ADDR` exclusively by default to prevent IP spoofing attacks. On Hostinger, `REMOTE_ADDR` is the real client IP behind Hostinger CDN (`security.trusted_proxies` stays empty). For IPv6 clients, `ip_hash` is computed from the `/64` network prefix across login, comments, likes, subscribe, and view dedupe (IPv4 unchanged).
 16. **Timezone Consistency (IST +05:30)**: All times are IST. PHP and MySQL sessions are both pinned to +05:30 (`date_default_timezone_set('Asia/Kolkata')` and PDO `SET time_zone = '+05:30'`). India has no DST, so a fixed offset is safe. Never mix in UTC.
 17. **Database Migrations Protocol**:
     - Never edit an applied migration. Every schema change = a new numbered migration file in `database/migrations/`.
