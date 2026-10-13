@@ -1,14 +1,17 @@
 # Environment and local configs
-/app/config/config.local.php
+/public_html/app/config/config.local.php
 .env
 .env.*
 
 # Logs and cache
-/app/storage/logs/*.log
-!/app/storage/logs/.gitkeep
-/app/storage/installed.lock
-/app/storage/cache/htmlpurifier/*
-!/app/storage/cache/htmlpurifier/.gitkeep
+/public_html/app/storage/logs/*.log
+/public_html/app/storage/logs/*.log.php
+!/public_html/app/storage/logs/.gitkeep
+/public_html/app/storage/installed.lock
+/public_html/app/storage/cache/htmlpurifier/*
+!/public_html/app/storage/cache/htmlpurifier/.gitkeep
+/public_html/app/storage/demo-manifest.json
+/public_html/app/storage/self_test.json
 
 # Uploads directory (preserve .htaccess and .gitkeep)
 /public_html/uploads/*
@@ -29,8 +32,3 @@ Thumbs.db
 *.swp
 *~
 
-# Local runtime files (never commit)
-app/storage/cache/htmlpurifier/*
-!app/storage/cache/htmlpurifier/.gitkeep
-app/storage/demo-manifest.json
-app/storage/installed.lock

@@ -2,7 +2,7 @@
 -- NatConnect Foundation — Fresh Installation Schema & Baseline Seed
 -- =====================================================================
 -- FRESH INSTALL PROTOCOL: Import database/install.sql only.
--- Generated: 2026-10-13 12:38:24 (IST)
+-- Generated: 2026-10-13 13:06:24 (IST)
 -- Contains:
 --   1. Full database table structure (clean DDL, no auto-increment values)
 --   2. Seed categories, site settings, and default pages

@@ -26,7 +26,7 @@ declare(strict_types=1);
  */
 
 define('ROOT_PATH', dirname(__DIR__));
-define('APP_PATH', ROOT_PATH . '/app');
+define('APP_PATH', ROOT_PATH . '/public_html/app');
 
 require_once APP_PATH . '/config/config.php';
 require_once APP_PATH . '/core/helpers.php';

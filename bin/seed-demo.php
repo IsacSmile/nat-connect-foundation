@@ -20,8 +20,8 @@ if (PHP_SAPI !== 'cli') {
 }
 
 define('ROOT_PATH', dirname(__DIR__));
-define('APP_PATH', ROOT_PATH . '/app');
 define('PUBLIC_PATH', ROOT_PATH . '/public_html');
+define('APP_PATH', PUBLIC_PATH . '/app');
 
 // Autoloader
 spl_autoload_register(function (string $class): void {
@@ -42,8 +42,8 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
-if (file_exists(ROOT_PATH . '/vendor/autoload.php')) {
-    require_once ROOT_PATH . '/vendor/autoload.php';
+if (file_exists(PUBLIC_PATH . '/vendor/autoload.php')) {
+    require_once PUBLIC_PATH . '/vendor/autoload.php';
 }
 
 require_once APP_PATH . '/config/config.php';

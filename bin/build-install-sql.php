@@ -21,7 +21,8 @@ if (PHP_SAPI !== 'cli') {
 }
 
 define('ROOT_PATH', dirname(__DIR__));
-define('APP_PATH', ROOT_PATH . '/app');
+define('PUBLIC_PATH', ROOT_PATH . '/public_html');
+define('APP_PATH', PUBLIC_PATH . '/app');
 
 require_once APP_PATH . '/config/config.php';
 require_once APP_PATH . '/core/Database.php';
@@ -81,7 +82,7 @@ foreach ($tables as $table) {
 }
 
 // 3. Append seed.sql content
-$seedFile = ROOT_PATH . '/database/seed.sql';
+$seedFile = PUBLIC_PATH . '/database/seed.sql';
 if (!file_exists($seedFile)) {
     fwrite(STDERR, "Seed file not found: {$seedFile}\n");
     exit(1);
@@ -98,7 +99,7 @@ $output[] = "-- ----------------------------------------------------------------
 $output[] = trim($seedContent) . "\n";
 
 // 4. Append schema_migrations baseline
-$migrationsDir = ROOT_PATH . '/database/migrations';
+$migrationsDir = PUBLIC_PATH . '/database/migrations';
 $migrationFiles = glob($migrationsDir . '/*.sql');
 if ($migrationFiles === false || empty($migrationFiles)) {
     fwrite(STDERR, "No migration files found in {$migrationsDir}\n");
@@ -121,7 +122,7 @@ $output[] = implode(",\n", $migrationInserts) . "\nON DUPLICATE KEY UPDATE `vers
 $output[] = "SET FOREIGN_KEY_CHECKS = 1;\n";
 
 // Write database/install.sql
-$installFile = ROOT_PATH . '/database/install.sql';
+$installFile = PUBLIC_PATH . '/database/install.sql';
 $finalSql = implode("\n", $output);
 if (file_put_contents($installFile, $finalSql) === false) {
     fwrite(STDERR, "Failed to write {$installFile}\n");

@@ -74,9 +74,8 @@ AddDefaultCharset UTF-8
     # 1. Strictly deny execution of any scripts inside /uploads/ (MUST run before front-controller)
     RewriteRule ^uploads/.*\.(php|php\d|phtml|phar|pl|py|cgi|sh)$ - [F,L,NC]
 
-    # 2. Block direct access to internal application directories
-    RewriteRule ^app/ - [F,L]
-    RewriteRule ^database/ - [F,L]
+    # 2. Block direct access to internal application directories (Layer 1 Protection)
+    RewriteRule ^(app|vendor|database)(/|$) - [F,L,NC]
     RewriteRule ^tailwind/ - [F,L]
 
     # 3. Front Controller: If requested path is NOT an existing file or directory, forward to index.php

@@ -270,8 +270,11 @@ class LaunchCheck
         }
 
         // 7. setup.php presence check
-        $rootPath  = defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2);
-        $setupPath = $rootPath . '/public_html/setup.php';
+        $setupPath = defined('PUBLIC_PATH') 
+            ? PUBLIC_PATH . '/setup.php' 
+            : (defined('ROOT_PATH') && file_exists(ROOT_PATH . '/public_html/setup.php') 
+                ? ROOT_PATH . '/public_html/setup.php' 
+                : dirname(__DIR__, 2) . '/setup.php');
         if (file_exists($setupPath)) {
             $checks[] = [
                 'key'       => 'setup_file',
@@ -380,6 +383,46 @@ class LaunchCheck
             }
         }
 
+        // 11. Protected folders security self-test check
+        $storageDir = defined('APP_PATH') ? APP_PATH . '/storage' : dirname(__DIR__) . '/storage';
+        $selfTestFile = $storageDir . '/self_test.json';
+        if (!file_exists($selfTestFile)) {
+            $checks[] = [
+                'key'       => 'protected_folders',
+                'name'      => 'Protected folders',
+                'passed'    => false,
+                'message'   => 'Protected folders are not reachable',
+                'fix_url'   => '/admin/maintenance',
+                'fix_label' => 'Run self-test',
+                'details'   => ['Run security self-test from Admin → Maintenance after each deploy.'],
+            ];
+        } else {
+            $testData = json_decode((string) file_get_contents($selfTestFile), true);
+            $isPassed = !empty($testData['passed']);
+            if ($isPassed) {
+                $testedAt = !empty($testData['tested_at']) ? date('M j, Y H:i', strtotime((string) $testData['tested_at'])) : 'recently';
+                $checks[] = [
+                    'key'       => 'protected_folders',
+                    'name'      => 'Protected folders',
+                    'passed'    => true,
+                    'message'   => 'Protected folders are not reachable',
+                    'fix_url'   => null,
+                    'fix_label' => null,
+                    'details'   => ["Verified unreachable via security self-test ({$testedAt})"],
+                ];
+            } else {
+                $checks[] = [
+                    'key'       => 'protected_folders',
+                    'name'      => 'Protected folders',
+                    'passed'    => false,
+                    'message'   => 'Protected folders are not reachable',
+                    'fix_url'   => '/admin/maintenance',
+                    'fix_label' => 'Fix & re-run',
+                    'details'   => ['Security self-test detected accessible protected folders. Check .htaccess configuration.'],
+                ];
+            }
+        }
+
         $failCount = 0;
         foreach ($checks as $c) {
             if (!$c['passed']) {
@@ -419,8 +462,8 @@ class LaunchCheck
      */
     public static function checkViewsForPlaceholders(): array
     {
+        $viewsDir = defined('APP_PATH') ? APP_PATH . '/views' : dirname(__DIR__) . '/views';
         $rootPath = defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2);
-        $viewsDir = $rootPath . '/app/views';
         $viewFilesWithCopy = [];
 
         if (is_dir($viewsDir)) {
@@ -429,7 +472,7 @@ class LaunchCheck
                 if ($file->isFile() && $file->getExtension() === 'php') {
                     $content = file_get_contents($file->getPathname());
                     if ($content !== false && str_contains($content, '[CLIENT COPY')) {
-                        $relPath = str_replace($rootPath . '/', '', $file->getPathname());
+                        $relPath = str_replace([$rootPath . '/', $viewsDir . '/'], ['', 'app/views/'], $file->getPathname());
                         $viewFilesWithCopy[] = $relPath;
                     }
                 }

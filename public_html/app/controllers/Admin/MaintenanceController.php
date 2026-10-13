@@ -19,6 +19,20 @@ use Throwable;
 class MaintenanceController
 {
     /**
+     * Resolve the migrations directory inside public_html.
+     */
+    public static function getMigrationsDir(): string
+    {
+        if (defined('ROOT_PATH') && is_dir(ROOT_PATH . '/public_html/database/migrations')) {
+            return ROOT_PATH . '/public_html/database/migrations';
+        }
+        if (defined('PUBLIC_PATH') && is_dir(PUBLIC_PATH . '/database/migrations')) {
+            return PUBLIC_PATH . '/database/migrations';
+        }
+        return dirname(__DIR__, 3) . '/database/migrations';
+    }
+
+    /**
      * Show migrations status and pending updates.
      */
     public function index(): void
@@ -43,13 +57,19 @@ class MaintenanceController
             $appliedMap[$row['version']] = $row['applied_at'];
         }
 
-        // 3. Scan database/migrations directory
-        $migrationsDir = ROOT_PATH . '/database/migrations';
+        // 3. Scan public_html/database/migrations directory
+        $migrationsDir = self::getMigrationsDir();
         $files = glob($migrationsDir . '/*.sql') ?: [];
         natsort($files);
 
         $migrations = [];
         $pendingCount = 0;
+        $sampleMigrationUrl = '/database/migrations/001_initial_schema.sql';
+
+        if (!empty($files)) {
+            $firstFile = reset($files);
+            $sampleMigrationUrl = '/database/migrations/' . basename($firstFile);
+        }
 
         foreach ($files as $file) {
             $filename = basename($file);
@@ -77,14 +97,24 @@ class MaintenanceController
         $results = $_SESSION['maintenance_results'] ?? null;
         unset($_SESSION['maintenance_results']);
 
+        // Load existing self-test result if available
+        $storageDir = defined('APP_PATH') ? APP_PATH . '/storage' : dirname(__DIR__, 2) . '/storage';
+        $selfTestFile = $storageDir . '/self_test.json';
+        $selfTestResult = null;
+        if (file_exists($selfTestFile)) {
+            $selfTestResult = json_decode((string) file_get_contents($selfTestFile), true);
+        }
+
         View::render('admin/maintenance', [
-            'pageTitle'     => 'Maintenance — NatConnect Foundation',
-            'activeNav'     => 'maintenance',
-            'migrations'    => $migrations,
-            'pendingCount'  => $pendingCount,
-            'appliedCount'  => count($migrations) - $pendingCount,
-            'totalCount'    => count($migrations),
-            'updateResults' => $results,
+            'pageTitle'          => 'Maintenance — NatConnect Foundation',
+            'activeNav'          => 'maintenance',
+            'migrations'         => $migrations,
+            'pendingCount'       => $pendingCount,
+            'appliedCount'       => count($migrations) - $pendingCount,
+            'totalCount'         => count($migrations),
+            'updateResults'      => $results,
+            'sampleMigrationUrl' => $sampleMigrationUrl,
+            'selfTestResult'     => $selfTestResult,
         ], 'layouts/admin');
     }
 
@@ -116,8 +146,8 @@ class MaintenanceController
         $appliedRows = $appliedStmt->fetchAll(PDO::FETCH_COLUMN);
         $appliedSet = array_flip($appliedRows);
 
-        // 3. Scan migrations directory
-        $migrationsDir = ROOT_PATH . '/database/migrations';
+        // 3. Scan public_html/database/migrations directory
+        $migrationsDir = self::getMigrationsDir();
         $files = glob($migrationsDir . '/*.sql') ?: [];
         natsort($files);
 
@@ -208,4 +238,44 @@ class MaintenanceController
         header('Location: /admin/maintenance');
         exit;
     }
+
+    /**
+     * Record client-side security self-test result.
+     */
+    public function recordSelfTest(): void
+    {
+        Auth::requireAuth('/admin/maintenance');
+
+        $rawBody = file_get_contents('php://input');
+        $payload = json_decode($rawBody ?: '', true) ?: $_POST;
+
+        $csrfToken = $payload['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+        if (!Csrf::verify($csrfToken)) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Invalid CSRF token']);
+            exit;
+        }
+
+        $passed = !empty($payload['passed']);
+        $details = $payload['details'] ?? [];
+
+        $storageDir = defined('APP_PATH') ? APP_PATH . '/storage' : dirname(__DIR__, 2) . '/storage';
+        if (!is_dir($storageDir)) {
+            @mkdir($storageDir, 0755, true);
+        }
+
+        $record = [
+            'passed'    => $passed,
+            'tested_at' => date('Y-m-d H:i:s'),
+            'details'   => $details,
+        ];
+
+        file_put_contents($storageDir . '/self_test.json', json_encode($record, JSON_PRETTY_PRINT));
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => $record]);
+        exit;
+    }
 }
+

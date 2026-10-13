@@ -5,13 +5,13 @@ declare(strict_types=1);
  * NatConnect Foundation — Front Controller
  *
  * All public web requests route through this entrypoint.
- * App source code resides outside public_html in /app.
+ * App source code resides inside public_html in /app.
  */
 
 // Define application root constants
-define('ROOT_PATH', dirname(__DIR__));
-define('APP_PATH', ROOT_PATH . '/app');
 define('PUBLIC_PATH', __DIR__);
+define('APP_PATH', __DIR__ . '/app');
+define('ROOT_PATH', is_dir(dirname(__DIR__) . '/public_html') ? dirname(__DIR__) : __DIR__);
 
 // -------------------------------------------------------------
 // 1. PSR-4 Class Autoloader & Vendor Autoloader
@@ -41,8 +41,8 @@ spl_autoload_register(function (string $class): void {
 });
 
 // Load local Composer vendor autoloader if installed
-if (file_exists(ROOT_PATH . '/vendor/autoload.php')) {
-    require_once ROOT_PATH . '/vendor/autoload.php';
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
 }
 
 // -------------------------------------------------------------
@@ -86,11 +86,21 @@ if ($isDebug) {
     ini_set('log_errors', '1');
     error_reporting(E_ALL);
 
-    $logFile = APP_PATH . '/storage/logs/error.log';
+    $logDir = APP_PATH . '/storage/logs';
+    if (!is_dir($logDir)) {
+        @mkdir($logDir, 0755, true);
+    }
+    $logFile = $logDir . '/error.log.php';
+    if (!file_exists($logFile) || filesize($logFile) === 0) {
+        @file_put_contents($logFile, "<?php exit; ?>\n");
+    }
     ini_set('error_log', $logFile);
 
     // Global Exception Handler for Production
     set_exception_handler(function (Throwable $e) use ($logFile): void {
+        if (!file_exists($logFile) || filesize($logFile) === 0) {
+            @file_put_contents($logFile, "<?php exit; ?>\n");
+        }
         $msg = sprintf(
             "[%s] Uncaught Exception: %s in %s:%d\nStack Trace:\n%s\n\n",
             date('Y-m-d H:i:s'),
@@ -264,6 +274,7 @@ $router->post('/admin/settings', [App\Controllers\Admin\SettingsController::clas
 // Phase 7A: Admin Maintenance & Updates Routes
 $router->get('/admin/maintenance', [App\Controllers\Admin\MaintenanceController::class, 'index']);
 $router->post('/admin/maintenance/apply', [App\Controllers\Admin\MaintenanceController::class, 'applyPending']);
+$router->post('/admin/maintenance/record-self-test', [App\Controllers\Admin\MaintenanceController::class, 'recordSelfTest']);
 
 // Phase 6: Admin Pages Routes
 $router->get('/admin/pages', [App\Controllers\Admin\PageController::class, 'index']);

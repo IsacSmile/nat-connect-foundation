@@ -68,12 +68,16 @@ class Database
             if (!is_dir($logDir)) {
                 @mkdir($logDir, 0755, true);
             }
+            $logFile = $logDir . '/error.log.php';
+            if (!file_exists($logFile) || filesize($logFile) === 0) {
+                @file_put_contents($logFile, "<?php exit; ?>\n");
+            }
             $logMessage = sprintf(
                 "[%s] Database connection failed: %s\n",
                 date('Y-m-d H:i:s'),
                 $e->getMessage()
             );
-            @file_put_contents($logDir . '/error.log', $logMessage, FILE_APPEND);
+            @file_put_contents($logFile, $logMessage, FILE_APPEND);
 
             if (config('app.debug', false)) {
                 throw $e;

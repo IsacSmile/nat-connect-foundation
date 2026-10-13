@@ -6,15 +6,17 @@
 ---
 
 ## 2. Technical & Hosting Constraints
-- **Hosting Environment**: Hostinger Shared Hosting.
-  - **No SSH access** on the target server.
+- **Hosting Environment**: Hostinger Shared Hosting (h5g platform).
+  - **SSH Access**: Available on staging (port 65002) for rsync deployments; client's production plan may only support FTP.
   - **No Composer** on the server.
   - **No Node.js / NPM** on the server.
-  - **Deployment Mechanism**: File upload via Hostinger File Manager or FTP/SFTP.
-  - **Hostinger Server Facts (Verified on Staging, Apache Backend)**:
+  - **Deployment Mechanism**: Automated `rsync` over SSH via GitHub Actions for staging; manual upload or future FTP/SSH for production.
+  - **Hostinger Server Facts (Verified on Staging via SSH, Hostinger h5g platform, Apache Backend)**:
 | Directive / Feature | Status on Hostinger | Behavior & Implementation Protocol |
 |---|---|---|
+| Writable Directory Scope | **Only `public_html` is writable** | The folder above `public_html` and the home folder are not writable. All application code (`app/`, `vendor/`, `database/`) must live INSIDE `public_html`. |
 | `.htaccess` Support | **Requires Activation** | May be disabled by default on PHP/HTML sites (served by LiteSpeed/hcdn without `.htaccess`). Must ask support / Agent to "enable .htaccess support / Apache backend". Verify with test: `RewriteRule [F]` must return 403. |
+| Two-Layer Folder Protection | **WORKING (Verified)** | Layer 1: root `.htaccess` `RewriteRule ^(app|vendor|database)(/|$) - [F,L,NC]`. Layer 2: secondary `.htaccess` in each of `app/`, `vendor/`, `database/` with `Require all denied` (with `Order/Deny` fallback). |
 | `Options` (`-Indexes`, `-ExecCGI`, `+FollowSymLinks`) | **FORBIDDEN (HTTP 500)** | `AllowOverride` does not include `Options`. Any `Options` directive causes HTTP 500. Directory listing is prevented via empty `index.html` files (in `/uploads/` and all `uploads/YYYY/MM/` subdirectories). |
 | `mod_headers` (`Header set ...`) | **NOT AVAILABLE** | Unwrapped `Header` directive triggers HTTP 500. Inside `<IfModule mod_headers.c>`, it is silently skipped. **All security headers are sent via PHP in `public_html/index.php`** before any output. `X-XSS-Protection` is removed everywhere. |
 | `php_flag` / `php_value` | **FORBIDDEN** | Never write in `.htaccess` (can trigger HTTP 500 or be ignored). Configure limits via PHP code or hPanel PHP configuration. |
@@ -22,7 +24,7 @@
 | `<FilesMatch>` + `Require all denied` | **WORKING (Verified)** | Works correctly for denying script execution in `/uploads/` and blocking sensitive files (with `<IfModule !mod_authz_core.c>` fallback). |
 | Static Asset Caching (`mod_expires`) | **UNVERIFIED (Harmless)** | Wrapped in `<IfModule mod_expires.c>`. Static asset caching relies on mod_expires (unverified) and the Hostinger CDN; verify on staging with `curl -I` on a CSS file after the first deploy. |
 | Pre-Launch Staging Gate | **MANDATORY** | Before launch, upload the real `public_html/.htaccess` to staging and confirm no 500. |
-- **Language & Runtime**: PHP 8.2+ without heavy frameworks.
+- **Language & Runtime**: PHP 8.3 (configured in hPanel) without heavy frameworks.
   - **Hostinger PHP Configuration**: In Hostinger hPanel → PHP Configuration, set `upload_max_filesize=10M`, `post_max_size=12M`, and `memory_limit=256M`.
   - **Local Development Server**: Run the site locally only with `./bin/serve.sh` (matches Hostinger limits: `php -d upload_max_filesize=10M -d post_max_size=12M -d memory_limit=256M -S 127.0.0.1:8000 -t public_html`).
 - **Database**: MySQL 8.x / MariaDB accessed strictly through **PDO** with prepared statements.
@@ -36,62 +38,70 @@
 ## 3. Directory Structure
 ```text
 nat-connect-foundation/
-├── app/
-│   ├── config/
-│   │   ├── config.php            # Core config loader (reads config.local.php)
-│   │   ├── config.sample.php     # Template configuration file
-│   │   └── config.local.php      # Local & production environment values (gitignored)
-│   ├── controllers/              # Application controllers (Admin & Public)
-│   ├── core/
-│   │   ├── Auth.php              # Authentication & session helpers
-│   │   ├── Csrf.php              # Anti-CSRF token lifecycle
-│   │   ├── Database.php          # PDO singleton connection wrapper
-│   │   ├── Router.php            # URI router with parameter parsing & 301 redirects
-│   │   ├── View.php              # View rendering engine with layout management
-│   │   └── helpers.php           # Core sanitization, URL, formatting helpers
-│   ├── models/                   # Data access layer (Post, Category, Tag, Comment, etc.)
-│   ├── storage/                  # Server-local runtime state (NEVER deployed or overwritten)
-│   │   ├── installed.lock        # Created upon first-time admin setup (locks setup.php)
-│   │   ├── cache/                # App cache directories (.gitkeep preserved)
-│   │   │   └── htmlpurifier/     # HTMLPurifier Cache.SerializerPath (never in vendor/)
-│   │   └── logs/                 # Daily / error logs (app/storage/logs/error.log)
-│   └── views/
-│       ├── admin/                # Admin panels & editorial views
-│       ├── layouts/
-│       │   ├── admin.php         # Admin shell layout
-│       │   └── public.php        # Public shell layout
-│       ├── partials/
-│       │   ├── footer.php        # Global footer
-│       │   └── header.php        # Navigation header with Alpine.js mobile drawer
-│       └── public/               # Public page views (Home, Single Post, Archives, etc.)
-├── bin/
-│   ├── migrate.php               # Database migrations runner CLI
-│   ├── seed.php                  # Database seed runner CLI
-│   └── serve.sh                  # Local server script matching Hostinger upload limits
-├── database/
-│   ├── migrations/               # Numbered sequential migrations (001, 002, ...)
-│   │   ├── 001_initial_schema.sql
-│   │   └── 002_login_attempts_account_hash.sql
-│   ├── schema.sql                # Archival reference schema (deprecated; use migrations)
-│   └── seed.sql                  # Initial seed categories & placeholder settings (NO credentials)
-├── public_html/                  # Document root exposed to the web
-│   ├── .htaccess                 # Security headers, URL rewriting, cache-control, /uploads deny
+├── public_html/                  # Document root exposed to the web (and remote upload target)
+│   ├── .htaccess                 # Security headers, URL rewriting, cache-control, Layer 1 protection
 │   ├── index.php                 # Front controller
 │   ├── setup.php                 # First-time admin setup (returns 404 once locked; DELETE after use)
+│   ├── favicon.ico, site.webmanifest, apple-touch-icon.png, icon-192.png, icon-512.png
 │   ├── assets/
 │   │   ├── css/                  # Compiled app.css (Tailwind v3.4.17)
 │   │   ├── fonts/                # Self-hosted woff2 fonts (Fraunces, Inter)
-│   │   ├── img/                  # Brand assets (logo.png, logo-mark.png, favicon.png)
+│   │   ├── img/                  # Brand assets (logo.png, logo-mark.png, og-default.png)
 │   │   └── js/                   # Local libraries (alpine.min.js)
-│   └── uploads/                  # User uploads (.htaccess forbids script execution)
+│   ├── uploads/                  # User uploads (.htaccess forbids script execution)
+│   ├── app/                      # (Protected - Layer 2 .htaccess) Application source code
+│   │   ├── .htaccess             # Deny all direct web access (Require all denied)
+│   │   ├── config/
+│   │   │   ├── config.php        # Core config loader (reads config.local.php)
+│   │   │   ├── config.sample.php # Template configuration file
+│   │   │   └── config.local.php  # Local & production environment values (gitignored)
+│   │   ├── controllers/          # Application controllers (Admin & Public)
+│   │   ├── core/
+│   │   │   ├── Auth.php          # Authentication & session helpers
+│   │   │   ├── Csrf.php          # Anti-CSRF token lifecycle
+│   │   │   ├── Database.php      # PDO singleton connection wrapper
+│   │   │   ├── Router.php        # URI router with parameter parsing & 301 redirects
+│   │   │   ├── View.php          # View rendering engine with layout management
+│   │   │   ├── LaunchCheck.php   # System launch readiness service (includes self-test check)
+│   │   │   └── helpers.php       # Core sanitization, URL, formatting helpers
+│   │   ├── models/               # Data access layer (Post, Category, Tag, Comment, etc.)
+│   │   ├── storage/              # Server-local runtime state (NEVER deployed or overwritten)
+│   │   │   ├── installed.lock    # Created upon first-time admin setup (locks setup.php)
+│   │   │   ├── cache/            # App cache directories (.gitkeep preserved)
+│   │   │   │   └── htmlpurifier/ # HTMLPurifier Cache.SerializerPath
+│   │   │   └── logs/             # Daily / error logs (*.log.php with <?php exit; ?> header)
+│   │   └── views/
+│   │       ├── admin/            # Admin panels & editorial views (including Maintenance & self-test)
+│   │       ├── layouts/          # Shell layouts (admin.php, public.php)
+│   │       ├── partials/         # Header, footer, section headers
+│   │       └── public/           # Public page views (Home, Single Post, Archives, etc.)
+│   ├── vendor/                   # (Protected - Layer 2 .htaccess) Composer libraries
+│   │   └── .htaccess             # Deny all direct web access (Require all denied)
+│   └── database/                 # (Protected - Layer 2 .htaccess) Migrations & fresh install DDL
+│       ├── .htaccess             # Deny all direct web access (Require all denied)
+│       ├── migrations/           # Numbered sequential migrations (001, 002, ...)
+│       ├── install.sql           # Complete fresh installation DDL & baseline seed
+│       └── seed.sql              # Initial seed categories & placeholder settings (git-tracked; excluded from deploy)
+├── bin/
+│   ├── build-install-sql.php     # Fresh install SQL generator CLI
+│   ├── migrate.php               # Database migrations runner CLI
+│   ├── seed.php                  # Database seed runner CLI
+│   ├── seed-demo.php             # Demo content seeder CLI (local only)
+│   ├── prelaunch-check.php       # Pre-launch check CLI
+│   └── serve.sh                  # Local server script matching Hostinger upload limits
 ├── tailwind/
 │   ├── input.css                 # Source styles, @font-face, prose typography
 │   ├── tailwind.config.js        # Design tokens & color palettes (v3 format)
 │   └── tailwindcss               # Standalone binary (v3.4.17 Linux x64, gitignored)
+├── tests/                        # Automated PHP verification test suites (all 9 suites)
+├── .github/
+│   └── workflows/
+│       └── deploy.yml            # Automated GitHub Actions rsync over SSH staging deployment
 ├── .gitignore                    # Prevents leaks of credentials, logs, and binaries
 ├── PLAN.md                       # Master architectural blueprint
 └── README.md                     # Setup instructions & developer runbook
 ```
+
 
 ---
 
@@ -292,51 +302,70 @@ nat-connect-foundation/
 ### Phase 7: Hardening, Performance & Deployment
 
 #### Phase 7A: Deployment Pipeline & Install Tooling *(Completed)*
-- **Fresh Install File (`database/install.sql`)**:
+- **New Layout & Two-Layer Directory Protection**:
+  - Entire application lives inside `public_html/` (the only writable directory on Hostinger h5g):
+    `public_html/index.php`, `.htaccess`, `assets/`, `uploads/`, `setup.php`, `app/` (protected), `vendor/` (protected), `database/` (protected).
+  - Layer 1: Root `public_html/.htaccess` enforces `RewriteRule ^(app|vendor|database)(/|$) - [F,L,NC]` before the front controller.
+  - Layer 2: Secondary `.htaccess` in each of `public_html/app/`, `public_html/vendor/`, `public_html/database/` with `Require all denied` (+ `mod_access_compat` fallback). No `Options` or `Header` directives anywhere.
+- **Log Security Protocol**:
+  - Application logs write to `app/storage/logs/*.log.php` files prefixed with `<?php exit; ?>\n` so that log contents are unreadable via the web even if `.htaccess` protection fails.
+- **Fresh Install File (`public_html/database/install.sql`)**:
   - Generated via `php bin/build-install-sql.php` directly from the local database structure (`SHOW CREATE TABLE` for all 17 tables, zero data dumps, all `AUTO_INCREMENT` values stripped from table options).
-  - Appends `database/seed.sql` baseline content (categories, settings, system pages) and records all migrations in `schema_migrations`.
+  - Appends `public_html/database/seed.sql` baseline content (categories, settings, system pages) and records all migrations in `schema_migrations`.
+  - Excludes demo content, test data, and user credentials completely.
   - **Fresh install protocol**: Import `database/install.sql` only.
 - **Admin Maintenance & Database Updates (`/admin/maintenance`)**:
-  - Accessible via sidebar bottom. Lists all migrations from `database/migrations/` with real-time status (Applied / Pending) and applied timestamps.
+  - Accessible via sidebar bottom. Lists all migrations from `public_html/database/migrations/` with real-time status (Applied / Pending) and applied timestamps.
+  - Badges strictly use palette tokens only: `bg-accent/10 text-accent-strong border-accent/20` for Applied, `bg-surface text-ink-muted border-border` for Pending. Zero emerald/amber colors.
   - "Apply pending updates" action: POST + CSRF + authenticated admin. Sequentially applies pending migrations with try/catch error handling, records each in `schema_migrations`, shows file-by-file results, and halts immediately at the first error showing the message plainly.
   - Prominent warning text directly above the action button: *"Back up the database in hPanel before applying updates."*
-  - Migrations reside outside `public_html` in `<FTP root>/database/migrations/`.
+- **Admin Security Self-Test**:
+  - Admin → Maintenance page feature: "Run security self-test" button.
+  - Client-side browser `fetch(..., { cache: 'no-store' })` probes:
+    1. `/app/config/config.php`
+    2. `/app/core/Database.php`
+    3. `/vendor/composer/installed.json`
+    4. `/database/install.sql`
+    5. `/database/migrations/001_initial_schema.sql` (sample migration file)
+    6. `/app/storage/logs/`
+    7. `/uploads/test.php` (script execution probe)
+  - Every probe must return HTTP 403 Forbidden or 404 Not Found to pass. Displays green ✓ or red ✗ per probe with plain-language explanation.
+  - Results automatically saved to `app/storage/self_test.json` and integrated into the Dashboard Launch Checklist ("Protected folders are not reachable" — prompts the admin to run the self-test after each deploy).
 - **GitHub Actions Automated Deployment (`.github/workflows/deploy.yml`)**:
-  - Uses `SamKirkland/FTP-Deploy-Action@v4.3.5`.
-  - Triggers on push to `staging` (using `STAGING_FTP_*` secrets) and `main` (using `PROD_FTP_*` secrets), plus `workflow_dispatch`.
-  - Configurable protocol at top (`ftps` with one-line switch to `ftp`).
-  - Remote layout: `<FTP root>/public_html/`, `<FTP root>/app/`, `<FTP root>/vendor/`, `<FTP root>/database/migrations/`.
-  - `public_html` step: strictly excludes `uploads/**` (except `.htaccess` and `index.html`) and `.DS_Store`.
-  - `app` step: strictly excludes `config/config.local.php` and `storage/**` (except `.gitkeep`).
-  - `vendor` and `database/migrations` steps: uploaded as-is.
-  - `dangerous-clean-slate` is strictly forbidden to protect user media and server runtime state.
-  - Development tools (`tailwind/`, `tests/`, `bin/`, `.github/`, `*.md`, `.git*`, `database/seed*`, `database/install.sql`) are never deployed.
+  - Trigger: Push to branch `staging` (+ `workflow_dispatch`). Production (`main`) is a commented placeholder.
+  - Method: `rsync` over SSH using secrets `STAGING_SSH_HOST`, `STAGING_SSH_PORT`, `STAGING_SSH_USER`, `STAGING_SSH_KEY`, `STAGING_SSH_KNOWN_HOSTS` (`StrictHostKeyChecking=yes`), target `STAGING_PATH`.
+  - Target upload: Local `public_html/` contents (including `app/`, `vendor/`, `database/migrations/`, `database/install.sql`) uploaded directly into `STAGING_PATH`.
+  - `rsync` strictly avoids `--delete` to protect client uploads and server runtime state.
+  - Excludes: `uploads/**` (except `uploads/.htaccess` and `uploads/index.html`), `app/config/config.local.php`, `app/storage/**` (except `.gitkeep`), `.DS_Store`, `database/seed*`.
+  - Never uploaded: `tailwind/`, `tests/`, `bin/`, `.github/`, `*.md`, `.git*`.
+  - Prints the list of transferred files upon completion.
 
 #### Deployment
 
 ##### Branch Flow
 - **`dev` → `staging` → `main`**
   - **`dev`**: Active feature, design, and bugfix development branch. All local verification and test suites run here.
-  - **`staging`**: Staging release branch. Merging `dev` into `staging` triggers GitHub Actions automated FTPS deployment to the Hostinger staging site using staging credentials.
-  - **`main`**: Production release branch. Merging `staging` into `main` triggers GitHub Actions automated FTPS deployment to the live Hostinger site using production credentials.
+  - **`staging`**: Staging release branch. Pushing or merging `dev` into `staging` triggers GitHub Actions automated rsync over SSH deployment to the Hostinger staging site.
+  - **`main`**: Production release branch. (Commented placeholder in workflow; activated once client production hosting details are finalized).
 
 ##### FIRST INSTALL CHECKLIST
-1. hPanel: confirm .htaccess support is enabled for the site.
-2. hPanel → PHP Configuration: upload_max_filesize 10M, post_max_size 12M, memory_limit 256M.
-3. hPanel → Databases: create DB + user; phpMyAdmin → import database/install.sql.
-4. File Manager: delete default.php from public_html; create app/storage/logs, app/storage/cache/htmlpurifier (writable).
-5. Upload app/config/config.local.php by hand: debug=false, real DB credentials, new random salt, url = the site's https address, Turnstile keys.
-6. Visit /setup.php, create the admin, then DELETE setup.php.
-7. Run the security checks: /uploads/test.php → 403; /setup.php → 404; random URL → styled 404; login lockout works; session cookie has the Secure flag.
-8. Create ip.php test (REMOTE_ADDR vs real IP) to decide trusted_proxies, then delete it.
-9. Dashboard launch checklist all green (except items intentionally pending).
+1. hPanel: .htaccess support enabled; PHP version 8.3; PHP limits 10M/12M/256M.
+2. Databases: create DB + user; phpMyAdmin: import database/install.sql.
+3. File Manager: delete default.php; create app/storage/logs and app/storage/cache/htmlpurifier inside public_html.
+4. Upload app/config/config.local.php by hand (debug=false, real DB, new salt, url = https site address, Turnstile keys).
+5. /setup.php → create admin → delete setup.php.
+6. Admin → Maintenance → Run security self-test: all green.
+7. Manual checks: /uploads/test.php 403, random URL styled 404, login lockout, Secure cookie, ip.php REMOTE_ADDR test for trusted_proxies (then delete ip.php).
+8. Dashboard launch checklist all green.
 
 ##### Update Flow
 1. **Merge**: Merge approved pull request into `staging` (or `main`).
-2. **Wait for deploy**: Monitor GitHub Actions and verify the `Deploy to Hostinger FTP` workflow completes with green checkmarks across all four steps (`public_html`, `app`, `vendor`, `database/migrations`).
+2. **Wait for deploy**: Monitor GitHub Actions and verify the `Deploy to Hostinger Staging` workflow completes with transferred file list printed.
 3. **Back up**: Log in to Hostinger hPanel and create a manual database backup before applying schema changes.
 4. **Admin → Maintenance**: Log into the admin console, navigate to **Maintenance** at the bottom of the sidebar (`/admin/maintenance`).
 5. **Apply updates**: Review the list of pending migrations and click **Apply pending updates**. Verify all migrations report successful completion.
+6. **Security self-test**: Click **Run security self-test** on the Maintenance page to verify that all 7 security probes return 403/404.
+
 
 - **Hostinger Deployment & .htaccess Rules**:
   - **Hostinger: enable .htaccess support per website (may be off by default for PHP/HTML sites)**. (Served by LiteSpeed/hcdn without `.htaccess` unless enabled; ask Hostinger support/Agent: 'enable .htaccess support / Apache backend'). Verify with a test: a RewriteRule `[F]` in `public_html/.htaccess` must return 403.

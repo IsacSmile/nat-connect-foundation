@@ -15,7 +15,8 @@ if (PHP_SAPI !== 'cli') {
 }
 
 define('ROOT_PATH', dirname(__DIR__));
-define('APP_PATH', ROOT_PATH . '/app');
+define('PUBLIC_PATH', ROOT_PATH . '/public_html');
+define('APP_PATH', PUBLIC_PATH . '/app');
 
 require_once APP_PATH . '/config/config.php';
 require_once APP_PATH . '/core/Database.php';
@@ -24,7 +25,7 @@ use App\Core\Database;
 
 try {
     $db = Database::getConnection();
-    $sql = file_get_contents(ROOT_PATH . '/database/seed.sql');
+    $sql = file_get_contents(PUBLIC_PATH . '/database/seed.sql');
     if ($sql === false) {
         throw new RuntimeException("Could not read database/seed.sql");
     }

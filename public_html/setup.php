@@ -14,9 +14,9 @@ declare(strict_types=1);
  * MUST BE DELETED AFTER FIRST USE.
  */
 
-define('ROOT_PATH', dirname(__DIR__));
-define('APP_PATH', ROOT_PATH . '/app');
 define('PUBLIC_PATH', __DIR__);
+define('APP_PATH', __DIR__ . '/app');
+define('ROOT_PATH', is_dir(dirname(__DIR__) . '/public_html') ? dirname(__DIR__) : __DIR__);
 
 // PSR-4 Autoloader
 spl_autoload_register(function (string $class): void {

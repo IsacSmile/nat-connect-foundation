@@ -16,7 +16,8 @@ if (PHP_SAPI !== 'cli') {
 }
 
 define('ROOT_PATH', dirname(__DIR__));
-define('APP_PATH', ROOT_PATH . '/app');
+define('PUBLIC_PATH', ROOT_PATH . '/public_html');
+define('APP_PATH', PUBLIC_PATH . '/app');
 
 require_once APP_PATH . '/config/config.php';
 require_once APP_PATH . '/core/Database.php';
@@ -46,7 +47,7 @@ $appliedRows = $appliedStmt->fetchAll(PDO::FETCH_COLUMN);
 $appliedSet = array_flip($appliedRows);
 
 // 3. Scan migrations directory
-$migrationsDir = ROOT_PATH . '/database/migrations';
+$migrationsDir = PUBLIC_PATH . '/database/migrations';
 $files = glob($migrationsDir . '/*.sql');
 if ($files === false || empty($files)) {
     echo "No migration files found in {$migrationsDir}.\n";
