@@ -2,7 +2,7 @@
 -- NatConnect Foundation — Fresh Installation Schema & Baseline Seed
 -- =====================================================================
 -- FRESH INSTALL PROTOCOL: Import database/install.sql only.
--- Generated: 2026-10-13 14:16:40 (IST)
+-- Generated: 2026-10-13 14:30:58 (IST)
 -- Contains:
 --   1. Full database table structure (clean DDL, no auto-increment values)
 --   2. Seed categories, site settings, and default pages
@@ -252,12 +252,12 @@ CREATE TABLE `users` (
 SET NAMES utf8mb4;
 
 -- Seed Default Categories
-INSERT IGNORE INTO `categories` (`id`, `name`, `slug`, `description`)
+INSERT IGNORE INTO `categories` (`id`, `name`, `slug`, `description`, `sort_order`)
 VALUES
-  (1, 'Causes', 'causes', NULL),
-  (2, 'News', 'news', NULL),
-  (3, 'Campaigns', 'campaigns', NULL),
-  (4, 'RTI Applications', 'rti-applications', NULL);
+  (1, 'Causes', 'causes', NULL, 1),
+  (2, 'News', 'news', NULL, 2),
+  (3, 'Campaigns', 'campaigns', NULL, 3),
+  (4, 'RTI Applications', 'rti-applications', NULL, 4);
 
 -- Seed Default Site Settings
 INSERT IGNORE INTO `settings` (`key`, `value`)
@@ -284,7 +284,7 @@ VALUES
   ('section_title_donate', 'Support our work'),
   ('section_title_get_involved', 'Get involved'),
   ('section_intro_rti', 'Our ongoing investigations and RTI appeals uncovering wetland encroachments and environmental governance issues.'),
-  ('section_intro_newsletter', 'Get our latest research, campaign dispatches, and RTI findings delivered straight to your inbox.'),
+  ('section_intro_newsletter', 'Sign up to hear about our campaigns and stories.'),
   ('section_intro_donate', 'Support independent environmental reporting and grassroots conservation action across India.'),
   ('section_show_latest', '1'),
   ('section_show_latest_strip', '1'),
@@ -316,17 +316,17 @@ VALUES
   ('home_impact_number_4', ''),
   ('home_impact_label_4', ''),
   ('home_card_1_title', 'Volunteer with us'),
-  ('home_card_1_text', 'Give your time and skills to campaigns, clean-ups, RTI follow-ups, and field documentation.'),
+  ('home_card_1_text', 'Give your time and skills to campaigns, drives and awareness work.'),
   ('home_card_1_btn_label', 'Volunteer'),
   ('home_card_1_link', '/contact'),
   ('home_card_1_wa_message', ''),
   ('home_card_2_title', 'Report an environmental concern'),
-  ('home_card_2_text', 'Seen damage to a wetland, mangrove or tree cover? Send location details and photos so we can verify and file records requests.'),
+  ('home_card_2_text', 'Seen damage to a wetland, mangrove or trees in your area? Tell us what you saw.'),
   ('home_card_2_btn_label', 'Report concern'),
   ('home_card_2_link', '/contact'),
   ('home_card_2_wa_message', ''),
   ('home_card_3_title', 'Share a story'),
-  ('home_card_3_text', 'Have a local environmental story, photo or observation to publish? Reach out with notes or drafts.'),
+  ('home_card_3_text', 'Have a local environmental story, photo or observation? Send it to us.'),
   ('home_card_3_btn_label', 'Share story'),
   ('home_card_3_link', '/contact'),
   ('home_card_3_wa_message', '');

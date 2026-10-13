@@ -1113,6 +1113,112 @@ try {
     SettingModel::set('footer_about', $origFooterAbout ?? '');
     SettingModel::clearCache();
 
+    // ---------------------------------------------------------
+    // TEST 15: Fresh-Install Defaults & Footer Column Suppression
+    // ---------------------------------------------------------
+    echo "--- Test 15: Fresh-Install Defaults & Footer Column Suppression ---\n";
+
+    // 15.1 Check seed.sql and install.sql for reviewed copy defaults
+    echo "  - Subtest 15.1: seed.sql and install.sql contain exact reviewed default copy\n";
+    $seedSqlPath = ROOT_PATH . '/public_html/database/seed.sql';
+    $installSqlPath = ROOT_PATH . '/public_html/database/install.sql';
+
+    assert(file_exists($seedSqlPath), "seed.sql must exist");
+    assert(file_exists($installSqlPath), "install.sql must exist");
+
+    $seedSql = file_get_contents($seedSqlPath);
+    $installSql = file_get_contents($installSqlPath);
+
+    $expectedNewsletterIntro = "Sign up to hear about our campaigns and stories.";
+    $expectedCard1Text = "Give your time and skills to campaigns, drives and awareness work.";
+    $expectedCard2Text = "Seen damage to a wetland, mangrove or trees in your area? Tell us what you saw.";
+    $expectedCard3Text = "Have a local environmental story, photo or observation? Send it to us.";
+
+    // Newsletter intro: must not promise email delivery or frequency
+    assert(str_contains($seedSql, "'section_intro_newsletter', '{$expectedNewsletterIntro}'"), "seed.sql must contain exact newsletter intro");
+    assert(str_contains($installSql, "'section_intro_newsletter', '{$expectedNewsletterIntro}'"), "install.sql must contain exact newsletter intro");
+    assert(!str_contains(strtolower($expectedNewsletterIntro), 'email'), "Newsletter intro must not mention email");
+    assert(!str_contains(strtolower($expectedNewsletterIntro), 'weekly') && !str_contains(strtolower($expectedNewsletterIntro), 'monthly'), "Newsletter intro must not promise delivery frequency");
+
+    // Get involved card texts
+    assert(str_contains($seedSql, "'home_card_1_text', '{$expectedCard1Text}'"), "seed.sql must contain exact home_card_1_text");
+    assert(str_contains($installSql, "'home_card_1_text', '{$expectedCard1Text}'"), "install.sql must contain exact home_card_1_text");
+
+    assert(str_contains($seedSql, "'home_card_2_text', '{$expectedCard2Text}'"), "seed.sql must contain exact home_card_2_text");
+    assert(str_contains($installSql, "'home_card_2_text', '{$expectedCard2Text}'"), "install.sql must contain exact home_card_2_text");
+
+    assert(str_contains($seedSql, "'home_card_3_text', '{$expectedCard3Text}'"), "seed.sql must contain exact home_card_3_text");
+    assert(str_contains($installSql, "'home_card_3_text', '{$expectedCard3Text}'"), "install.sql must contain exact home_card_3_text");
+
+    // Active DB settings check
+    assert(SettingModel::get('section_intro_newsletter') === $expectedNewsletterIntro, "Active DB section_intro_newsletter must match reviewed copy");
+    assert(SettingModel::get('home_card_1_text') === $expectedCard1Text, "Active DB home_card_1_text must match reviewed copy");
+    assert(SettingModel::get('home_card_2_text') === $expectedCard2Text, "Active DB home_card_2_text must match reviewed copy");
+    assert(SettingModel::get('home_card_3_text') === $expectedCard3Text, "Active DB home_card_3_text must match reviewed copy");
+    echo "    [PASS] seed.sql, install.sql, and active DB match exact reviewed copy for newsletter intro and get-involved cards.\n";
+
+    // 15.2 Check category sort_order: Causes 1, News 2, Campaigns 3, RTI Applications 4
+    echo "  - Subtest 15.2: Default category sort_order: Causes 1, News 2, Campaigns 3, RTI Applications 4\n";
+    assert(preg_match("/\('Causes',\s*'causes',[^)]*1\)/", $seedSql) === 1, "seed.sql must have Causes with sort_order 1");
+    assert(preg_match("/\('News',\s*'news',[^)]*2\)/", $seedSql) === 1, "seed.sql must have News with sort_order 2");
+    assert(preg_match("/\('Campaigns',\s*'campaigns',[^)]*3\)/", $seedSql) === 1, "seed.sql must have Campaigns with sort_order 3");
+    assert(preg_match("/\('RTI Applications',\s*'rti-applications',[^)]*4\)/", $seedSql) === 1, "seed.sql must have RTI Applications with sort_order 4");
+
+    assert(preg_match("/\('Causes',\s*'causes',[^)]*1\)/", $installSql) === 1, "install.sql must have Causes with sort_order 1");
+    assert(preg_match("/\('News',\s*'news',[^)]*2\)/", $installSql) === 1, "install.sql must have News with sort_order 2");
+    assert(preg_match("/\('Campaigns',\s*'campaigns',[^)]*3\)/", $installSql) === 1, "install.sql must have Campaigns with sort_order 3");
+    assert(preg_match("/\('RTI Applications',\s*'rti-applications',[^)]*4\)/", $installSql) === 1, "install.sql must have RTI Applications with sort_order 4");
+
+    $stmtCats = $pdo->query("SELECT slug, sort_order FROM categories WHERE slug IN ('causes', 'news', 'campaigns', 'rti-applications')");
+    $catRows = $stmtCats->fetchAll(\PDO::FETCH_KEY_PAIR);
+    assert((int) ($catRows['causes'] ?? 0) === 1, "Causes category sort_order must be 1 in DB");
+    assert((int) ($catRows['news'] ?? 0) === 2, "News category sort_order must be 2 in DB");
+    assert((int) ($catRows['campaigns'] ?? 0) === 3, "Campaigns category sort_order must be 3 in DB");
+    assert((int) ($catRows['rti-applications'] ?? 0) === 4, "RTI Applications category sort_order must be 4 in DB");
+    echo "    [PASS] Default category sort_order verified in seed.sql, install.sql, and active DB.\n";
+
+    // 15.3 Footer column suppression: hide Contact column when contact details are empty
+    echo "  - Subtest 15.3: Footer Contact column suppression and dynamic grid layout\n";
+    $origEmail = SettingModel::get('contact_email');
+    $origPhone = SettingModel::get('contact_phone');
+    $origWa = SettingModel::get('contact_whatsapp');
+    $origAddr = SettingModel::get('contact_address');
+
+    // Case A: All contact fields empty -> Contact column hidden, grid-cols-1 md:grid-cols-3 lg:grid-cols-3
+    SettingModel::set('contact_email', '');
+    SettingModel::set('contact_phone', '');
+    SettingModel::set('contact_whatsapp', '');
+    SettingModel::set('contact_address', '');
+    SettingModel::clearCache();
+
+    ob_start();
+    \App\Core\View::partial('partials/footer');
+    $footerEmptyHtml = ob_get_clean();
+
+    assert(!str_contains($footerEmptyHtml, '<h4 class="font-serif font-bold text-ink text-base mb-4">Contact</h4>'), "Footer must NOT render Contact heading when contact fields are empty");
+    assert(str_contains($footerEmptyHtml, 'grid-cols-1 md:grid-cols-3 lg:grid-cols-3'), "Footer must use 3-column grid when Contact column is omitted");
+    assert(!str_contains($footerEmptyHtml, 'lg:grid-cols-4'), "Footer must not use 4-column grid when Contact column is omitted");
+
+    // Case B: Contact field populated -> Contact column visible, grid-cols-1 md:grid-cols-2 lg:grid-cols-4
+    SettingModel::set('contact_email', 'info@natconnectfoundation.org');
+    SettingModel::clearCache();
+
+    ob_start();
+    \App\Core\View::partial('partials/footer');
+    $footerPopulatedHtml = ob_get_clean();
+
+    assert(str_contains($footerPopulatedHtml, '<h4 class="font-serif font-bold text-ink text-base mb-4">Contact</h4>'), "Footer MUST render Contact heading when contact email is set");
+    assert(str_contains($footerPopulatedHtml, 'info@natconnectfoundation.org'), "Footer must render contact email");
+    assert(str_contains($footerPopulatedHtml, 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'), "Footer must use 4-column grid when Contact column is visible");
+
+    // Restore original contact settings
+    SettingModel::set('contact_email', $origEmail ?? '');
+    SettingModel::set('contact_phone', $origPhone ?? '');
+    SettingModel::set('contact_whatsapp', $origWa ?? '');
+    SettingModel::set('contact_address', $origAddr ?? '');
+    SettingModel::clearCache();
+    echo "    [PASS] Footer cleanly hides Contact column and adjusts to 3-col grid when empty; renders 4-col when populated.\n\n";
+
     echo "========================================================\n";
     echo "ALL PUBLIC, JSON-LD, D2 HOME & ROUND 2 ASSERTIONS PASSED!\n";
     echo "========================================================\n";

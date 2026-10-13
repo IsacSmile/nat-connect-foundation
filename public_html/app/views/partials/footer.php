@@ -2,10 +2,10 @@
 <?php
   $siteName = setting('site_name', 'NatConnect Foundation');
   $footerAbout = setting('footer_about');
-  $email = setting('contact_email');
-  $phone = setting('contact_phone');
-  $whatsapp = setting('contact_whatsapp');
-  $address = setting('contact_address');
+  $email = trim((string) setting('contact_email', ''));
+  $phone = trim((string) setting('contact_phone', ''));
+  $whatsapp = trim((string) setting('contact_whatsapp', ''));
+  $address = trim((string) setting('contact_address', ''));
   
   $socials = [
       'facebook'  => setting('social_facebook'),
@@ -18,11 +18,19 @@
   // Filter only set social URLs
   $activeSocials = array_filter($socials, fn($url) => !empty(trim((string)$url)));
   $isDonateActive = \App\Models\SettingModel::isDonateActive();
+
+  // Check if Contact column has any non-empty content
+  $hasContact = !empty($address) || !empty($email) || !empty($phone) || !empty($whatsapp);
+
+  // Dynamic grid columns based on whether Contact column is populated
+  $gridColsClass = $hasContact
+      ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+      : 'grid-cols-1 md:grid-cols-3 lg:grid-cols-3';
 ?>
 
 <footer class="mt-auto bg-white border-t border-border">
   <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 lg:py-16">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+    <div class="grid <?= $gridColsClass ?> gap-10 lg:gap-8">
       
       <!-- Column 1: Brand & About -->
       <div class="lg:col-span-1 space-y-4">
@@ -118,6 +126,7 @@
         </ul>
       </div>
 
+      <?php if ($hasContact): ?>
       <!-- Column 4: Contact Details from Settings -->
       <div class="space-y-3">
         <h4 class="font-serif font-bold text-ink text-base mb-4">Contact</h4>
@@ -151,6 +160,7 @@
           <?php endif; ?>
         </div>
       </div>
+      <?php endif; ?>
 
     </div>
 

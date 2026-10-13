@@ -532,6 +532,8 @@ if (!empty($ipv6RateErrors['rate'])) {
 // Test 3.5: Turnstile failure rejected (mocked)
 $_SERVER['REMOTE_ADDR'] = '198.51.100.55'; // Different IP to bypass rate limit
 Turnstile::$mockVerifier = fn($token, $ip) => false; // Mock failure
+unset($_SESSION['comment_errors']);
+$validTs = time() - 10;
 
 $_POST = [
     'contact_fax'           => '',
