@@ -1,6 +1,35 @@
 <?php
 declare(strict_types=1);
 
+// Built-in PHP CLI Server router emulation for local development
+if (PHP_SAPI === 'cli-server') {
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+    $requestPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
+    $decodedPath = rawurldecode($requestPath);
+
+    // 1. Block access to protected directories (mimics .htaccess locally)
+    if (preg_match('#^/(app|vendor|database)(/|$)#i', $decodedPath)) {
+        http_response_code(403);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "403 Forbidden\n";
+        exit;
+    }
+
+    // 2. Serve existing static files directly (realpath inside public_html, not a .php file)
+    $docRoot = __DIR__;
+    $filePath = $docRoot . $decodedPath;
+    $realFilePath = realpath($filePath);
+    $realDocRoot = realpath($docRoot);
+
+    if ($realFilePath !== false && is_file($realFilePath)) {
+        if ($realDocRoot !== false && str_starts_with($realFilePath, $realDocRoot)) {
+            if (!str_ends_with(strtolower($realFilePath), '.php')) {
+                return false;
+            }
+        }
+    }
+}
+
 /**
  * NatConnect Foundation — Front Controller
  *
