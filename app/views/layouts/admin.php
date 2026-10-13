@@ -73,6 +73,7 @@
               str_starts_with($currentUri, '/admin/comments')  => 'comments',
               str_starts_with($currentUri, '/admin/subscribers')=> 'subscribers',
               str_starts_with($currentUri, '/admin/settings')  => 'settings',
+              str_starts_with($currentUri, '/admin/maintenance')=> 'maintenance',
               str_starts_with($currentUri, '/admin/account')   => 'account',
               default => 'dashboard',
           };
@@ -221,6 +222,18 @@
               <circle cx="12" cy="7" r="4"/>
             </svg>
             <span>Account</span>
+          </a>
+
+          <!-- 8. Maintenance (Database Updates) -->
+          <a 
+            href="/admin/maintenance" 
+            @click="sidebarOpen = false"
+            class="flex items-center gap-3 px-4 py-2.5 min-h-[44px] transition-colors group <?= $nav === 'maintenance' ? $activeClasses : $inactiveClasses ?>"
+          >
+            <svg class="w-5 h-5 <?= $nav === 'maintenance' ? 'text-primary' : 'text-ink-subtle group-hover:text-ink' ?> shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+            <span>Maintenance</span>
           </a>
         </nav>
 

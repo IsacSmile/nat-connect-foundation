@@ -1,0 +1,140 @@
+name: Deploy to Hostinger FTP
+
+# Triggers:
+# 1. Push to 'staging' branch -> Deploys using staging FTP secrets
+# 2. Push to 'main' branch    -> Deploys using production FTP secrets
+# 3. Manual workflow_dispatch -> Allows manual deployment to staging or production
+on:
+  push:
+    branches:
+      - staging
+      - main
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target Deployment Environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+# ==============================================================================
+# CONFIGURABLE REMOTE FTP LAYOUT & PROTOCOL
+# ==============================================================================
+# All paths are relative to the remote FTP root (<FTP root>/).
+# One-line protocol switch: change 'ftps' to 'ftp' if FTPS is unsupported by host.
+env:
+  FTP_PROTOCOL: ftps
+  REMOTE_PUBLIC_HTML: public_html/
+  REMOTE_APP: app/
+  REMOTE_VENDOR: vendor/
+  REMOTE_MIGRATIONS: database/migrations/
+
+jobs:
+  deploy:
+    name: FTP Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Determine environment credentials based on branch or workflow_dispatch selection
+      # Secrets required in GitHub Repository Settings -> Secrets and variables -> Actions:
+      # - Staging:    STAGING_FTP_SERVER, STAGING_FTP_USERNAME, STAGING_FTP_PASSWORD
+      # - Production: PROD_FTP_SERVER,    PROD_FTP_USERNAME,    PROD_FTP_PASSWORD
+      - name: Resolve Environment Secrets
+        run: |
+          IS_PROD="${{ (github.ref_name == 'main' || inputs.target == 'production') && 'true' || 'false' }}"
+          if [ "$IS_PROD" = "true" ]; then
+            echo "ENV_NAME=production" >> $GITHUB_ENV
+            echo "TARGET_SERVER=${{ secrets.PROD_FTP_SERVER }}" >> $GITHUB_ENV
+            echo "TARGET_USERNAME=${{ secrets.PROD_FTP_USERNAME }}" >> $GITHUB_ENV
+            echo "TARGET_PASSWORD=${{ secrets.PROD_FTP_PASSWORD }}" >> $GITHUB_ENV
+          else
+            echo "ENV_NAME=staging" >> $GITHUB_ENV
+            echo "TARGET_SERVER=${{ secrets.STAGING_FTP_SERVER }}" >> $GITHUB_ENV
+            echo "TARGET_USERNAME=${{ secrets.STAGING_FTP_USERNAME }}" >> $GITHUB_ENV
+            echo "TARGET_PASSWORD=${{ secrets.STAGING_FTP_PASSWORD }}" >> $GITHUB_ENV
+          fi
+
+      # ========================================================================
+      # CRITICAL DEPLOYMENT INTEGRITY RULES:
+      # 1. NEVER USE 'dangerous-clean-slate':
+      #    - uploads/ contains client-uploaded media, WebP variants, and covers.
+      #    - app/storage/ contains server runtime state (installed.lock, logs,
+      #      HTMLPurifier cache).
+      #    Wiping or syncing either directory would permanently destroy all
+      #    production media and security locks.
+      #
+      # 2. DIRECTORIES NEVER DEPLOYED:
+      #    - tailwind/         (source CSS and CLI binary; compiled app.css is in public_html/assets/css)
+      #    - tests/            (automated test suites)
+      #    - bin/              (local CLI scripts: serve.sh, migrate.php, build-install-sql.php)
+      #    - .github/          (CI/CD workflow definitions)
+      #    - *.md              (documentation and blueprints)
+      #    - .git*             (git version control metadata)
+      #    - database/seed*    (local seed scripts)
+      #    - database/install.sql (initial manual import only via phpMyAdmin)
+      # ========================================================================
+
+      # Step 1: Deploy public_html (Document Root)
+      - name: Deploy public_html
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ env.TARGET_SERVER }}
+          username: ${{ env.TARGET_USERNAME }}
+          password: ${{ env.TARGET_PASSWORD }}
+          protocol: ${{ env.FTP_PROTOCOL }}
+          local-dir: ./public_html/
+          server-dir: ${{ env.REMOTE_PUBLIC_HTML }}
+          # Exclude user uploads except security barrier files (.htaccess & index.html)
+          exclude: |
+            **/.DS_Store
+            uploads/**
+            !uploads/.htaccess
+            !uploads/index.html
+
+      # Step 2: Deploy app (Application Source Code, outside public_html)
+      - name: Deploy app
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ env.TARGET_SERVER }}
+          username: ${{ env.TARGET_USERNAME }}
+          password: ${{ env.TARGET_PASSWORD }}
+          protocol: ${{ env.FTP_PROTOCOL }}
+          local-dir: ./app/
+          server-dir: ${{ env.REMOTE_APP }}
+          # Exclude server-specific configuration and runtime storage
+          exclude: |
+            **/.DS_Store
+            config/config.local.php
+            storage/**
+            !storage/**/.gitkeep
+
+      # Step 3: Deploy vendor (Composer Dependencies, outside public_html)
+      - name: Deploy vendor
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ env.TARGET_SERVER }}
+          username: ${{ env.TARGET_USERNAME }}
+          password: ${{ env.TARGET_PASSWORD }}
+          protocol: ${{ env.FTP_PROTOCOL }}
+          local-dir: ./vendor/
+          server-dir: ${{ env.REMOTE_VENDOR }}
+          exclude: |
+            **/.DS_Store
+
+      # Step 4: Deploy database/migrations (SQL Migrations, outside public_html)
+      - name: Deploy database migrations
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ env.TARGET_SERVER }}
+          username: ${{ env.TARGET_USERNAME }}
+          password: ${{ env.TARGET_PASSWORD }}
+          protocol: ${{ env.FTP_PROTOCOL }}
+          local-dir: ./database/migrations/
+          server-dir: ${{ env.REMOTE_MIGRATIONS }}
+          exclude: |
+            **/.DS_Store

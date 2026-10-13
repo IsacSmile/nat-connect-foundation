@@ -290,10 +290,54 @@ nat-connect-foundation/
 - Automatically populate the `redirects` table with 301 redirects from every legacy URL to the corresponding new slug to preserve existing search rankings and backlinks.
 
 ### Phase 7: Hardening, Performance & Deployment
-- Production security review (Content Security Policy headers, upload folder lockdown).
-- Asset optimization, Gzip / Brotli cache directives in `.htaccess`.
-- Database indexing audit.
-- Full release zip packaging and Hostinger deployment guide.
+
+#### Phase 7A: Deployment Pipeline & Install Tooling *(Completed)*
+- **Fresh Install File (`database/install.sql`)**:
+  - Generated via `php bin/build-install-sql.php` directly from the local database structure (`SHOW CREATE TABLE` for all 17 tables, zero data dumps, all `AUTO_INCREMENT` values stripped from table options).
+  - Appends `database/seed.sql` baseline content (categories, settings, system pages) and records all migrations in `schema_migrations`.
+  - **Fresh install protocol**: Import `database/install.sql` only.
+- **Admin Maintenance & Database Updates (`/admin/maintenance`)**:
+  - Accessible via sidebar bottom. Lists all migrations from `database/migrations/` with real-time status (Applied / Pending) and applied timestamps.
+  - "Apply pending updates" action: POST + CSRF + authenticated admin. Sequentially applies pending migrations with try/catch error handling, records each in `schema_migrations`, shows file-by-file results, and halts immediately at the first error showing the message plainly.
+  - Prominent warning text directly above the action button: *"Back up the database in hPanel before applying updates."*
+  - Migrations reside outside `public_html` in `<FTP root>/database/migrations/`.
+- **GitHub Actions Automated Deployment (`.github/workflows/deploy.yml`)**:
+  - Uses `SamKirkland/FTP-Deploy-Action@v4.3.5`.
+  - Triggers on push to `staging` (using `STAGING_FTP_*` secrets) and `main` (using `PROD_FTP_*` secrets), plus `workflow_dispatch`.
+  - Configurable protocol at top (`ftps` with one-line switch to `ftp`).
+  - Remote layout: `<FTP root>/public_html/`, `<FTP root>/app/`, `<FTP root>/vendor/`, `<FTP root>/database/migrations/`.
+  - `public_html` step: strictly excludes `uploads/**` (except `.htaccess` and `index.html`) and `.DS_Store`.
+  - `app` step: strictly excludes `config/config.local.php` and `storage/**` (except `.gitkeep`).
+  - `vendor` and `database/migrations` steps: uploaded as-is.
+  - `dangerous-clean-slate` is strictly forbidden to protect user media and server runtime state.
+  - Development tools (`tailwind/`, `tests/`, `bin/`, `.github/`, `*.md`, `.git*`, `database/seed*`, `database/install.sql`) are never deployed.
+
+#### Deployment
+
+##### Branch Flow
+- **`dev` → `staging` → `main`**
+  - **`dev`**: Active feature, design, and bugfix development branch. All local verification and test suites run here.
+  - **`staging`**: Staging release branch. Merging `dev` into `staging` triggers GitHub Actions automated FTPS deployment to the Hostinger staging site using staging credentials.
+  - **`main`**: Production release branch. Merging `staging` into `main` triggers GitHub Actions automated FTPS deployment to the live Hostinger site using production credentials.
+
+##### FIRST INSTALL CHECKLIST
+1. hPanel: confirm .htaccess support is enabled for the site.
+2. hPanel → PHP Configuration: upload_max_filesize 10M, post_max_size 12M, memory_limit 256M.
+3. hPanel → Databases: create DB + user; phpMyAdmin → import database/install.sql.
+4. File Manager: delete default.php from public_html; create app/storage/logs, app/storage/cache/htmlpurifier (writable).
+5. Upload app/config/config.local.php by hand: debug=false, real DB credentials, new random salt, url = the site's https address, Turnstile keys.
+6. Visit /setup.php, create the admin, then DELETE setup.php.
+7. Run the security checks: /uploads/test.php → 403; /setup.php → 404; random URL → styled 404; login lockout works; session cookie has the Secure flag.
+8. Create ip.php test (REMOTE_ADDR vs real IP) to decide trusted_proxies, then delete it.
+9. Dashboard launch checklist all green (except items intentionally pending).
+
+##### Update Flow
+1. **Merge**: Merge approved pull request into `staging` (or `main`).
+2. **Wait for deploy**: Monitor GitHub Actions and verify the `Deploy to Hostinger FTP` workflow completes with green checkmarks across all four steps (`public_html`, `app`, `vendor`, `database/migrations`).
+3. **Back up**: Log in to Hostinger hPanel and create a manual database backup before applying schema changes.
+4. **Admin → Maintenance**: Log into the admin console, navigate to **Maintenance** at the bottom of the sidebar (`/admin/maintenance`).
+5. **Apply updates**: Review the list of pending migrations and click **Apply pending updates**. Verify all migrations report successful completion.
+
 - **Hostinger Deployment & .htaccess Rules**:
   - **Hostinger: enable .htaccess support per website (may be off by default for PHP/HTML sites)**. (Served by LiteSpeed/hcdn without `.htaccess` unless enabled; ask Hostinger support/Agent: 'enable .htaccess support / Apache backend'). Verify with a test: a RewriteRule `[F]` in `public_html/.htaccess` must return 403.
   - **Hostinger: Options directive in .htaccess = HTTP 500. Never use it.** (`AllowOverride` does not include `Options`).

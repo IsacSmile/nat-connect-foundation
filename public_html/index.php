@@ -261,6 +261,10 @@ $router->post('/admin/subscribers/{id}/delete', [App\Controllers\Admin\Subscribe
 $router->get('/admin/settings', [App\Controllers\Admin\SettingsController::class, 'show']);
 $router->post('/admin/settings', [App\Controllers\Admin\SettingsController::class, 'save']);
 
+// Phase 7A: Admin Maintenance & Updates Routes
+$router->get('/admin/maintenance', [App\Controllers\Admin\MaintenanceController::class, 'index']);
+$router->post('/admin/maintenance/apply', [App\Controllers\Admin\MaintenanceController::class, 'applyPending']);
+
 // Phase 6: Admin Pages Routes
 $router->get('/admin/pages', [App\Controllers\Admin\PageController::class, 'index']);
 $router->get('/admin/pages/new', [App\Controllers\Admin\PageController::class, 'create']);
