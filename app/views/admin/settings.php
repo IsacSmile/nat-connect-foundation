@@ -582,6 +582,82 @@
           >
         </div>
 
+        <div>
+          <label for="get_involved_intro" class="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+            Section Intro (Optional)
+          </label>
+          <textarea 
+            id="get_involved_intro" 
+            name="get_involved_intro" 
+            rows="2" 
+            placeholder="Optional short paragraph displayed under section title" 
+            class="w-full px-3.5 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+          ><?= e($settings['get_involved_intro'] ?? '') ?></textarea>
+        </div>
+
+        <div class="border-t border-border pt-5 space-y-4" x-data="{ removeInvolvedPhoto: false }">
+          <div>
+            <h3 class="font-serif text-base font-bold text-ink">Section Photo (Optional)</h3>
+            <p class="text-xs text-ink-muted mt-0.5">Optional photo (4:3 aspect ratio) shown alongside the action cards on the home page.</p>
+          </div>
+
+          <?php if (!empty($settings['get_involved_photo'])): ?>
+            <div x-show="!removeInvolvedPhoto" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-xl border border-border bg-surface/50">
+              <img 
+                src="<?= e(\App\Core\ImageUploader::getVariantUrl($settings['get_involved_photo'], 400)) ?>" 
+                alt="<?= e($settings['get_involved_photo_alt'] ?? 'Get involved photo') ?>" 
+                class="w-32 h-24 object-cover rounded-lg border border-border"
+              >
+              <div class="space-y-2">
+                <p class="text-xs text-ink font-medium">Current photo configured</p>
+                <label class="inline-flex items-center cursor-pointer text-xs text-rose-600 hover:text-rose-700">
+                  <input 
+                    type="checkbox" 
+                    name="remove_get_involved_photo" 
+                    value="1" 
+                    x-model="removeInvolvedPhoto"
+                    class="rounded border-border text-rose-600 focus:ring-rose-500 h-4 w-4 mr-1.5"
+                  >
+                  Remove photo
+                </label>
+              </div>
+            </div>
+          <?php endif; ?>
+
+          <div>
+            <label for="get_involved_photo_file" class="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+              <?= !empty($settings['get_involved_photo']) ? 'Replace Photo' : 'Upload Photo (4:3 Recommended)' ?>
+            </label>
+            <input 
+              type="file" 
+              id="get_involved_photo_file" 
+              name="get_involved_photo_file" 
+              accept="image/jpeg,image/png,image/webp" 
+              class="w-full text-xs text-ink file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover file:cursor-pointer"
+            >
+            <?php if (isset($errors['get_involved_photo'])): ?>
+              <p class="text-xs text-rose-600 mt-1"><?= e($errors['get_involved_photo']) ?></p>
+            <?php endif; ?>
+          </div>
+
+          <div>
+            <label for="get_involved_photo_alt" class="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+              Photo Alternative Text (Alt Text)
+            </label>
+            <input 
+              type="text" 
+              id="get_involved_photo_alt" 
+              name="get_involved_photo_alt" 
+              value="<?= e($settings['get_involved_photo_alt'] ?? '') ?>" 
+              placeholder="Descriptive text for accessibility (required if photo is set)" 
+              class="w-full px-3.5 py-2.5 rounded-xl border <?= isset($errors['get_involved_photo_alt']) ? 'border-rose-400 bg-rose-50/20' : 'border-border' ?> focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+            >
+            <?php if (isset($errors['get_involved_photo_alt'])): ?>
+              <p class="text-xs text-rose-600 mt-1"><?= e($errors['get_involved_photo_alt']) ?></p>
+            <?php endif; ?>
+          </div>
+        </div>
+
         <div class="space-y-6 divide-y divide-border">
           <?php
             $defaultCardIcons = ['hand-heart', 'megaphone', 'pen'];

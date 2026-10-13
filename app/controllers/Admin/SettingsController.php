@@ -178,6 +178,48 @@ class SettingsController
             }
         }
 
+        // Get involved photo (ImageUploader + required alt)
+        $getInvolvedPhoto = (string) ($currentSettings['get_involved_photo'] ?? '');
+        $getInvolvedPhotoAlt = trim((string) ($_POST['get_involved_photo_alt'] ?? ($currentSettings['get_involved_photo_alt'] ?? '')));
+
+        if (!empty($_POST['remove_get_involved_photo'])) {
+            if ($getInvolvedPhoto !== '') {
+                try {
+                    ImageUploader::deleteVariants($getInvolvedPhoto);
+                } catch (Throwable) {
+                    // Suppress file delete errors
+                }
+                $getInvolvedPhoto = '';
+                $getInvolvedPhotoAlt = '';
+            }
+        }
+
+        if (isset($_FILES['get_involved_photo_file']) && (int) $_FILES['get_involved_photo_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+            try {
+                $uploadRes = ImageUploader::upload($_FILES['get_involved_photo_file']);
+                if ($getInvolvedPhoto !== '') {
+                    try {
+                        ImageUploader::deleteVariants($getInvolvedPhoto);
+                    } catch (Throwable) {
+                        // Suppress file delete errors
+                    }
+                }
+                $getInvolvedPhoto = $uploadRes['location'];
+            } catch (Throwable $e) {
+                $errors['get_involved_photo'] = $e->getMessage();
+            }
+        }
+
+        if ($getInvolvedPhoto !== '') {
+            if ($getInvolvedPhotoAlt === '') {
+                $errors['get_involved_photo_alt'] = 'Alternative text is required for the Get involved photo.';
+            } elseif (preg_match('/\.(jpg|jpeg|png|webp|gif|svg)$/i', $getInvolvedPhotoAlt)) {
+                $errors['get_involved_photo_alt'] = 'Alternative text cannot be a file name.';
+            } elseif (mb_strlen($getInvolvedPhotoAlt) < 3) {
+                $errors['get_involved_photo_alt'] = 'Alternative text must be at least 3 characters.';
+            }
+        }
+
         // 5. Home Page settings
         $announcementText = trim((string) ($_POST['announcement_text'] ?? ''));
         $announcementLink = trim((string) ($_POST['announcement_link'] ?? ''));
@@ -217,9 +259,10 @@ class SettingsController
             $impactNumbersUpdates[$lblKey] = $lbl;
         }
 
-        // Get involved section: title, show/hide, 3 cards
+        // Get involved section: title, intro, show/hide, 3 cards
         $sectionShowGetInvolved = $isHomeTab ? (!empty($_POST['section_show_get_involved']) ? '1' : '0') : ($currentSettings['section_show_get_involved'] ?? '1');
         $sectionTitleGetInvolved = trim((string) ($_POST['section_title_get_involved'] ?? '')) ?: 'Get involved';
+        $getInvolvedIntro = $isHomeTab ? trim((string) ($_POST['get_involved_intro'] ?? '')) : (string) ($currentSettings['get_involved_intro'] ?? '');
 
         $cardUpdates = [];
         for ($i = 1; $i <= 3; $i++) {
@@ -321,6 +364,9 @@ class SettingsController
             'hero_slider_autorotate'       => $heroSliderAutorotate,
             'section_show_get_involved'    => $sectionShowGetInvolved,
             'section_title_get_involved'   => $sectionTitleGetInvolved,
+            'get_involved_intro'           => $getInvolvedIntro,
+            'get_involved_photo'           => $getInvolvedPhoto,
+            'get_involved_photo_alt'       => $getInvolvedPhotoAlt,
             'section_title_latest'         => $sectionTitleLatest,
             'section_title_topics'         => $sectionTitleTopics,
             'section_title_causes'         => $sectionTitleCauses,

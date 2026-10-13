@@ -529,12 +529,15 @@ class PublicController
         // 6. Get Involved (3 cards, id="get-involved")
         $showGetInvolved = setting('section_show_get_involved', '1') === '1';
         $titleGetInvolved = trim((string) setting('section_title_get_involved', 'Get involved')) ?: 'Get involved';
+        $getInvolvedIntro = trim((string) setting('get_involved_intro', ''));
+        $getInvolvedPhoto = trim((string) setting('get_involved_photo', ''));
+        $getInvolvedPhotoAlt = trim((string) setting('get_involved_photo_alt', ''));
         $getInvolvedCards = [];
         $defaultCardTitles = ['Volunteer with us', 'Report an environmental concern', 'Share a story'];
         $defaultCardTexts = [
-            'Join our community conservation efforts and ground initiatives to protect nature and local ecosystems.',
-            'Notice illegal wetland damage or coastal violations? Send details to help us investigate and document.',
-            'Have local environmental news, observations, or RTI findings? Share your story with our editorial team.'
+            'Give your time and skills to campaigns, drives and awareness work.',
+            'Seen damage to a wetland, mangrove or trees in your area? Tell us what you saw.',
+            'Have a local environmental story, photo or observation? Send it to us.'
         ];
         $defaultCardBtns = ['Volunteer', 'Report concern', 'Share story'];
         for ($i = 1; $i <= 3; $i++) {
@@ -561,6 +564,7 @@ class PublicController
         $footerAbout = trim((string) setting('footer_about', ''));
         $aboutBandPhoto = trim((string) setting('about_band_photo', ''));
         $aboutBandPhotoAlt = trim((string) setting('about_band_photo_alt', ''));
+        $aboutCauses = TagModel::getCauses(3);
 
         // 8. Causes we care about (tags with show_as_cause)
         $showCauses = setting('section_show_causes', '1') === '1';
@@ -664,16 +668,20 @@ class PublicController
             'titleLatest'        => setting('section_title_latest', 'Latest stories'),
             'subtitleLatest'     => setting('section_subtitle_latest', ''),
             // Section 6: Get involved
-            'showGetInvolved'    => $showGetInvolved && !empty($getInvolvedCards),
-            'titleGetInvolved'   => $titleGetInvolved,
-            'getInvolvedCards'   => $getInvolvedCards,
+            'showGetInvolved'      => $showGetInvolved && !empty($getInvolvedCards),
+            'titleGetInvolved'     => $titleGetInvolved,
+            'getInvolvedIntro'     => $getInvolvedIntro,
+            'getInvolvedPhoto'     => $getInvolvedPhoto,
+            'getInvolvedPhotoAlt'  => $getInvolvedPhotoAlt,
+            'getInvolvedCards'     => $getInvolvedCards,
             // Section 7: About band
-            'showAboutBand'      => ($missionStatement !== ''),
-            'siteName'           => $siteName,
-            'missionStatement'   => $missionStatement,
-            'footerAbout'        => $footerAbout,
-            'aboutBandPhoto'     => $aboutBandPhoto,
-            'aboutBandPhotoAlt'  => $aboutBandPhotoAlt,
+            'showAboutBand'        => ($missionStatement !== ''),
+            'siteName'             => $siteName,
+            'missionStatement'     => $missionStatement,
+            'footerAbout'          => $footerAbout,
+            'aboutBandPhoto'       => $aboutBandPhoto,
+            'aboutBandPhotoAlt'    => $aboutBandPhotoAlt,
+            'aboutCauses'          => $aboutCauses,
             // Section 8: Causes
             'showCauses'         => $showCauses && !empty($causes),
             'causes'             => $causes,

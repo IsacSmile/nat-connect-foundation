@@ -1032,7 +1032,68 @@ try {
     // Restore toggle
     SettingModel::set('section_show_latest', $origToggle ?? '1');
     SettingModel::clearCache();
-    echo "    [PASS] Strip correctly hidden when toggle is off and rendered when toggle is on.\n\n";
+    // 14. Home Page: About Band & Get Involved Redesign Assertions
+    echo "--- Test 14: About Band & Get Involved Redesign Assertions ---\n";
+    
+    // Subtest 14.1: Backgrounds, padding & eyebrow removal
+    echo "  - Subtest 14.1: Backgrounds, vertical padding & eyebrow removal\n";
+    ob_start();
+    $publicCtrl->home();
+    $homeHtml = ob_get_clean();
+
+    assert(!str_contains($homeHtml, 'Take Action'), "Get Involved section must NOT contain hardcoded 'Take Action' eyebrow");
+    assert(preg_match('/<section[^>]*id="get-involved"[^>]*class="[^"]*py-16 lg:py-20[^"]*"/', $homeHtml) === 1, "Get Involved must use py-16 lg:py-20 vertical padding");
+    assert(preg_match('/<section[^>]*id="get-involved"[^>]*class="[^"]*bg-accent\/5[^"]*"/', $homeHtml) === 0, "Get Involved must use plain page background (never bg-accent/5)");
+    assert(preg_match('/<section[^>]*class="[^"]*bg-accent\/5[^"]*py-16 lg:py-20[^"]*"[^>]*aria-labelledby="about-band-heading"/', $homeHtml) === 1, "About band must keep bg-accent/5 and py-16 lg:py-20");
+    echo "    [PASS] Get involved uses plain background and py-16 lg:py-20 with no 'Take Action' eyebrow; About band keeps bg-accent/5.\n";
+
+    // Subtest 14.2: Get Involved actions as stacked rows without filled primary buttons
+    echo "  - Subtest 14.2: Get Involved actions as stacked rows without filled primary buttons\n";
+    // Check that Get Involved section contains divide-y and no filled primary buttons
+    $getInvolvedPos = strpos($homeHtml, 'id="get-involved"');
+    $aboutBandPos = strpos($homeHtml, 'aria-labelledby="about-band-heading"');
+    assert($getInvolvedPos !== false && $aboutBandPos !== false, "Both Get Involved and About band sections must exist on home page");
+    $getInvolvedHtml = substr($homeHtml, $getInvolvedPos, $aboutBandPos - $getInvolvedPos);
+
+    assert(str_contains($getInvolvedHtml, 'divide-y divide-ink/10'), "Get Involved must feature hairline dividers between rows (divide-y divide-ink/10)");
+    assert(str_contains($getInvolvedHtml, 'w-11 h-11 rounded-full bg-accent/10'), "Each action row must feature a 44px icon in a bg-accent/10 circle");
+    assert(!str_contains($getInvolvedHtml, 'bg-primary hover:bg-primary-hover'), "No filled primary buttons in Get Involved section");
+    assert(str_contains($getInvolvedHtml, 'text-accent-strong group-hover:text-accent-hover'), "Actions must use text link style CTAs");
+    echo "    [PASS] Actions render as stacked rows with hairline dividers, 44px icon circles, and text CTAs with zero filled buttons.\n";
+
+    // Subtest 14.3: Card texts avoid claims about investigating or editorial teams
+    echo "  - Subtest 14.3: Plain copy card texts in database\n";
+    $c1Text = SettingModel::get('home_card_1_text');
+    $c2Text = SettingModel::get('home_card_2_text');
+    $c3Text = SettingModel::get('home_card_3_text');
+    assert(!str_contains(strtolower($c2Text), 'investigate'), "Card 2 must not make claims about investigating");
+    assert(!str_contains(strtolower($c3Text), 'editorial team'), "Card 3 must not make claims about editorial teams");
+    assert($c1Text === 'Give your time and skills to campaigns, drives and awareness work.', "Card 1 text must match updated plain copy");
+    assert($c2Text === 'Seen damage to a wetland, mangrove or trees in your area? Tell us what you saw.', "Card 2 text must match updated plain copy");
+    assert($c3Text === 'Have a local environmental story, photo or observation? Send it to us.', "Card 3 text must match updated plain copy");
+    echo "    [PASS] Card texts strictly use plain copy with no claims about investigating or editorial teams.\n";
+
+    // Subtest 14.4: About band text block hiding when empty
+    echo "  - Subtest 14.4: About band empty text block suppression\n";
+    $origFooterAbout = SettingModel::get('footer_about');
+    SettingModel::set('footer_about', '');
+    SettingModel::clearCache();
+
+    ob_start();
+    $publicCtrl->home();
+    $homeHtmlNoAboutText = ob_get_clean();
+
+    $aboutPos = strpos($homeHtmlNoAboutText, 'aria-labelledby="about-band-heading"');
+    $causesPos = strpos($homeHtmlNoAboutText, 'aria-labelledby="causes-heading"');
+    $aboutBandHtml = substr($homeHtmlNoAboutText, $aboutPos, ($causesPos !== false ? $causesPos : strlen($homeHtmlNoAboutText)) - $aboutPos);
+
+    // Verify lone short line / fallback paragraph is NOT rendered
+    assert(!str_contains($aboutBandHtml, 'Dedicated to grassroots environmental activism'), "When about text is empty, no fallback text block should be shown");
+    echo "    [PASS] When about text is empty, right-side text block is cleanly omitted.\n\n";
+
+    // Restore footer_about
+    SettingModel::set('footer_about', $origFooterAbout ?? '');
+    SettingModel::clearCache();
 
     echo "========================================================\n";
     echo "ALL PUBLIC, JSON-LD, D2 HOME & ROUND 2 ASSERTIONS PASSED!\n";

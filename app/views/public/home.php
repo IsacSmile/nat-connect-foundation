@@ -775,62 +775,97 @@ declare(strict_types=1);
        6. GET INVOLVED (id="get-involved")
        ========================================================================= -->
   <?php if (!empty($showGetInvolved)): ?>
-    <section id="get-involved" class="bg-accent/5 border-y border-ink/10 py-16 sm:py-24" aria-labelledby="get-involved-heading">
+    <section id="get-involved" class="py-16 lg:py-20" aria-labelledby="get-involved-heading">
       <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div class="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
-          <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block mb-2">Take Action</span>
-          <h2 id="get-involved-heading" class="font-serif text-[28px] sm:text-[36px] font-medium text-ink leading-tight">
-            <?= e($titleGetInvolved) ?>
-          </h2>
-        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 <?= (empty($getInvolvedPhoto) && empty($getInvolvedIntro)) ? 'lg:items-center' : 'lg:items-start' ?>">
+          
+          <!-- Left 5 cols: section title, intro (if set), photo (4:3, if set) -->
+          <div class="lg:col-span-5 space-y-4">
+            <h2 id="get-involved-heading" class="font-serif text-[28px] sm:text-[36px] font-medium text-ink leading-tight [text-wrap:balance]">
+              <?= e($titleGetInvolved) ?>
+            </h2>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-          <?php foreach ($getInvolvedCards as $idx => $card): ?>
-            <article class="bg-white rounded-lg border border-ink/10 p-6 sm:p-8 flex flex-col justify-between shadow-soft-sm hover:border-primary/30 transition-colors">
-              <div class="space-y-4">
-                <!-- Fixed line icon in accent green: 0=hand-heart, 1=megaphone, 2=pen -->
-                <div class="w-12 h-12 rounded-lg bg-surface border border-ink/10 flex items-center justify-center text-accent shrink-0">
+            <?php if (!empty($getInvolvedIntro)): ?>
+              <p class="text-[17px] text-ink-muted leading-relaxed [text-wrap:pretty]">
+                <?= e($getInvolvedIntro) ?>
+              </p>
+            <?php endif; ?>
+
+            <?php if (!empty($getInvolvedPhoto)): ?>
+              <?php
+                $invPhotoAttrs = \App\Core\ImageUploader::getResponsiveAttributes($getInvolvedPhoto, '(max-width: 1024px) 100vw, 42vw');
+                $invPhotoAlt = !empty($getInvolvedPhotoAlt) ? $getInvolvedPhotoAlt : $titleGetInvolved;
+              ?>
+              <div class="aspect-[4/3] w-full overflow-hidden rounded-lg border border-ink/10 bg-surface shadow-soft-sm pt-1">
+                <?php if ($invPhotoAttrs): ?>
+                  <img 
+                    src="<?= e($invPhotoAttrs['src']) ?>" 
+                    srcset="<?= e($invPhotoAttrs['srcset']) ?>" 
+                    sizes="<?= e($invPhotoAttrs['sizes']) ?>" 
+                    alt="<?= e($invPhotoAlt) ?>" 
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                  >
+                <?php else: ?>
+                  <img 
+                    src="<?= e(\App\Core\ImageUploader::getVariantUrl($getInvolvedPhoto, 800)) ?>" 
+                    alt="<?= e($invPhotoAlt) ?>" 
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                  >
+                <?php endif; ?>
+              </div>
+            <?php endif; ?>
+          </div>
+
+          <!-- Right 7 cols: the 3 actions as stacked ROWS with hairline dividers -->
+          <div class="lg:col-span-7 divide-y divide-ink/10">
+            <?php foreach ($getInvolvedCards as $idx => $card): ?>
+              <a 
+                href="<?= e($card['url']) ?>" 
+                class="group flex items-start gap-4 sm:gap-5 py-6 first:pt-0 last:pb-0 px-3 sm:px-4 -mx-3 sm:-mx-4 rounded-xl hover:bg-ink/[0.03] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <!-- 44px icon in a bg-accent/10 circle -->
+                <div class="w-11 h-11 rounded-full bg-accent/10 flex items-center justify-center text-accent-strong shrink-0 mt-0.5">
                   <?php if ($idx === 0): ?>
                     <!-- hand-heart -->
-                    <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg class="w-5 h-5 text-accent-strong" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M11 14h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16" />
                       <path stroke-linecap="round" stroke-linejoin="round" d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.8-2.8L15 13" />
                       <path stroke-linecap="round" stroke-linejoin="round" d="M19 5.5a2.5 2.5 0 0 0-3.5 0l-.5.5-.5-.5a2.5 2.5 0 1 0-3.5 3.5l4 4 4-4a2.5 2.5 0 0 0 0-3.5Z" />
                     </svg>
                   <?php elseif ($idx === 1): ?>
                     <!-- megaphone -->
-                    <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg class="w-5 h-5 text-accent-strong" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" d="m3 11 18-5v12L3 14v-3z"/>
                       <path stroke-linecap="round" stroke-linejoin="round" d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
                     </svg>
                   <?php else: ?>
                     <!-- pen -->
-                    <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg class="w-5 h-5 text-accent-strong" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
                       <path stroke-linecap="round" stroke-linejoin="round" d="m15 5 4 4"/>
                     </svg>
                   <?php endif; ?>
                 </div>
 
-                <h3 class="font-serif text-xl sm:text-2xl font-medium text-ink leading-snug">
-                  <?= e($card['title']) ?>
-                </h3>
+                <!-- Content: title, text, and text link "Volunteer →" style CTA -->
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-serif font-medium text-[20px] text-ink group-hover:text-primary transition-colors leading-snug">
+                    <?= e($card['title']) ?>
+                  </h3>
+                  <p class="text-[16px] text-ink-muted leading-relaxed mt-1.5 [text-wrap:pretty]">
+                    <?= e($card['text']) ?>
+                  </p>
+                  <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-strong group-hover:text-accent-hover transition-colors mt-2.5">
+                    <span><?= e($card['btn_label']) ?></span>
+                    <span aria-hidden="true" class="transition-transform duration-200 group-hover:translate-x-1">&rarr;</span>
+                  </span>
+                </div>
+              </a>
+            <?php endforeach; ?>
+          </div>
 
-                <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
-                  <?= e($card['text']) ?>
-                </p>
-              </div>
-
-              <div class="pt-6 mt-6 border-t border-ink/10">
-                <a 
-                  href="<?= e($card['url']) ?>" 
-                  class="inline-flex items-center justify-center px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-lg shadow-sm transition-colors min-h-[44px] w-full"
-                >
-                  <?= e($card['btn_label']) ?>
-                </a>
-              </div>
-            </article>
-          <?php endforeach; ?>
         </div>
       </div>
     </section>
@@ -840,14 +875,14 @@ declare(strict_types=1);
        7. ABOUT BAND (Warm green tint bg-accent/5)
        ========================================================================= -->
   <?php if (!empty($showAboutBand)): ?>
-    <section class="bg-accent/5 border-y border-ink/10 py-16 sm:py-24" aria-labelledby="about-band-heading">
-      <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <?php if (!empty($aboutBandPhoto)): ?>
-          <!-- Layout With Photo: Photo left (4:3, rounded-lg) + Statement and Text right on desktop; photo on top on mobile -->
+    <section class="bg-accent/5 border-y border-ink/10 py-16 lg:py-20" aria-labelledby="about-band-heading">
+      <?php if (!empty($aboutBandPhoto)): ?>
+        <!-- Layout With Photo: Desktop 12-column grid, items vertically centered. Photo left 5 cols (4:5 desktop, 4:3 mobile on top), content right 7 cols -->
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
-            <!-- Photo left (4:3, rounded-lg) / on top on mobile -->
-            <div class="lg:col-span-5 aspect-[4/3] w-full overflow-hidden rounded-lg border border-ink/10 bg-surface shadow-soft-sm">
+            <!-- Left 5 cols: photo 4:5 desktop, 4:3 mobile on top, rounded-lg, object-cover -->
+            <div class="lg:col-span-5 aspect-[4/3] lg:aspect-[4/5] w-full overflow-hidden rounded-lg border border-ink/10 bg-surface shadow-soft-sm">
               <?php
                 $aboutPhotoAttrs = \App\Core\ImageUploader::getResponsiveAttributes($aboutBandPhoto, '(max-width: 1024px) 100vw, 42vw');
                 $aboutPhotoAlt = !empty($aboutBandPhotoAlt) ? $aboutBandPhotoAlt : 'About ' . $siteName;
@@ -871,20 +906,39 @@ declare(strict_types=1);
               <?php endif; ?>
             </div>
 
-            <!-- Statement + Text + Links right on desktop -->
-            <div class="lg:col-span-7 space-y-6">
-              <p id="about-band-heading" class="font-serif text-2xl sm:text-3xl lg:text-4xl font-normal text-ink leading-snug [text-wrap:balance]">
-                <?= e($missionStatement) ?>
-              </p>
+            <!-- Right 7 cols: eyebrow "About us", statement, about text, cause chips, buttons -->
+            <div class="lg:col-span-7 space-y-5 lg:space-y-6">
+              <div>
+                <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block mb-2 select-none">About us</span>
+                <p id="about-band-heading" class="font-serif font-normal text-[26px] lg:text-[32px] leading-tight lg:leading-snug text-ink [text-wrap:balance]">
+                  <?= e($missionStatement) ?>
+                </p>
+              </div>
 
               <?php if (!empty($footerAbout)): ?>
-                <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
-                  <?= e($footerAbout) ?>
-                </p>
-              <?php else: ?>
-                <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
-                  Dedicated to grassroots environmental activism, wetland conservation, coastal preservation, and RTI accountability across India.
-                </p>
+                <?php
+                  $aboutParas = array_slice(array_filter(array_map('trim', preg_split('/\r?\n\s*\r?\n/', $footerAbout))), 0, 3);
+                ?>
+                <?php if (!empty($aboutParas)): ?>
+                  <div class="space-y-3 text-[17px] text-ink-muted leading-relaxed [text-wrap:pretty]">
+                    <?php foreach ($aboutParas as $pText): ?>
+                      <p><?= e($pText) ?></p>
+                    <?php endforeach; ?>
+                  </div>
+                <?php endif; ?>
+              <?php endif; ?>
+
+              <?php if (!empty($aboutCauses)): ?>
+                <div class="flex flex-wrap items-center gap-2 pt-1">
+                  <?php foreach ($aboutCauses as $cause): ?>
+                    <a 
+                      href="/tag/<?= e($cause['slug']) ?>" 
+                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-ink/20 hover:border-primary text-ink-soft hover:text-primary bg-surface/50 transition-colors"
+                    >
+                      <?= e($cause['name']) ?>
+                    </a>
+                  <?php endforeach; ?>
+                </div>
               <?php endif; ?>
 
               <div class="flex items-center gap-4 pt-2">
@@ -906,28 +960,48 @@ declare(strict_types=1);
             </div>
 
           </div>
-        <?php else: ?>
-          <!-- Layout Without Photo: Current Two-Column Layout -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        </div>
+      <?php else: ?>
+        <!-- Layout Without Photo: max-w-5xl, two columns centered vertically: statement left; right: about text, cause chips, buttons. Mobile stacked -->
+        <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
             
-            <!-- Left: Mission Statement as large serif statement -->
-            <div class="lg:col-span-7 space-y-4">
-              <p id="about-band-heading" class="font-serif text-2xl sm:text-3xl lg:text-4xl font-normal text-ink leading-snug [text-wrap:balance]">
+            <!-- Left: statement with eyebrow -->
+            <div class="space-y-3">
+              <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block select-none">About us</span>
+              <p id="about-band-heading" class="font-serif font-normal text-[26px] lg:text-[32px] leading-tight lg:leading-snug text-ink [text-wrap:balance]">
                 <?= e($missionStatement) ?>
               </p>
             </div>
 
-            <!-- Right: Footer/About text + Links -->
-            <div class="lg:col-span-5 space-y-5">
+            <!-- Right: about text, cause chips, buttons -->
+            <div class="space-y-5">
               <?php if (!empty($footerAbout)): ?>
-                <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
-                  <?= e($footerAbout) ?>
-                </p>
-              <?php else: ?>
-                <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
-                  Dedicated to grassroots environmental activism, wetland conservation, coastal preservation, and RTI accountability across India.
-                </p>
+                <?php
+                  $aboutParas = array_slice(array_filter(array_map('trim', preg_split('/\r?\n\s*\r?\n/', $footerAbout))), 0, 3);
+                ?>
+                <?php if (!empty($aboutParas)): ?>
+                  <div class="space-y-3 text-[17px] text-ink-muted leading-relaxed [text-wrap:pretty]">
+                    <?php foreach ($aboutParas as $pText): ?>
+                      <p><?= e($pText) ?></p>
+                    <?php endforeach; ?>
+                  </div>
+                <?php endif; ?>
               <?php endif; ?>
+
+              <?php if (!empty($aboutCauses)): ?>
+                <div class="flex flex-wrap items-center gap-2 pt-1">
+                  <?php foreach ($aboutCauses as $cause): ?>
+                    <a 
+                      href="/tag/<?= e($cause['slug']) ?>" 
+                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-ink/20 hover:border-primary text-ink-soft hover:text-primary bg-surface/50 transition-colors"
+                    >
+                      <?= e($cause['name']) ?>
+                    </a>
+                  <?php endforeach; ?>
+                </div>
+              <?php endif; ?>
+
               <div class="flex items-center gap-4 pt-2">
                 <a 
                   href="/about" 
@@ -947,8 +1021,8 @@ declare(strict_types=1);
             </div>
 
           </div>
-        <?php endif; ?>
-      </div>
+        </div>
+      <?php endif; ?>
     </section>
   <?php endif; ?>
 
