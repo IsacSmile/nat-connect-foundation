@@ -277,7 +277,8 @@ class SettingsController
         $sectionSubtitleRti       = trim((string) ($_POST['section_subtitle_rti'] ?? ''));
         $sectionSubtitleGallery   = trim((string) ($_POST['section_subtitle_gallery'] ?? ''));
         $sectionSubtitleNewsletter= trim((string) ($_POST['section_subtitle_newsletter'] ?? ''));
-        $galleryIntro             = trim((string) ($_POST['gallery_intro'] ?? ''));
+        $galleryIntro             = isset($_POST['gallery_intro']) ? trim((string) $_POST['gallery_intro']) : ($currentSettings['gallery_intro'] ?? '');
+        $causesIntro              = isset($_POST['causes_intro']) ? trim((string) $_POST['causes_intro']) : ($currentSettings['causes_intro'] ?? '');
 
         // Show/hide toggles: only update if on 'home' tab to prevent wiping toggles when saving 'general' tab
         $sectionShowAnnouncement = $isHomeTab ? (!empty($_POST['section_show_announcement']) ? '1' : '0') : ($currentSettings['section_show_announcement'] ?? '0');
@@ -336,6 +337,7 @@ class SettingsController
             'section_subtitle_gallery'     => $sectionSubtitleGallery,
             'section_subtitle_newsletter'  => $sectionSubtitleNewsletter,
             'gallery_intro'                => $galleryIntro,
+            'causes_intro'                 => $causesIntro,
             'section_intro_rti'            => $sectionIntroRti,
             'section_intro_newsletter'     => $sectionIntroNewsletter,
             'section_intro_donate'         => $sectionIntroDonate,

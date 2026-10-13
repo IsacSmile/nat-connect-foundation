@@ -72,12 +72,12 @@ class TagModel
     }
 
     /**
-     * Retrieve active cause tags.
+     * Retrieve active cause tags ordered by sort_order.
      */
-    public static function getCauses(int $limit = 20): array
+    public static function getCauses(?int $limit = null): array
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare("
+        $sql = "
             SELECT t.*, COUNT(pt.post_id) AS post_count
             FROM tags t
             LEFT JOIN post_tags pt ON t.id = pt.tag_id
@@ -85,9 +85,16 @@ class TagModel
             GROUP BY t.id, t.name, t.slug, t.description, t.image_path, t.image_alt,
                      t.show_as_topic, t.show_as_cause, t.sort_order, t.created_at
             ORDER BY t.sort_order ASC, t.name ASC
-            LIMIT :limit
-        ");
-        $stmt->bindValue(':limit', max(1, $limit), PDO::PARAM_INT);
+        ";
+
+        if ($limit !== null && $limit > 0) {
+            $sql .= " LIMIT :limit";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        } else {
+            $stmt = $pdo->prepare($sql);
+        }
+
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

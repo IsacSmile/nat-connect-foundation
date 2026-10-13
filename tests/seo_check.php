@@ -320,11 +320,13 @@ if (!str_contains($sitemapXml, "/{$draftPageSlug}")) {
     exit(1);
 }
 
-// Check gallery and contact present
-if (str_contains($sitemapXml, "<loc>{$canonicalSiteUrl}/gallery</loc>") && str_contains($sitemapXml, "<loc>{$canonicalSiteUrl}/contact</loc>")) {
-    echo "[PASS] Fixed Public Routes: /gallery and /contact are included in sitemap.\n";
+// Check gallery, contact, and causes present
+if (str_contains($sitemapXml, "<loc>{$canonicalSiteUrl}/gallery</loc>") 
+    && str_contains($sitemapXml, "<loc>{$canonicalSiteUrl}/contact</loc>")
+    && str_contains($sitemapXml, "<loc>{$canonicalSiteUrl}/causes</loc>")) {
+    echo "[PASS] Fixed Public Routes: /gallery, /contact, and /causes are included in sitemap.\n";
 } else {
-    echo "[FAIL] /gallery or /contact was missing from sitemap!\n";
+    echo "[FAIL] /gallery, /contact, or /causes was missing from sitemap!\n";
     exit(1);
 }
 

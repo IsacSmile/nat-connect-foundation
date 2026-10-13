@@ -859,6 +859,17 @@
                 >
               </div>
             </div>
+            <div class="mt-3">
+              <label for="causes_intro" class="block text-[11px] text-ink-muted mb-1">Causes Page Intro (Optional)</label>
+              <textarea 
+                id="causes_intro" 
+                name="causes_intro" 
+                rows="2" 
+                class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
+                placeholder="Optional introductory text displayed at the top of the /causes page. Default empty."
+              ><?= e($settings['causes_intro'] ?? '') ?></textarea>
+              <p class="text-[11px] text-ink-muted mt-1">Optional intro displayed on the dedicated <a href="/causes" target="_blank" class="text-primary hover:underline font-medium">/causes</a> page. Leave empty to hide.</p>
+            </div>
           </div>
 
           <!-- Section: Campaigns -->

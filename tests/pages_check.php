@@ -149,7 +149,7 @@ try {
     $reservedSlugs = PageModel::RESERVED_SLUGS;
     $allBlocked = true;
 
-    foreach (['admin', 'api', 'gallery', 'donate', 'setup', 'index'] as $resSlug) {
+    foreach (['admin', 'api', 'gallery', 'donate', 'setup', 'index', 'causes'] as $resSlug) {
         $caught = false;
         try {
             PageModel::create([

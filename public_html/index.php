@@ -169,6 +169,7 @@ $router->get('/gallery', [App\Controllers\PublicController::class, 'gallery']);
 
 // Design Phase D1: All Stories Archive & Subscribe
 $router->get('/stories', [App\Controllers\PublicController::class, 'stories']);
+$router->get('/causes', [App\Controllers\PublicController::class, 'causes']);
 $router->post('/subscribe', [App\Controllers\PublicController::class, 'subscribe']);
 
 // Phase 6A: SEO & Syndication Routes

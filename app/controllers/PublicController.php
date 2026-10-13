@@ -559,7 +559,13 @@ class PublicController
 
         // 8. Causes we care about (tags with show_as_cause)
         $showCauses = setting('section_show_causes', '1') === '1';
-        $causes = $showCauses ? TagModel::getCauses(20) : [];
+        $causes = [];
+        $hasMoreCauses = false;
+        if ($showCauses) {
+            $allCauses = TagModel::getCauses();
+            $causes = array_slice($allCauses, 0, 3);
+            $hasMoreCauses = count($allCauses) > 3;
+        }
 
         // 9. Campaigns category posts
         $showCampaigns = setting('section_show_campaigns', '1') === '1';
@@ -663,6 +669,7 @@ class PublicController
             // Section 8: Causes
             'showCauses'         => $showCauses && !empty($causes),
             'causes'             => $causes,
+            'hasMoreCauses'      => $hasMoreCauses,
             'titleCauses'        => setting('section_title_causes', 'Causes we care about'),
             'subtitleCauses'     => setting('section_subtitle_causes', ''),
             // Section 9: Campaigns
@@ -941,6 +948,25 @@ class PublicController
     }
 
     /**
+     * Causes Page (/causes)
+     */
+    public function causes(): void
+    {
+        $siteName = setting('site_name', 'NatConnect Foundation');
+        $title = setting('section_title_causes', 'Causes we care about');
+        $intro = trim((string) setting('causes_intro', ''));
+        $causes = TagModel::getCauses();
+
+        View::render('public/causes', [
+            'pageTitle'       => "{$title} — {$siteName}",
+            'metaDescription' => !empty($intro) ? $intro : "Explore the conservation and environmental causes championed by {$siteName}.",
+            'causesTitle'     => $title,
+            'causesIntro'     => $intro,
+            'causes'          => $causes,
+        ], 'layouts/public');
+    }
+
+    /**
      * Styled 404 Not Found Page
      */
     public static function notFound(): void
@@ -1071,6 +1097,12 @@ class PublicController
         // 8. Contact
         $urls[] = [
             'loc'     => "{$siteUrl}/contact",
+            'lastmod' => null,
+        ];
+
+        // 9. Causes
+        $urls[] = [
+            'loc'     => "{$siteUrl}/causes",
             'lastmod' => null,
         ];
 

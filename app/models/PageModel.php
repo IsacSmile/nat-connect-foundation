@@ -27,6 +27,7 @@ class PageModel
         'gallery',
         'donate',
         'contact',
+        'causes',
         'uploads',
         'assets',
         'setup',

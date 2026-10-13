@@ -16,9 +16,10 @@
   // Category links
   $navCategories = \App\Models\CategoryModel::getAll();
   foreach ($navCategories as $nc) {
+      $isCauses = ($nc['slug'] === 'causes' || strcasecmp($nc['name'], 'causes') === 0);
       $navItems[] = [
           'label' => $nc['name'],
-          'url'   => '/category/' . $nc['slug'],
+          'url'   => $isCauses ? '/causes' : '/category/' . $nc['slug'],
       ];
   }
 

@@ -2,19 +2,80 @@
 <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-10">
 
   <!-- Tag Header -->
-  <header class="border-b border-border pb-8 max-w-3xl space-y-3">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider">
-      Tag Archive
-    </div>
-    
-    <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink">
-      #<?= e($tag['name']) ?>
-    </h1>
+  <?php if (!empty($tag['show_as_cause'])): ?>
+    <!-- Cause Header -->
+    <header class="border-b border-border pb-8 space-y-6">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent-strong text-xs font-semibold uppercase tracking-wider">
+        Cause
+      </div>
 
-    <p class="text-xs text-ink-muted">
-      Showing <?= (int) $pagination['count'] ?> published <?= $pagination['count'] === 1 ? 'post' : 'posts' ?>
-    </p>
-  </header>
+      <div class="grid grid-cols-1 <?= !empty($tag['image_path']) ? 'lg:grid-cols-12 gap-8 items-center' : '' ?>">
+        <?php if (!empty($tag['image_path'])): ?>
+          <?php
+            $causeImg800 = \App\Core\ImageUploader::getVariantUrl($tag['image_path'], 800);
+            $causeAlt = !empty($tag['image_alt']) ? $tag['image_alt'] : $tag['name'];
+            $causeAttrs = \App\Core\ImageUploader::getResponsiveAttributes($tag['image_path'], '(max-width: 1024px) 100vw, 500px');
+          ?>
+          <div class="lg:col-span-5 aspect-[16/10] w-full overflow-hidden rounded-xl border border-ink/10 bg-surface shadow-soft-sm">
+            <?php if ($causeAttrs): ?>
+              <img 
+                src="<?= e($causeAttrs['src']) ?>" 
+                srcset="<?= e($causeAttrs['srcset']) ?>" 
+                sizes="<?= e($causeAttrs['sizes']) ?>" 
+                alt="<?= e($causeAlt) ?>" 
+                class="w-full h-full object-cover"
+                loading="eager"
+              >
+            <?php else: ?>
+              <img 
+                src="<?= e($causeImg800) ?>" 
+                alt="<?= e($causeAlt) ?>" 
+                class="w-full h-full object-cover"
+                loading="eager"
+              >
+            <?php endif; ?>
+          </div>
+        <?php endif; ?>
+
+        <div class="<?= !empty($tag['image_path']) ? 'lg:col-span-7' : 'max-w-3xl' ?> space-y-4">
+          <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink">
+            <?= e($tag['name']) ?>
+          </h1>
+
+          <?php if (!empty($tag['description'])): ?>
+            <p class="text-base sm:text-lg text-ink-muted leading-relaxed">
+              <?= e($tag['description']) ?>
+            </p>
+          <?php endif; ?>
+
+          <p class="text-xs text-ink-muted">
+            Showing <?= (int) $pagination['count'] ?> published <?= $pagination['count'] === 1 ? 'story' : 'stories' ?>
+          </p>
+        </div>
+      </div>
+    </header>
+  <?php else: ?>
+    <!-- Standard Tag Header -->
+    <header class="border-b border-border pb-8 max-w-3xl space-y-3">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider">
+        Tag Archive
+      </div>
+      
+      <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink">
+        #<?= e($tag['name']) ?>
+      </h1>
+
+      <?php if (!empty($tag['description'])): ?>
+        <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
+          <?= e($tag['description']) ?>
+        </p>
+      <?php endif; ?>
+
+      <p class="text-xs text-ink-muted">
+        Showing <?= (int) $pagination['count'] ?> published <?= $pagination['count'] === 1 ? 'post' : 'posts' ?>
+      </p>
+    </header>
+  <?php endif; ?>
 
   <!-- Posts Grid -->
   <?php if (!empty($posts)): ?>

@@ -791,6 +791,153 @@ try {
     SettingModel::clearCache();
     echo "    [PASS] WhatsApp URL builder produces valid wa.me URLs with URL-encoded messages and safe fallback.\n\n";
 
+    // ---------------------------------------------------------
+    // TEST 12: Causes Page, Navigation & Tag Archive Assertions
+    // ---------------------------------------------------------
+    echo "--- Test 12: Causes Page, Navigation & Tag Archive Assertions ---\n";
+
+    // 12.1 Create cause and non-cause tags
+    $randCause = bin2hex(random_bytes(3));
+    $causeTag1Name = "Mangrove Protection {$randCause}";
+    $causeTag1Slug = "mangrove-protection-{$randCause}";
+    $causeTag1Desc = "Protecting critical coastal mangrove systems across the region.";
+    $causeTag1Img  = "/uploads/2026/10/mangrove-test-1600.webp";
+
+    $stmt = $pdo->prepare("
+        INSERT INTO tags (name, slug, description, image_path, image_alt, show_as_topic, show_as_cause, sort_order)
+        VALUES (:name, :slug, :description, :image_path, :image_alt, 0, 1, 10)
+    ");
+    $stmt->execute([
+        'name'        => $causeTag1Name,
+        'slug'        => $causeTag1Slug,
+        'description' => $causeTag1Desc,
+        'image_path'  => $causeTag1Img,
+        'image_alt'   => 'Mangrove wetlands landscape',
+    ]);
+    $causeTag1Id = (int) $pdo->lastInsertId();
+    $createdTagIds[] = $causeTag1Id;
+
+    $causeTag2Name = "Wetland Conservation {$randCause}";
+    $causeTag2Slug = "wetland-conservation-{$randCause}";
+    $causeTag2Desc = "Preserving natural wetland habitats and migratory bird grounds.";
+    $causeTag2Img  = "/uploads/2026/10/wetland-test-1600.webp";
+
+    $stmt->execute([
+        'name'        => $causeTag2Name,
+        'slug'        => $causeTag2Slug,
+        'description' => $causeTag2Desc,
+        'image_path'  => $causeTag2Img,
+        'image_alt'   => 'Wetlands aerial view',
+    ]);
+    $causeTag2Id = (int) $pdo->lastInsertId();
+    $createdTagIds[] = $causeTag2Id;
+
+    $nonCauseName = "General News Tag {$randCause}";
+    $nonCauseSlug = "general-news-{$randCause}";
+    $stmtNonCause = $pdo->prepare("
+        INSERT INTO tags (name, slug, description, image_path, image_alt, show_as_topic, show_as_cause, sort_order)
+        VALUES (:name, :slug, 'A general tag', NULL, NULL, 0, 0, 99)
+    ");
+    $stmtNonCause->execute([
+        'name' => $nonCauseName,
+        'slug' => $nonCauseSlug,
+    ]);
+    $nonCauseId = (int) $pdo->lastInsertId();
+    $createdTagIds[] = $nonCauseId;
+
+    // 12.2 /causes lists all causes and respects custom title and intro
+    echo "  - Subtest 12.2: /causes route lists all causes with title and optional intro\n";
+    $origCausesTitle = SettingModel::get('section_title_causes');
+    $origCausesIntro = SettingModel::get('causes_intro');
+    SettingModel::set('section_title_causes', "Environmental Causes We Champion {$randCause}");
+    SettingModel::set('causes_intro', "Dedicated advocacy initiatives by NatConnect Foundation {$randCause}.");
+    SettingModel::clearCache();
+
+    $causesList = TagModel::getCauses();
+    $causeIdsList = array_column($causesList, 'id');
+    assert(in_array($causeTag1Id, $causeIdsList, true), "Cause Tag 1 must be present in TagModel::getCauses()");
+    assert(in_array($causeTag2Id, $causeIdsList, true), "Cause Tag 2 must be present in TagModel::getCauses()");
+    assert(!in_array($nonCauseId, $causeIdsList, true), "Non-cause tag must NOT be present in TagModel::getCauses()");
+
+    // Verify ordering by sort_order
+    for ($i = 0; $i < count($causesList) - 1; $i++) {
+        assert((int) $causesList[$i]['sort_order'] <= (int) $causesList[$i + 1]['sort_order'], "Causes must be ordered by sort_order ASC");
+    }
+
+    ob_start();
+    $publicCtrl->causes();
+    $causesHtml = ob_get_clean();
+
+    assert(str_contains($causesHtml, "Environmental Causes We Champion {$randCause}"), "Page heading must use section_title_causes setting");
+    assert(str_contains($causesHtml, "Dedicated advocacy initiatives by NatConnect Foundation {$randCause}."), "Page must display optional causes_intro setting");
+    assert(str_contains($causesHtml, $causeTag1Name), "Cause Tag 1 must be listed on /causes page");
+    assert(str_contains($causesHtml, $causeTag2Name), "Cause Tag 2 must be listed on /causes page");
+    assert(!str_contains($causesHtml, $nonCauseName), "Non-cause tag must NOT be listed on /causes page");
+    echo "    [PASS] /causes correctly lists all causes, honors custom title and intro, and orders by sort_order.\n";
+
+    // Restore original settings
+    SettingModel::set('section_title_causes', $origCausesTitle ?? 'Causes we care about');
+    SettingModel::set('causes_intro', $origCausesIntro ?? '');
+    SettingModel::clearCache();
+
+    // 12.3 Header Navigation: Causes links to /causes instead of /category/causes
+    echo "  - Subtest 12.3: Header navigation links 'Causes' to /causes\n";
+    ob_start();
+    \App\Core\View::partial('partials/header');
+    $headerHtml = ob_get_clean();
+    assert(str_contains($headerHtml, 'href="/causes"'), "Header nav must link Causes to /causes");
+    assert(!str_contains($headerHtml, 'href="/category/causes"'), "Header nav must NOT link to /category/causes");
+    echo "    [PASS] Header navigation links 'Causes' to /causes instead of /category/causes.\n";
+
+    // 12.4 Cause tag page: show cause image and description at the top, drafts never appear
+    echo "  - Subtest 12.4: Cause tag page displays image & description; drafts and future posts are excluded\n";
+    $causePubTitle = "Published Story for Cause {$randCause}";
+    $causePubId = PostModel::create([
+        'title'        => $causePubTitle,
+        'slug'         => "cause-pub-{$randCause}",
+        'category_id'  => $catId,
+        'status'       => 'published',
+        'published_at' => date('Y-m-d H:i:s', time() - 3600),
+        'content'      => '<p>Published cause content</p>',
+    ]);
+    $createdPostIds[] = $causePubId;
+    $pdo->prepare("INSERT INTO post_tags (post_id, tag_id) VALUES (:pid, :tid)")->execute(['pid' => $causePubId, 'tid' => $causeTag1Id]);
+
+    $causeDraftTitle = "Draft Story for Cause {$randCause}";
+    $causeDraftId = PostModel::create([
+        'title'        => $causeDraftTitle,
+        'slug'         => "cause-draft-{$randCause}",
+        'category_id'  => $catId,
+        'status'       => 'draft',
+        'content'      => '<p>Draft cause content</p>',
+    ]);
+    $createdPostIds[] = $causeDraftId;
+    $pdo->prepare("INSERT INTO post_tags (post_id, tag_id) VALUES (:pid, :tid)")->execute(['pid' => $causeDraftId, 'tid' => $causeTag1Id]);
+
+    $causeFutureTitle = "Future Story for Cause {$randCause}";
+    $causeFutureId = PostModel::create([
+        'title'        => $causeFutureTitle,
+        'slug'         => "cause-future-{$randCause}",
+        'category_id'  => $catId,
+        'status'       => 'scheduled',
+        'published_at' => date('Y-m-d H:i:s', time() + 86400 * 3),
+        'content'      => '<p>Future cause content</p>',
+    ]);
+    $createdPostIds[] = $causeFutureId;
+    $pdo->prepare("INSERT INTO post_tags (post_id, tag_id) VALUES (:pid, :tid)")->execute(['pid' => $causeFutureId, 'tid' => $causeTag1Id]);
+
+    ob_start();
+    $publicCtrl->tag(['slug' => $causeTag1Slug]);
+    $tagPageHtml = ob_get_clean();
+
+    assert(str_contains($tagPageHtml, $causeTag1Name), "Cause tag page must display cause name");
+    assert(str_contains($tagPageHtml, $causeTag1Desc), "Cause tag page must display cause description at top");
+    assert(str_contains($tagPageHtml, 'mangrove-test-1600.webp') || str_contains($tagPageHtml, 'mangrove-test'), "Cause tag page must display cause image at top");
+    assert(str_contains($tagPageHtml, $causePubTitle), "Published post must appear on cause tag page");
+    assert(!str_contains($tagPageHtml, $causeDraftTitle), "Draft post must NEVER appear on cause tag page");
+    assert(!str_contains($tagPageHtml, $causeFutureTitle), "Future scheduled post must NEVER appear on cause tag page");
+    echo "    [PASS] Cause tag page displays cause image and description at the top; drafts & future posts are strictly excluded.\n\n";
+
     echo "========================================================\n";
     echo "ALL PUBLIC, JSON-LD, D2 HOME & ROUND 2 ASSERTIONS PASSED!\n";
     echo "========================================================\n";
