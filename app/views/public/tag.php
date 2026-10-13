@@ -16,7 +16,7 @@
             $causeAlt = !empty($tag['image_alt']) ? $tag['image_alt'] : $tag['name'];
             $causeAttrs = \App\Core\ImageUploader::getResponsiveAttributes($tag['image_path'], '(max-width: 1024px) 100vw, 500px');
           ?>
-          <div class="lg:col-span-5 aspect-[16/10] w-full overflow-hidden rounded-xl border border-ink/10 bg-surface shadow-soft-sm">
+          <div class="lg:col-span-5 aspect-[16/10] w-full overflow-hidden rounded-lg border border-ink/10 bg-surface shadow-soft-sm">
             <?php if ($causeAttrs): ?>
               <img 
                 src="<?= e($causeAttrs['src']) ?>" 
@@ -62,7 +62,7 @@
       </div>
       
       <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink">
-        #<?= e($tag['name']) ?>
+        <?= e($tag['name']) ?>
       </h1>
 
       <?php if (!empty($tag['description'])): ?>

@@ -443,7 +443,7 @@ if (!empty($post['excerpt'])) {
                 href="/post/<?= e($prevPost['slug']) ?>" 
                 class="group p-4 rounded-xl border border-border hover:border-primary/40 bg-white hover:bg-surface-alt transition-all flex flex-col justify-between"
               >
-                <span class="text-[11px] font-bold uppercase tracking-wider text-ink-subtle mb-1 group-hover:text-primary flex items-center gap-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-ink-subtle mb-1 group-hover:text-primary flex items-center gap-1">
                   &larr; Previous Story
                 </span>
                 <span class="font-serif text-sm font-bold text-ink group-hover:text-primary leading-snug">
@@ -459,7 +459,7 @@ if (!empty($post['excerpt'])) {
                 href="/post/<?= e($nextPost['slug']) ?>" 
                 class="group p-4 rounded-xl border border-border hover:border-primary/40 bg-white hover:bg-surface-alt transition-all flex flex-col justify-between text-right"
               >
-                <span class="text-[11px] font-bold uppercase tracking-wider text-ink-subtle mb-1 group-hover:text-primary flex items-center justify-end gap-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-ink-subtle mb-1 group-hover:text-primary flex items-center justify-end gap-1">
                   Next Story &rarr;
                 </span>
                 <span class="font-serif text-sm font-bold text-ink group-hover:text-primary leading-snug">
@@ -692,12 +692,12 @@ if (!empty($post['excerpt'])) {
                       </div>
                       <div class="flex-1 min-w-0">
                         <?php if (!empty($rel['category_name'])): ?>
-                          <span class="text-[10px] font-bold text-primary uppercase tracking-wider block mb-0.5"><?= e($rel['category_name']) ?></span>
+                          <span class="text-xs font-bold text-primary uppercase tracking-wider block mb-0.5"><?= e($rel['category_name']) ?></span>
                         <?php endif; ?>
                         <h3 class="font-serif text-xs font-bold text-ink group-hover:text-primary transition-colors leading-snug">
                           <?= e($rel['title']) ?>
                         </h3>
-                        <div class="text-[11px] text-ink-subtle mt-1 flex items-center gap-1.5">
+                        <div class="text-xs text-ink-subtle mt-1 flex items-center gap-1.5">
                           <span><?= formatDate($rel['published_at'] ?? $rel['created_at'], 'd M') ?></span>
                           <span>&bull;</span>
                           <span><?= (int) ($rel['read_time_minutes'] ?? 1) ?> min</span>
@@ -738,12 +738,12 @@ if (!empty($post['excerpt'])) {
                       </div>
                       <div class="flex-1 min-w-0">
                         <?php if (!empty($pop['category_name'])): ?>
-                          <span class="text-[10px] font-bold text-primary uppercase tracking-wider block mb-0.5"><?= e($pop['category_name']) ?></span>
+                          <span class="text-xs font-bold text-primary uppercase tracking-wider block mb-0.5"><?= e($pop['category_name']) ?></span>
                         <?php endif; ?>
                         <h3 class="font-serif text-xs font-bold text-ink group-hover:text-primary transition-colors leading-snug">
                           <?= e($pop['title']) ?>
                         </h3>
-                        <div class="text-[11px] text-ink-subtle mt-1 flex items-center gap-1.5">
+                        <div class="text-xs text-ink-subtle mt-1 flex items-center gap-1.5">
                           <span><?= formatDate($pop['published_at'] ?? $pop['created_at'], 'd M') ?></span>
                           <?php $popViews = (int) ($pop['views'] ?? 0); ?>
                           <?php if ($popViews >= 10): ?>

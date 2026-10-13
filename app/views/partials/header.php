@@ -57,7 +57,7 @@
           </span>
           <?php $tagline = setting('site_tagline'); ?>
           <?php if (!empty($tagline)): ?>
-            <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-accent-strong mt-0.5 truncate">
+            <span class="text-xs font-semibold uppercase tracking-wider text-accent-strong mt-0.5 truncate">
               <?= e($tagline) ?>
             </span>
           <?php endif; ?>

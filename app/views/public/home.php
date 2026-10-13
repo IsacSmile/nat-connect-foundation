@@ -7,15 +7,50 @@ declare(strict_types=1);
  */
 ?>
 
+<?php if (!empty($showAnnouncement)): ?>
+  <!-- =========================================================================
+       1. ANNOUNCEMENT BAR (Dismissible via localStorage)
+       ========================================================================= -->
+  <div 
+    x-data="{ dismissed: localStorage.getItem('nc_announcement_dismissed') === '1' }" 
+    x-show="!dismissed" 
+    x-cloak
+    class="bg-primary text-white text-sm py-2.5 px-5 shadow-sm"
+    role="region"
+    aria-label="Announcement"
+  >
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div class="flex-1 text-center min-w-0">
+        <?php if (!empty($announcementLink)): ?>
+          <a href="<?= e($announcementLink) ?>" class="inline-flex items-center gap-1.5 hover:underline font-medium truncate">
+            <span><?= e($announcementText) ?></span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        <?php else: ?>
+          <span class="font-medium truncate inline-block"><?= e($announcementText) ?></span>
+        <?php endif; ?>
+      </div>
+      <button 
+        type="button" 
+        @click="localStorage.setItem('nc_announcement_dismissed', '1'); dismissed = true" 
+        class="shrink-0 p-1 text-white/80 hover:text-white rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        aria-label="Dismiss announcement"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+<?php endif; ?>
+
 <?php if (!empty($showLatestStrip) && !empty($stripPosts) && count($stripPosts) >= 2): ?>
   <!-- =========================================================================
-       0. LATEST STRIP (Directly below header, above announcement & hero)
+       0. LATEST STRIP (Directly above hero)
        ========================================================================= -->
   <section class="border-b border-ink/10 bg-surface" aria-label="Latest stories">
     <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-2.5 lg:py-2">
       <!-- Small label before the row on desktop: "Latest" (eyebrow style), not a heading -->
       <div class="hidden lg:block mb-1">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-accent-strong select-none">Latest</span>
+        <span class="text-[12px] font-bold uppercase tracking-wider text-accent-strong select-none">Latest</span>
       </div>
 
       <!-- Items: Mobile horizontal scroll-snap, Tablet 2x2 grid, Desktop 1 row 4 equal columns -->
@@ -54,12 +89,12 @@ declare(strict_types=1);
               </div>
             <?php endif; ?>
 
-            <!-- Right side: category eyebrow (12px uppercase in text-accent-strong) + title in Fraunces 500, 15px, up to 3 lines (NEVER truncated with ellipsis) -->
+            <!-- Right side: category eyebrow (12px uppercase in text-accent-strong) + title in Fraunces 500, 15px (NEVER truncated with ellipsis) -->
             <div class="flex-1 min-w-0 space-y-1">
               <span class="text-[12px] uppercase font-semibold text-accent-strong tracking-wider block leading-none truncate">
                 <?= e($categoryName) ?>
               </span>
-              <span class="font-serif font-medium text-[15px] leading-[1.3] text-ink group-hover:text-primary transition-colors block max-h-[3.9em] overflow-hidden">
+              <span class="font-serif font-medium text-[15px] leading-[1.3] text-ink group-hover:text-primary transition-colors block">
                 <?= e($p['title']) ?>
               </span>
             </div>
@@ -68,41 +103,6 @@ declare(strict_types=1);
       </div>
     </div>
   </section>
-<?php endif; ?>
-
-<?php if (!empty($showAnnouncement)): ?>
-  <!-- =========================================================================
-       1. ANNOUNCEMENT BAR (Dismissible via localStorage)
-       ========================================================================= -->
-  <div 
-    x-data="{ dismissed: localStorage.getItem('nc_announcement_dismissed') === '1' }" 
-    x-show="!dismissed" 
-    x-cloak
-    class="bg-primary text-white text-sm py-2.5 px-5 shadow-sm"
-    role="region"
-    aria-label="Announcement"
-  >
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-      <div class="flex-1 text-center min-w-0">
-        <?php if (!empty($announcementLink)): ?>
-          <a href="<?= e($announcementLink) ?>" class="inline-flex items-center gap-1.5 hover:underline font-medium truncate">
-            <span><?= e($announcementText) ?></span>
-            <span aria-hidden="true">&rarr;</span>
-          </a>
-        <?php else: ?>
-          <span class="font-medium truncate inline-block"><?= e($announcementText) ?></span>
-        <?php endif; ?>
-      </div>
-      <button 
-        type="button" 
-        @click="localStorage.setItem('nc_announcement_dismissed', '1'); dismissed = true" 
-        class="shrink-0 p-1 text-white/80 hover:text-white rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-        aria-label="Dismiss announcement"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-  </div>
 <?php endif; ?>
 
 <div class="space-y-16 sm:space-y-24">
