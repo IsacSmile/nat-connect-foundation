@@ -440,9 +440,13 @@ if (!function_exists('buildWhatsAppUrl')) {
     function buildWhatsAppUrl(?string $phone, string $message = ''): string
     {
         $cleanPhone = preg_replace('/[^0-9]/', '', (string) $phone);
+        if ($cleanPhone === '') {
+            // No WhatsApp number configured: a bare wa.me link would not reach the foundation.
+            return '/contact';
+        }
         $url = 'https://wa.me/' . $cleanPhone;
         if (trim($message) !== '') {
-            $url .= '?text=' . urlencode(trim($message));
+            $url .= '?text=' . rawurlencode(trim($message));
         }
         return $url;
     }
