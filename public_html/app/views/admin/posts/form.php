@@ -14,6 +14,7 @@
   $coverTypeVal = $old['cover_type'] ?? ($post['cover_type'] ?? 'image');
   $coverImageVal = $old['cover_image'] ?? ($post['cover_image'] ?? '');
   $coverAltVal = $old['cover_alt'] ?? ($post['cover_alt'] ?? '');
+  $coverCaptionVal = $old['cover_caption'] ?? ($post['cover_caption'] ?? '');
   $videoUrlVal = $old['video_url'] ?? ($post['video_url'] ?? '');
   $isPickVal = !empty($old['is_pick'] ?? ($post['is_pick'] ?? 0));
 
@@ -39,6 +40,7 @@
     initialCoverType: '<?= e(addslashes($coverTypeVal)) ?>',
     initialCoverImage: '<?= e(addslashes($coverImageVal)) ?>',
     initialCoverAlt: '<?= e(addslashes($coverAltVal)) ?>',
+    initialCoverCaption: '<?= e(addslashes($coverCaptionVal)) ?>',
     initialVideoUrl: '<?= e(addslashes($videoUrlVal)) ?>',
     isEdit: <?= $isEdit ? 'true' : 'false' ?>
   })"
@@ -378,6 +380,24 @@
               <?php endif; ?>
               <p class="text-[11px] text-ink-subtle mt-1">Describe what's in the photo. Example: Volunteers planting mangroves at Panje wetland.</p>
             </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="cover_caption" class="block text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                  Cover photo credit (optional)
+                </label>
+                <span class="text-[11px] text-ink-subtle">Optional</span>
+              </div>
+              <input 
+                type="text" 
+                id="cover_caption" 
+                name="cover_caption" 
+                x-model="coverCaption" 
+                placeholder="Photo credit or caption. Example: Photo: Creator / Source, CC BY 2.0 (https://...)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink placeholder:text-ink-subtle"
+              >
+              <p class="text-[11px] text-ink-subtle mt-1">Displayed as a caption line below the cover image.</p>
+            </div>
           </div>
 
           <!-- Error message if cover upload failed -->
@@ -696,6 +716,7 @@ function postEditor(config) {
     coverType: config.initialCoverType || 'image',
     coverImage: config.initialCoverImage || '',
     coverAlt: config.initialCoverAlt || '',
+    coverCaption: config.initialCoverCaption || '',
     videoUrl: config.initialVideoUrl || '',
     videoPreviewId: '',
     isUploadingCover: false,

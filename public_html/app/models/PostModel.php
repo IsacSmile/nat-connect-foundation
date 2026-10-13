@@ -799,6 +799,8 @@ class PostModel
             }
         }
 
+        $coverCaption = isset($data['cover_caption']) ? trim((string) $data['cover_caption']) : null;
+
         // Meta tags
         $metaTitle = trim((string) ($data['meta_title'] ?? ''));
         $metaDesc  = trim((string) ($data['meta_description'] ?? ''));
@@ -812,11 +814,11 @@ class PostModel
             $stmt = $pdo->prepare(
                 "INSERT INTO posts (
                     title, slug, excerpt, content, category_id, author_name,
-                    cover_type, cover_image, cover_alt, video_url,
+                    cover_type, cover_image, cover_alt, cover_caption, video_url,
                     status, is_pick, published_at, read_time_minutes, meta_title, meta_description
                  ) VALUES (
                     :title, :slug, :excerpt, :content, :category_id, :author_name,
-                    :cover_type, :cover_image, :cover_alt, :video_url,
+                    :cover_type, :cover_image, :cover_alt, :cover_caption, :video_url,
                     :status, :is_pick, :published_at, :read_time_minutes, :meta_title, :meta_description
                  )"
             );
@@ -831,6 +833,7 @@ class PostModel
                 'cover_type'        => $coverType,
                 'cover_image'       => $coverImage,
                 'cover_alt'         => $coverAlt,
+                'cover_caption'     => ($coverCaption !== null && $coverCaption !== '') ? $coverCaption : null,
                 'video_url'         => $videoUrl,
                 'status'            => $status,
                 'is_pick'           => $isPick,
@@ -956,6 +959,8 @@ class PostModel
             }
         }
 
+        $coverCaption = isset($data['cover_caption']) ? trim((string) $data['cover_caption']) : null;
+
         // Cleanup replaced/removed cover image files
         if (!empty($existing['cover_image']) && $existing['cover_image'] !== $coverImage) {
             ImageUploader::deleteVariants($existing['cover_image']);
@@ -986,6 +991,7 @@ class PostModel
                     cover_type = :cover_type,
                     cover_image = :cover_image,
                     cover_alt = :cover_alt,
+                    cover_caption = :cover_caption,
                     video_url = :video_url,
                     status = :status,
                     is_pick = :is_pick,
@@ -1008,6 +1014,7 @@ class PostModel
                 'cover_type'        => $coverType,
                 'cover_image'       => $coverImage,
                 'cover_alt'         => $coverAlt,
+                'cover_caption'     => ($coverCaption !== null && $coverCaption !== '') ? $coverCaption : null,
                 'video_url'         => $videoUrl,
                 'status'            => $status,
                 'is_pick'           => $isPick,

@@ -2,7 +2,7 @@
 -- NatConnect Foundation — Fresh Installation Schema & Baseline Seed
 -- =====================================================================
 -- FRESH INSTALL PROTOCOL: Import database/install.sql only.
--- Generated: 2026-10-13 14:30:58 (IST)
+-- Generated: 2026-10-13 23:24:28 (IST)
 -- Contains:
 --   1. Full database table structure (clean DDL, no auto-increment values)
 --   2. Seed categories, site settings, and default pages
@@ -39,6 +39,7 @@ CREATE TABLE `posts` (
   `cover_type` enum('image','video') NOT NULL DEFAULT 'image',
   `cover_image` varchar(255) DEFAULT NULL,
   `cover_alt` varchar(255) DEFAULT NULL,
+  `cover_caption` varchar(500) DEFAULT NULL,
   `video_url` varchar(255) DEFAULT NULL,
   `author_name` varchar(150) DEFAULT 'NatConnect Foundation',
   `category_id` int(10) unsigned DEFAULT NULL,
@@ -381,7 +382,8 @@ INSERT INTO `schema_migrations` (`version`, `applied_at`) VALUES
   ('009_categories_sort_order', NOW()),
   ('010_home_round_2_settings', NOW()),
   ('011_causes_page_settings', NOW()),
-  ('012_get_involved_settings', NOW())
+  ('012_get_involved_settings', NOW()),
+  ('013_add_cover_caption_to_posts', NOW())
 ON DUPLICATE KEY UPDATE `version` = `version`;
 
 SET FOREIGN_KEY_CHECKS = 1;
