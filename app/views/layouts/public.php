@@ -84,14 +84,14 @@
   <!-- Accessibility Skip Link -->
   <a 
     href="#main-content" 
-    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-xl shadow-soft transition-colors"
+    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-30 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-xl shadow-soft transition-colors"
   >
     Skip to main content
   </a>
 
   <?php if (!empty($isPreview)): ?>
     <!-- Fixed Admin Preview Banner -->
-    <div class="sticky top-0 inset-x-0 z-50 bg-amber-500 text-amber-950 px-4 py-2 text-xs sm:text-sm font-semibold shadow-md flex items-center justify-between">
+    <div class="sticky top-0 inset-x-0 z-30 bg-amber-500 text-amber-950 px-4 py-2 text-xs sm:text-sm font-semibold shadow-md flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-950 animate-pulse"></span>
         <span>Preview: not published (Status: <?= e(ucfirst($post['status'] ?? $page['status'] ?? 'Draft')) ?>)</span>

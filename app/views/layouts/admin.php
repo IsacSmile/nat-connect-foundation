@@ -35,6 +35,7 @@
 
     <!-- Admin Sidebar (Slide-over drawer on mobile, fixed left on lg+) -->
     <aside 
+      id="admin-sidebar"
       :class="sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0 shadow-none'"
       class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-border text-ink transition-transform duration-200 ease-in-out flex flex-col justify-between shrink-0 shadow-none lg:shadow-none"
       :aria-hidden="(!sidebarOpen && window.innerWidth < 1024).toString()"
@@ -262,7 +263,10 @@
           <!-- Mobile Menu Drawer Toggle (Min 44x44px target) -->
           <button 
             type="button" 
+            id="admin-sidebar-toggle"
             @click="sidebarOpen = true" 
+            :aria-expanded="sidebarOpen.toString()"
+            aria-controls="admin-sidebar"
             class="lg:hidden p-2.5 text-ink-muted hover:text-ink hover:bg-surface rounded-xl focus-visible:ring-2 focus-visible:ring-primary min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
             aria-label="Open sidebar menu"
           >

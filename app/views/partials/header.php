@@ -40,7 +40,7 @@
   $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
 ?>
 
-<header x-data="{ mobileOpen: false, searchOpen: false }" class="sticky top-0 z-40 bg-surface/95 backdrop-blur border-b border-border">
+<header x-data="headerNav()" class="sticky top-0 z-30 bg-surface/95 backdrop-blur border-b border-border">
   <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-20">
       
@@ -68,6 +68,8 @@
       <nav class="hidden nav:flex items-center gap-6" aria-label="Main Navigation">
         <?php foreach ($navItems as $item): ?>
           <?php
+            // If donate is shown as CTA button, skip text link to avoid duplicate
+            if ($item['url'] === '/donate') continue;
             $itemPath = '/' . trim($item['url'], '/');
             $isActive = ($itemPath === '/' && $currentPath === '/') || ($itemPath !== '/' && str_starts_with($currentPath, $itemPath));
           ?>
@@ -87,7 +89,7 @@
           type="button" 
           @click="searchOpen = !searchOpen" 
           aria-label="Toggle Search Bar"
-          class="p-2.5 text-ink-muted hover:text-primary hover:bg-white rounded-xl border border-transparent hover:border-border transition-all focus-visible:ring-2 focus-visible:ring-primary"
+          class="p-2.5 text-ink-muted hover:text-primary hover:bg-white rounded-xl border border-transparent hover:border-border transition-all focus-visible:ring-2 focus-visible:ring-primary min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="11" cy="11" r="8"/>
@@ -113,7 +115,7 @@
           type="button" 
           @click="searchOpen = !searchOpen" 
           aria-label="Toggle Search"
-          class="p-2 text-ink-muted hover:text-primary rounded-xl focus-visible:ring-2 focus-visible:ring-primary"
+          class="p-2 text-ink-muted hover:text-primary rounded-xl focus-visible:ring-2 focus-visible:ring-primary min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="11" cy="11" r="8"/>
@@ -124,10 +126,13 @@
         <!-- Mobile Drawer Hamburger Toggle -->
         <button 
           type="button" 
-          @click="mobileOpen = true" 
+          id="mobile-nav-toggle"
+          x-ref="menuButton"
+          @click="openDrawer()" 
           aria-label="Open Navigation Menu" 
-          :aria-expanded="mobileOpen"
-          class="p-2 text-ink hover:text-primary rounded-xl focus-visible:ring-2 focus-visible:ring-primary"
+          :aria-expanded="mobileOpen.toString()"
+          aria-controls="mobile-nav-drawer"
+          class="p-2 text-ink hover:text-primary rounded-xl focus-visible:ring-2 focus-visible:ring-primary min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
             <line x1="4" x2="20" y1="12" y2="12"/>
@@ -167,52 +172,60 @@
 
   </div>
 
-  <!-- Mobile Navigation Drawer via Alpine.js -->
-  <div 
-    x-show="mobileOpen" 
-    x-cloak
-    class="fixed inset-0 z-50 nav:hidden" 
-    role="dialog" 
-    aria-modal="true" 
-    aria-label="Mobile Navigation"
-  >
-    <!-- Backdrop Overlay -->
+  <!-- Mobile Backdrop Teleported Directly to <body> -->
+  <template x-teleport="body">
     <div 
       x-show="mobileOpen"
-      x-transition:enter="transition-opacity ease-linear duration-200"
+      x-cloak
+      x-transition:enter="transition-opacity ease-linear duration-200 motion-reduce:transition-none"
       x-transition:enter-start="opacity-0"
       x-transition:enter-end="opacity-100"
-      x-transition:leave="transition-opacity ease-linear duration-200"
+      x-transition:leave="transition-opacity ease-linear duration-200 motion-reduce:transition-none"
       x-transition:leave-start="opacity-100"
       x-transition:leave-end="opacity-0"
-      @click="mobileOpen = false"
-      class="fixed inset-0 bg-ink/50 backdrop-blur-sm"
+      @click="closeDrawer()"
+      class="fixed inset-0 z-40 bg-ink/40 nav:hidden motion-reduce:transition-none"
+      aria-hidden="true"
     ></div>
+  </template>
 
-    <!-- Sliding Drawer Panel -->
+  <!-- Mobile Drawer Teleported Directly to <body> -->
+  <template x-teleport="body">
     <div 
+      id="mobile-nav-drawer"
       x-show="mobileOpen"
-      x-transition:enter="transition ease-out duration-250 transform"
-      x-transition:enter-start="translate-x-full"
+      x-cloak
+      x-ref="drawerPanel"
+      tabindex="-1"
+      role="dialog" 
+      aria-modal="true" 
+      aria-label="Mobile Navigation"
+      x-transition:enter="transition ease-out duration-250 transform motion-reduce:transition-none"
+      x-transition:enter-start="-translate-x-full"
       x-transition:enter-end="translate-x-0"
-      x-transition:leave="transition ease-in duration-200 transform"
+      x-transition:leave="transition ease-in duration-200 transform motion-reduce:transition-none"
       x-transition:leave-start="translate-x-0"
-      x-transition:leave-end="translate-x-full"
-      @keydown.escape.window="mobileOpen = false"
-      class="relative ml-auto w-full max-w-xs h-full bg-surface shadow-soft-lg p-6 flex flex-col justify-between overflow-y-auto"
+      x-transition:leave-end="-translate-x-full"
+      @keydown.escape.window="if (mobileOpen) closeDrawer()"
+      @keydown.tab="handleTab($event)"
+      @click="if ($event.target.closest('a')) closeDrawer()"
+      style="width: min(85vw, 320px);"
+      class="fixed inset-y-0 left-0 z-50 w-[min(85vw,320px)] h-full bg-white shadow-2xl p-6 flex flex-col justify-between overflow-y-auto nav:hidden focus:outline-none motion-reduce:transition-none"
     >
       <div>
         <!-- Drawer Header with Logo-mark & Close Button -->
         <div class="flex items-center justify-between pb-6 border-b border-border">
-          <a href="/" class="flex items-center gap-2.5">
-            <img src="<?= asset('assets/img/logo-mark.png') ?>" alt="NatConnect" class="h-9 w-auto" />
-            <span class="font-serif font-bold text-lg text-primary leading-none">NatConnect</span>
+          <a href="/" @click="closeDrawer()" class="flex items-center gap-2.5 focus-visible:ring-2 focus-visible:ring-primary rounded-lg p-1 min-w-0">
+            <img src="<?= asset('assets/img/logo-mark.png') ?>" alt="NatConnect" class="h-9 w-auto shrink-0" />
+            <span class="font-serif font-bold text-lg text-primary leading-none truncate"><?= e(setting('site_name', 'NatConnect Foundation')) ?></span>
           </a>
           <button 
             type="button" 
-            @click="mobileOpen = false" 
+            x-ref="closeButton"
+            data-drawer-close
+            @click="closeDrawer()" 
             aria-label="Close menu"
-            class="p-2 text-ink-muted hover:text-ink rounded-lg focus-visible:ring-2 focus-visible:ring-primary"
+            class="p-2 text-ink-muted hover:text-ink rounded-lg focus-visible:ring-2 focus-visible:ring-primary min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M18 6 6 18M6 6l12 12"/>
@@ -221,30 +234,45 @@
         </div>
 
         <!-- Drawer Navigation Links (from PHP array) -->
-        <nav class="mt-6 flex flex-col space-y-1.5" aria-label="Mobile Menu Links">
+        <nav class="mt-6 flex flex-col space-y-1" aria-label="Mobile Menu Links">
           <?php foreach ($navItems as $item): ?>
             <?php
+              // If donate is shown as dedicated CTA button below, skip text link
+              if ($item['url'] === '/donate') continue;
               $itemPath = '/' . trim($item['url'], '/');
               $isActive = ($itemPath === '/' && $currentPath === '/') || ($itemPath !== '/' && str_starts_with($currentPath, $itemPath));
             ?>
             <a 
               href="<?= e($item['url']) ?>" 
-              @click="mobileOpen = false" 
-              class="px-3.5 py-2.5 text-base rounded-xl transition-colors <?= $isActive ? 'bg-primary/10 text-primary font-bold' : 'text-ink hover:bg-white hover:text-primary font-medium' ?>"
+              @click="closeDrawer()" 
+              class="px-3.5 py-2.5 text-base rounded-xl transition-colors <?= $isActive ? 'bg-primary/10 text-primary font-bold' : 'text-ink hover:bg-surface-alt hover:text-primary font-medium' ?>"
             >
               <?= e($item['label']) ?>
             </a>
           <?php endforeach; ?>
+
+          <!-- Search Link -->
+          <a 
+            href="/search" 
+            @click="closeDrawer()" 
+            class="flex items-center gap-2.5 px-3.5 py-2.5 text-base rounded-xl transition-colors <?= $currentPath === '/search' ? 'bg-primary/10 text-primary font-bold' : 'text-ink hover:bg-surface-alt hover:text-primary font-medium' ?>"
+          >
+            <svg class="w-5 h-5 text-ink-muted shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.3-4.3"/>
+            </svg>
+            <span>Search</span>
+          </a>
         </nav>
       </div>
 
       <!-- Drawer Bottom Actions -->
-      <div class="pt-6 border-t border-border mt-8 space-y-4">
+      <div class="pt-6 border-t border-border mt-8 space-y-4 shrink-0">
         <?php if ($isDonateActive): ?>
           <a 
             href="/donate" 
-            @click="mobileOpen = false"
-            class="w-full flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-accent-strong hover:bg-accent-hover rounded-xl shadow-soft transition-colors"
+            @click="closeDrawer()"
+            class="w-full flex items-center justify-center px-4 py-3 text-base font-semibold text-white bg-accent-strong hover:bg-accent-hover rounded-xl shadow-soft transition-colors focus-visible:ring-2 focus-visible:ring-accent"
           >
             Donate
           </a>
@@ -255,5 +283,76 @@
         </p>
       </div>
     </div>
-  </div>
+  </template>
 </header>
+
+<script>
+  function headerNav() {
+    return {
+      mobileOpen: false,
+      searchOpen: false,
+      init() {
+        window.addEventListener('resize', () => {
+          if (window.innerWidth >= 1100 && this.mobileOpen) {
+            this.closeDrawer();
+          }
+        });
+      },
+      openDrawer() {
+        this.mobileOpen = true;
+        document.body.classList.add('overflow-hidden');
+        this.$nextTick(() => {
+          const panel = this.getDrawerEl();
+          const closeBtn = panel ? panel.querySelector('[data-drawer-close]') : null;
+          if (closeBtn) {
+            closeBtn.focus();
+          } else {
+            const focusables = this.getFocusables();
+            if (focusables.length > 0) focusables[0].focus();
+          }
+        });
+      },
+      closeDrawer() {
+        if (!this.mobileOpen) return;
+        this.mobileOpen = false;
+        document.body.classList.remove('overflow-hidden');
+        this.$nextTick(() => {
+          const trigger = this.$refs.menuButton || document.getElementById('mobile-nav-toggle');
+          trigger?.focus();
+        });
+      },
+      getDrawerEl() {
+        return document.getElementById('mobile-nav-drawer');
+      },
+      getFocusables() {
+        const panel = this.getDrawerEl();
+        if (!panel) return [];
+        const selector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        return Array.from(panel.querySelectorAll(selector)).filter(el => {
+          return !el.hasAttribute('disabled') && (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0);
+        });
+      },
+      handleTab(event) {
+        const focusables = this.getFocusables();
+        if (focusables.length === 0) {
+          event.preventDefault();
+          return;
+        }
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const panel = this.getDrawerEl();
+        if (event.shiftKey) {
+          if (document.activeElement === first || !panel.contains(document.activeElement)) {
+            event.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last || !panel.contains(document.activeElement)) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    };
+  }
+</script>
