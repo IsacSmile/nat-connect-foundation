@@ -613,19 +613,19 @@ try {
         }
     }
 
-    // 11.2 No post repeats across slider / most read / latest / campaigns / RTI
+    // 11.2 No post repeats across strip / slider / most read / campaigns / RTI
     echo "  - Subtest 11.2: Strict no-repeat data allocation across all home sections\n";
     $round2ShownIds = [];
-    $sliderCheck = PostModel::getSliderPosts(5);
+    $stripCheck = PostModel::getLatestPublished(4);
+    foreach ($stripCheck as $p) {
+        $round2ShownIds[] = (int) $p['id'];
+    }
+    $sliderCheck = PostModel::getSliderPosts(5, $round2ShownIds);
     foreach ($sliderCheck as $p) {
         $round2ShownIds[] = (int) $p['id'];
     }
     $mostReadCheck = PostModel::getMostRead(3, $round2ShownIds);
     foreach ($mostReadCheck as $p) {
-        $round2ShownIds[] = (int) $p['id'];
-    }
-    $latestCheck = PostModel::getLatestPublished(3, $round2ShownIds);
-    foreach ($latestCheck as $p) {
         $round2ShownIds[] = (int) $p['id'];
     }
     if ($campCat) {
@@ -641,7 +641,7 @@ try {
         }
     }
     assert(count($round2ShownIds) === count(array_unique($round2ShownIds)), "Strict no-repeat: post IDs must be unique across all 5 sections");
-    echo "    [PASS] No post repeats across slider, most read, latest, campaigns, and RTI.\n";
+    echo "    [PASS] No post repeats across strip, slider, most read, campaigns, and RTI.\n";
 
     // 11.3 Impact strip hidden when empty, visible when populated
     echo "  - Subtest 11.3: Impact strip hidden when empty and visible when populated\n";
@@ -937,6 +937,102 @@ try {
     assert(!str_contains($tagPageHtml, $causeDraftTitle), "Draft post must NEVER appear on cause tag page");
     assert(!str_contains($tagPageHtml, $causeFutureTitle), "Future scheduled post must NEVER appear on cause tag page");
     echo "    [PASS] Cause tag page displays cause image and description at the top; drafts & future posts are strictly excluded.\n\n";
+
+    // ---------------------------------------------------------
+    // TEST 13: Home Page Latest Strip Assertions
+    // ---------------------------------------------------------
+    echo "--- Test 13: Home Page Latest Strip Assertions ---\n";
+
+    // 13.1 Strip shows the 4 newest effectively published posts
+    echo "  - Subtest 13.1: Strip shows the 4 newest effectively published posts\n";
+    $latest4 = PostModel::getLatestPublished(4);
+    assert(count($latest4) <= 4, "Strip cannot contain more than 4 posts");
+    assert(count($latest4) >= 2, "Strip requires at least 2 published posts to display");
+    for ($i = 0; $i < count($latest4) - 1; $i++) {
+        $t1 = strtotime($latest4[$i]['published_at'] ?? $latest4[$i]['created_at']);
+        $t2 = strtotime($latest4[$i + 1]['published_at'] ?? $latest4[$i + 1]['created_at']);
+        assert($t1 >= $t2, "Strip posts must be ordered newest first");
+    }
+    echo "    [PASS] Strip correctly returns the 4 newest effectively published posts.\n";
+
+    // 13.2 Slider still has >= 2 slides when picks overlap the strip
+    echo "  - Subtest 13.2: Slider has >= 2 slides when picks overlap the strip\n";
+    // Mark the 4 strip posts as picks so all picks are in the strip!
+    $stripIds = array_column($latest4, 'id');
+    $pdo->exec("UPDATE posts SET is_pick = 0");
+    $setPickStmt = $pdo->prepare("UPDATE posts SET is_pick = 1 WHERE id = :id");
+    foreach ($stripIds as $sid) {
+        $setPickStmt->execute(['id' => $sid]);
+    }
+    // Slider excluding strip must fall back to next newest published posts so it still has >= 2 slides
+    $sliderAfterOverlap = PostModel::getSliderPosts(5, $stripIds);
+    assert(count($sliderAfterOverlap) >= 2, "Slider must still have >= 2 slides when picks overlap the strip");
+    $sliderOverlapIds = array_column($sliderAfterOverlap, 'id');
+    assert(empty(array_intersect($sliderOverlapIds, $stripIds)), "Slider must NEVER repeat any post shown in the strip");
+    echo "    [PASS] Slider maintains >= 2 slides without duplicating any strip post when picks overlap the strip.\n";
+
+    // Restore picks
+    $pdo->exec("UPDATE posts SET is_pick = 0");
+    if (!empty($origPickIds)) {
+        $restoreStmt = $pdo->prepare("UPDATE posts SET is_pick = 1 WHERE id = :id");
+        foreach ($origPickIds as $pId) {
+            $restoreStmt->execute(['id' => $pId]);
+        }
+    }
+
+    // 13.3 Strict no-repeat data allocation: strip -> slider -> most read -> campaigns -> RTI
+    echo "  - Subtest 13.3: Strict no-repeat allocation order: strip -> slider -> most read -> campaigns -> RTI\n";
+    $allAllocatedIds = [];
+    $stripAlloc = PostModel::getLatestPublished(4);
+    foreach ($stripAlloc as $p) {
+        $allAllocatedIds[] = (int) $p['id'];
+    }
+    $sliderAlloc = PostModel::getSliderPosts(5, $allAllocatedIds);
+    foreach ($sliderAlloc as $p) {
+        $allAllocatedIds[] = (int) $p['id'];
+    }
+    $mostReadAlloc = PostModel::getMostRead(3, $allAllocatedIds);
+    foreach ($mostReadAlloc as $p) {
+        $allAllocatedIds[] = (int) $p['id'];
+    }
+    if ($campCat) {
+        $campAlloc = PostModel::getPublishedForCategory((int) $campCat['id'], 3, $allAllocatedIds);
+        foreach ($campAlloc as $p) {
+            $allAllocatedIds[] = (int) $p['id'];
+        }
+    }
+    if ($rtiCat) {
+        $rtiAlloc = PostModel::getPublishedForCategory((int) $rtiCat['id'], 2, $allAllocatedIds);
+        foreach ($rtiAlloc as $p) {
+            $allAllocatedIds[] = (int) $p['id'];
+        }
+    }
+    assert(count($allAllocatedIds) === count(array_unique($allAllocatedIds)), "Zero repeats: post IDs must be strictly unique across strip, slider, most read, campaigns, RTI");
+    echo "    [PASS] No post repeats across strip, slider, most read, campaigns, and RTI.\n";
+
+    // 13.4 Strip hidden when its toggle is off and rendered when on
+    echo "  - Subtest 13.4: Strip hidden when its toggle is off and rendered when on\n";
+    $origToggle = SettingModel::get('section_show_latest');
+    SettingModel::set('section_show_latest', '0');
+    SettingModel::clearCache();
+
+    ob_start();
+    $publicCtrl->home();
+    $htmlStripOff = ob_get_clean();
+    assert(!str_contains($htmlStripOff, 'aria-label="Latest stories"'), "Latest strip MUST be hidden when toggle is off");
+
+    SettingModel::set('section_show_latest', '1');
+    SettingModel::clearCache();
+
+    ob_start();
+    $publicCtrl->home();
+    $htmlStripOn = ob_get_clean();
+    assert(str_contains($htmlStripOn, 'aria-label="Latest stories"'), "Latest strip MUST be visible when toggle is on and >=2 posts exist");
+
+    // Restore toggle
+    SettingModel::set('section_show_latest', $origToggle ?? '1');
+    SettingModel::clearCache();
+    echo "    [PASS] Strip correctly hidden when toggle is off and rendered when toggle is on.\n\n";
 
     echo "========================================================\n";
     echo "ALL PUBLIC, JSON-LD, D2 HOME & ROUND 2 ASSERTIONS PASSED!\n";

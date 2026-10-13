@@ -473,14 +473,29 @@ class PublicController
     {
         $shownIds = [];
 
-        // 1. Announcement bar
+        // 1. Latest Strip (4 newest effectively published posts; hidden if < 2 posts or toggle is off)
+        // Strip is FIRST in no-repeat allocation: strip -> slider -> most read -> campaigns -> RTI
+        $showLatestStrip = setting('section_show_latest_strip', setting('section_show_latest', '1')) === '1';
+        $stripPosts = [];
+        if ($showLatestStrip) {
+            $candidateStrip = PostModel::getLatestPublished(4);
+            if (count($candidateStrip) >= 2) {
+                $stripPosts = $candidateStrip;
+                foreach ($stripPosts as $p) {
+                    $shownIds[] = (int) $p['id'];
+                }
+            }
+        }
+
+        // Announcement bar
         $showAnnouncement = setting('section_show_announcement', '0') === '1';
         $announcementText = trim((string) setting('announcement_text', ''));
         $announcementLink = trim((string) setting('announcement_link', ''));
 
         // 2. Hero Section: Slider (up to 5 picks or fallback) + Most Read (3 most viewed in last 30 days)
+        // Slider uses picks; picks already in strip are excluded; falls back to next newest so slider has >= 2 slides
         $showHero = setting('section_show_hero', '1') !== '0';
-        $sliderPosts = $showHero ? PostModel::getSliderPosts(5) : [];
+        $sliderPosts = $showHero ? PostModel::getSliderPosts(5, $shownIds) : [];
         foreach ($sliderPosts as $sp) {
             $shownIds[] = (int) $sp['id'];
         }
@@ -510,16 +525,6 @@ class PublicController
         // 4. Explore by topic (tags with show_as_topic)
         $showTopics = setting('section_show_topics', '1') === '1';
         $topics = $showTopics ? TagModel::getTopics(30) : [];
-
-        // 5. Latest stories (3 newest remaining published posts)
-        $showLatest = setting('section_show_latest', '1') === '1';
-        $latestPosts = [];
-        if ($showLatest) {
-            $latestPosts = PostModel::getLatestPublished(3, $shownIds);
-            foreach ($latestPosts as $p) {
-                $shownIds[] = (int) $p['id'];
-            }
-        }
 
         // 6. Get Involved (3 cards, id="get-involved")
         $showGetInvolved = setting('section_show_get_involved', '1') === '1';
@@ -633,6 +638,9 @@ class PublicController
             'metaDescription'    => $metaDescription,
             'shownPostIds'       => $shownIds,
             'isDonateActive'     => $isDonateActive,
+            // Section 0: Latest Strip
+            'showLatestStrip'    => $showLatestStrip && (count($stripPosts) >= 2),
+            'stripPosts'         => $stripPosts,
             // Section 1: Announcement
             'showAnnouncement'   => $showAnnouncement && ($announcementText !== ''),
             'announcementText'   => $announcementText,
@@ -650,9 +658,9 @@ class PublicController
             'topics'             => $topics,
             'titleTopics'        => setting('section_title_topics', 'Explore by topic'),
             'subtitleTopics'     => setting('section_subtitle_topics', ''),
-            // Section 5: Latest stories
-            'showLatest'         => $showLatest && !empty($latestPosts),
-            'latestPosts'        => $latestPosts,
+            // Section 5: Latest stories (replaced by Latest Strip)
+            'showLatest'         => false,
+            'latestPosts'        => [],
             'titleLatest'        => setting('section_title_latest', 'Latest stories'),
             'subtitleLatest'     => setting('section_subtitle_latest', ''),
             // Section 6: Get involved

@@ -1113,20 +1113,29 @@ class PostModel
     /**
      * Retrieve slides for the home hero slider:
      * Up to 5 posts with is_pick = 1 (newest first).
-     * If fewer than 2 picks, use the newest published posts instead.
+     * If fewer than 2 picks (after excluding specified IDs), fall back to the next newest published posts.
      *
      * @param int $limit
+     * @param array|int|null $exclude
      * @return array
      */
-    public static function getSliderPosts(int $limit = 5): array
+    public static function getSliderPosts(int $limit = 5, array|int|null $exclude = null): array
     {
         $pdo = Database::getConnection();
         $sqlPub = self::sqlPublished('p');
+        $excludeClause = '';
+        if (is_array($exclude) && !empty($exclude)) {
+            $clean = implode(',', array_map('intval', $exclude));
+            $excludeClause = " AND p.id NOT IN ({$clean})";
+        } elseif (is_numeric($exclude) && (int) $exclude > 0) {
+            $excludeClause = " AND p.id != " . (int) $exclude;
+        }
+
         $stmt = $pdo->prepare("
             SELECT p.*, c.name AS category_name, c.slug AS category_slug
             FROM posts p
             LEFT JOIN categories c ON p.category_id = c.id
-            WHERE p.is_pick = 1 AND {$sqlPub}
+            WHERE p.is_pick = 1 AND {$sqlPub}{$excludeClause}
             ORDER BY COALESCE(p.published_at, p.created_at) DESC, p.id DESC
             LIMIT :limit
         ");
@@ -1138,7 +1147,7 @@ class PostModel
             return $picks;
         }
 
-        return self::getLatestPublished($limit);
+        return self::getLatestPublished($limit, $exclude);
     }
 
     /**

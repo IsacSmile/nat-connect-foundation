@@ -343,6 +343,7 @@ class SettingsController
             'section_intro_donate'         => $sectionIntroDonate,
             'section_show_announcement'    => $sectionShowAnnouncement,
             'section_show_latest'          => $sectionShowLatest,
+            'section_show_latest_strip'    => $sectionShowLatest,
             'section_show_topics'          => $sectionShowTopics,
             'section_show_causes'          => $sectionShowCauses,
             'section_show_campaigns'       => $sectionShowCampaigns,

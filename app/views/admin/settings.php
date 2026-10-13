@@ -741,11 +741,14 @@
 
         <div class="space-y-6 divide-y divide-border">
 
-          <!-- Section: Latest Stories -->
+          <!-- Section: Latest Strip -->
           <div class="pt-4 first:pt-0 space-y-3">
             <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold uppercase tracking-wider text-ink">Section: Latest Stories</label>
-              <label class="inline-flex items-center cursor-pointer">
+              <div>
+                <label class="text-xs font-semibold uppercase tracking-wider text-ink block">Section: Latest Strip</label>
+                <p class="text-[11px] text-ink-muted mt-0.5">Displays the 4 newest published posts in a compact strip under the header. Hidden automatically if fewer than 2 posts exist.</p>
+              </div>
+              <label class="inline-flex items-center cursor-pointer shrink-0">
                 <input 
                   type="checkbox" 
                   name="section_show_latest" 
@@ -753,32 +756,11 @@
                   <?= !empty($settings['section_show_latest'] ?? '1') ? 'checked' : '' ?>
                   class="rounded border-border text-primary focus:ring-primary h-4 w-4"
                 >
-                <span class="ml-2 text-xs font-medium text-ink">Show section</span>
+                <span class="ml-2 text-xs font-medium text-ink">Show latest strip</span>
               </label>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label for="section_title_latest" class="block text-[11px] text-ink-muted mb-1">Section Title</label>
-                <input 
-                  type="text" 
-                  id="section_title_latest" 
-                  name="section_title_latest" 
-                  value="<?= e($settings['section_title_latest'] ?? 'Latest stories') ?>" 
-                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
-                >
-              </div>
-              <div>
-                <label for="section_subtitle_latest" class="block text-[11px] text-ink-muted mb-1">Section Subtitle (Optional)</label>
-                <input 
-                  type="text" 
-                  id="section_subtitle_latest" 
-                  name="section_subtitle_latest" 
-                  value="<?= e($settings['section_subtitle_latest'] ?? '') ?>" 
-                  class="w-full px-3.5 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm text-ink"
-                  placeholder="Leave empty to hide"
-                >
-              </div>
-            </div>
+            <input type="hidden" name="section_title_latest" value="<?= e($settings['section_title_latest'] ?? 'Latest stories') ?>">
+            <input type="hidden" name="section_subtitle_latest" value="<?= e($settings['section_subtitle_latest'] ?? '') ?>">
           </div>
 
           <!-- Section: Explore by topic -->

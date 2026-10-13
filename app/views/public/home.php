@@ -7,42 +7,105 @@ declare(strict_types=1);
  */
 ?>
 
-<div class="space-y-16 sm:space-y-24">
+<?php if (!empty($showLatestStrip) && !empty($stripPosts) && count($stripPosts) >= 2): ?>
+  <!-- =========================================================================
+       0. LATEST STRIP (Directly below header, above announcement & hero)
+       ========================================================================= -->
+  <section class="border-b border-ink/10 bg-surface" aria-label="Latest stories">
+    <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-2.5 lg:py-2">
+      <!-- Small label before the row on desktop: "Latest" (eyebrow style), not a heading -->
+      <div class="hidden lg:block mb-1">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-accent-strong select-none">Latest</span>
+      </div>
 
+      <!-- Items: Mobile horizontal scroll-snap, Tablet 2x2 grid, Desktop 1 row 4 equal columns -->
+      <div 
+        tabindex="0"
+        role="region"
+        aria-label="Latest stories"
+        class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-pl-5 -mr-5 pr-5 gap-3.5 md:mr-0 md:pr-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-ink/10 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+      >
+        <?php foreach ($stripPosts as $idx => $p): ?>
+          <?php
+            $postUrl = '/post/' . e($p['slug']);
+            $thumb = !empty($p['cover_image']) ? \App\Core\ImageUploader::getVariantUrl($p['cover_image'], 400) : '';
+            $alt = !empty($p['cover_alt']) ? $p['cover_alt'] : $p['title'];
+            $categoryName = !empty($p['category_name']) ? (string) $p['category_name'] : 'News';
+          ?>
+          <a 
+            href="<?= $postUrl ?>" 
+            class="group flex items-start gap-3 py-1 lg:py-1.5 lg:px-4 first:lg:pl-0 last:lg:pr-0 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 shrink-0 w-[75vw] sm:w-[75vw] md:w-auto snap-start hover:bg-surface-alt/60 transition-colors"
+          >
+            <!-- 72px square thumbnail (400w variant, rounded-md, lazy except the first) on the left -->
+            <?php if (!empty($thumb)): ?>
+              <img 
+                src="<?= e($thumb) ?>" 
+                alt="<?= e($alt) ?>" 
+                width="72" 
+                height="72" 
+                class="w-[72px] h-[72px] shrink-0 rounded-md object-cover border border-ink/10 group-hover:opacity-95 transition-opacity"
+                <?= $idx === 0 ? 'loading="eager"' : 'loading="lazy"' ?>
+              >
+            <?php else: ?>
+              <div class="w-[72px] h-[72px] shrink-0 rounded-md bg-surface-alt border border-ink/10 flex items-center justify-center text-accent-strong/40">
+                <span class="font-serif text-xs font-semibold uppercase tracking-wider text-accent-strong">
+                  <?= e(mb_substr($categoryName, 0, 3)) ?>
+                </span>
+              </div>
+            <?php endif; ?>
+
+            <!-- Right side: category eyebrow (12px uppercase in text-accent-strong) + title in Fraunces 500, 15px, up to 3 lines (NEVER truncated with ellipsis) -->
+            <div class="flex-1 min-w-0 space-y-1">
+              <span class="text-[12px] uppercase font-semibold text-accent-strong tracking-wider block leading-none truncate">
+                <?= e($categoryName) ?>
+              </span>
+              <span class="font-serif font-medium text-[15px] leading-[1.3] text-ink group-hover:text-primary transition-colors block max-h-[3.9em] overflow-hidden">
+                <?= e($p['title']) ?>
+              </span>
+            </div>
+          </a>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </section>
+<?php endif; ?>
+
+<?php if (!empty($showAnnouncement)): ?>
   <!-- =========================================================================
        1. ANNOUNCEMENT BAR (Dismissible via localStorage)
        ========================================================================= -->
-  <?php if (!empty($showAnnouncement)): ?>
-    <div 
-      x-data="{ dismissed: localStorage.getItem('nc_announcement_dismissed') === '1' }" 
-      x-show="!dismissed" 
-      x-cloak
-      class="bg-primary text-white text-sm py-2.5 px-5 shadow-sm"
-      role="region"
-      aria-label="Announcement"
-    >
-      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <div class="flex-1 text-center min-w-0">
-          <?php if (!empty($announcementLink)): ?>
-            <a href="<?= e($announcementLink) ?>" class="inline-flex items-center gap-1.5 hover:underline font-medium truncate">
-              <span><?= e($announcementText) ?></span>
-              <span aria-hidden="true">&rarr;</span>
-            </a>
-          <?php else: ?>
-            <span class="font-medium truncate inline-block"><?= e($announcementText) ?></span>
-          <?php endif; ?>
-        </div>
-        <button 
-          type="button" 
-          @click="localStorage.setItem('nc_announcement_dismissed', '1'); dismissed = true" 
-          class="shrink-0 p-1 text-white/80 hover:text-white rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-          aria-label="Dismiss announcement"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
+  <div 
+    x-data="{ dismissed: localStorage.getItem('nc_announcement_dismissed') === '1' }" 
+    x-show="!dismissed" 
+    x-cloak
+    class="bg-primary text-white text-sm py-2.5 px-5 shadow-sm"
+    role="region"
+    aria-label="Announcement"
+  >
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div class="flex-1 text-center min-w-0">
+        <?php if (!empty($announcementLink)): ?>
+          <a href="<?= e($announcementLink) ?>" class="inline-flex items-center gap-1.5 hover:underline font-medium truncate">
+            <span><?= e($announcementText) ?></span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        <?php else: ?>
+          <span class="font-medium truncate inline-block"><?= e($announcementText) ?></span>
+        <?php endif; ?>
       </div>
+      <button 
+        type="button" 
+        @click="localStorage.setItem('nc_announcement_dismissed', '1'); dismissed = true" 
+        class="shrink-0 p-1 text-white/80 hover:text-white rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        aria-label="Dismiss announcement"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
     </div>
-  <?php endif; ?>
+  </div>
+<?php endif; ?>
+
+<div class="space-y-16 sm:space-y-24">
 
   <!-- =========================================================================
        2. HERO SECTION (Slider + Most Read + Calls To Action)
@@ -707,77 +770,6 @@ declare(strict_types=1);
     </section>
   <?php endif; ?>
 
-  <!-- =========================================================================
-       5. LATEST STORIES
-       ========================================================================= -->
-  <?php if (!empty($showLatest)): ?>
-    <section class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8" aria-labelledby="latest-heading">
-      <?php \App\Core\View::partial('partials/section-header', [
-        'title'        => $titleLatest,
-        'subtitle'     => $subtitleLatest,
-        'viewAllUrl'   => '/stories',
-        'viewAllLabel' => 'View all',
-      ]); ?>
-
-      <!-- Desktop (>= 640px): Standard 3-column card grid unchanged -->
-      <div class="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-8">
-        <?php foreach ($latestPosts as $p): ?>
-          <?php \App\Core\View::partial('partials/post-card', ['post' => $p]); ?>
-        <?php endforeach; ?>
-      </div>
-
-      <!-- Mobile (< 640px): First post full card, rest as compact rows with 96px thumbnail -->
-      <div class="sm:hidden flex flex-col">
-        <?php if (!empty($latestPosts[0])): ?>
-          <?php \App\Core\View::partial('partials/post-card', ['post' => $latestPosts[0]]); ?>
-        <?php endif; ?>
-
-        <?php $latestRest = array_slice($latestPosts, 1); ?>
-        <?php if (!empty($latestRest)): ?>
-          <div class="divide-y divide-ink/10 border-t border-ink/10 mt-6">
-            <?php foreach ($latestRest as $sub): ?>
-              <?php
-                $subUrl = '/post/' . e($sub['slug']);
-                $subThumb = !empty($sub['cover_image']) ? \App\Core\ImageUploader::getVariantUrl($sub['cover_image'], 400) : '';
-                $subAlt = !empty($sub['cover_alt']) ? $sub['cover_alt'] : $sub['title'];
-                $subCategory = !empty($sub['category_name']) ? strtoupper((string) $sub['category_name']) : 'STORY';
-                $subRawDate = $sub['published_at'] ?? ($sub['created_at'] ?? '');
-                $subDate = !empty($subRawDate) ? strtoupper(date('d M Y', strtotime((string) $subRawDate))) : '';
-                $subEyebrow = $subCategory . ($subDate !== '' ? ' · ' . $subDate : '');
-              ?>
-              <article class="group relative py-4 flex items-start gap-4">
-                <?php if ($subThumb): ?>
-                  <img 
-                    src="<?= e($subThumb) ?>" 
-                    alt="<?= e($subAlt) ?>" 
-                    width="96" 
-                    height="96" 
-                    class="w-24 h-24 shrink-0 rounded-lg object-cover border border-ink/10"
-                    loading="lazy"
-                  >
-                <?php else: ?>
-                  <div class="w-24 h-24 shrink-0 rounded-lg bg-surface border border-ink/10 flex items-center justify-center text-primary/60">
-                    <span class="font-serif text-xs font-medium uppercase tracking-wider"><?= e($subCategory) ?></span>
-                  </div>
-                <?php endif; ?>
-
-                <div class="flex-1 min-w-0 space-y-1">
-                  <span class="text-[12px] uppercase tracking-wider font-semibold text-accent-strong block">
-                    <?= e($subEyebrow) ?>
-                  </span>
-                  <h3 class="font-serif text-base font-medium text-ink group-hover:text-primary transition-colors leading-snug">
-                    <a href="<?= $subUrl ?>" class="focus:outline-none after:absolute after:inset-0 after:content-['']">
-                      <?= e($sub['title']) ?>
-                    </a>
-                  </h3>
-                </div>
-              </article>
-            <?php endforeach; ?>
-          </div>
-        <?php endif; ?>
-      </div>
-    </section>
-  <?php endif; ?>
 
   <!-- =========================================================================
        6. GET INVOLVED (id="get-involved")
