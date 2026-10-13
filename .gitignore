@@ -32,3 +32,8 @@ Thumbs.db
 *.swp
 *~
 
+
+# Generated content packs (bin/build-content-pack.php)
+/build/
+/content/launch-posts/source/pack/
+__pycache__/
